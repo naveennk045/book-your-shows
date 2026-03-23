@@ -25,7 +25,31 @@ dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
 
 }
+tasks.register<Copy>("deploy") {
+    dependsOn(tasks.named("war"))
 
+    val tomcatWebapps = "/Users/naveen-nts0470/devhub/bookyourshow/server/webapps"
+
+    val warTask = tasks.named<War>("war")
+
+    doFirst {
+        val warFile = warTask.get().archiveFile.get().asFile
+        val warName = warFile.name
+        val explodedDir = warName.removeSuffix(".war")
+
+        delete("$tomcatWebapps/$warName")
+        delete("$tomcatWebapps/$explodedDir")
+
+        println("Old deployment removed: $warName")
+    }
+
+    from(warTask.map { it.archiveFile })
+    into(tomcatWebapps)
+
+    doLast {
+        println("New WAR deployed successfully 🚀")
+    }
+}
 tasks.test {
     useJUnitPlatform()
 }

@@ -4,8 +4,8 @@ import java.sql.Timestamp;
 
 public class TheatreAddress {
 
-    private int addressId;
-    private int theatreId;
+    private Integer addressId;
+    private Integer theatreId;
     private String addressLine1;
     private String addressLine2;
     private String city;
@@ -20,19 +20,19 @@ public class TheatreAddress {
     public TheatreAddress() {
     }
 
-    public int getAddressId() {
+    public Integer getAddressId() {
         return addressId;
     }
 
-    public void setAddressId(int addressId) {
+    public void setAddressId(Integer addressId) {
         this.addressId = addressId;
     }
 
-    public int getTheatreId() {
+    public Integer getTheatreId() {
         return theatreId;
     }
 
-    public void setTheatreId(int theatreId) {
+    public void setTheatreId(Integer theatreId) {
         this.theatreId = theatreId;
     }
 

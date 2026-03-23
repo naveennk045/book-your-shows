@@ -105,6 +105,41 @@ public class TheatreRepository {
         }
     }
 
+    public Optional<TheatreDetails> getTheatreByOwnerId(int ownerId) throws SQLException {
+        String sqlQuery = """
+                SELECT t.theatre_id,
+                       t.theatre_name,
+                       t.email,
+                       t.contact_number,
+                       t.total_screens,
+                       a.address_id,
+                       a.address_line1,
+                       a.city,
+                       a.state,
+                       a.pincode,
+                       a.latitude,
+                       a.longitude
+                
+                FROM theatres AS t
+                JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
+                WHERE t.owner_id = ?
+                """;
+
+        try (Connection Connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, ownerId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                TheatreDetails details = TheatreMapper.mapRowToTheatreDetails(resultSet);
+                return Optional.of(details);
+            }
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
+        return Optional.empty();
+
+    }
+
     public int addTheatre(TheatreCreateRequest request) throws SQLException {
         String insertTheatreSql = """
                 INSERT INTO theatres
@@ -112,18 +147,8 @@ public class TheatreRepository {
                 VALUES (?, ?, ?, ?, ?, ?,?)
                 """;
 
-        String insertAddressSql = """
-                INSERT INTO theatre_addresses
-                    (theatre_id, address_line1, address_line2, city, state, country,
-                     pincode, latitude, longitude)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-
         try (Connection connection = DatabaseManager.getConnection()) {
-            connection.setAutoCommit(false);
-
             int theatreId;
-
             try (PreparedStatement preparedStatement = connection.prepareStatement(insertTheatreSql, Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setInt(1, request.getOwnerId());
                 preparedStatement.setString(2, request.getTheatreName());
@@ -136,55 +161,80 @@ public class TheatreRepository {
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    connection.rollback();
-                    throw new SQLException("Creating theatre failed.");
-                }
+                    throw new RuntimeException("Failed to create theatre");                }
 
                 try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                     if (keys.next()) {
                         theatreId = keys.getInt(1);
                     } else {
-                        connection.rollback();
-                        throw new SQLException("Creating theatre failed.");
-                    }
+                        throw new RuntimeException("Failed to create theatre");                    }
                 }
             }
-
-            try (PreparedStatement preparedStatement = connection.prepareStatement(insertAddressSql)) {
-                preparedStatement.setInt(1, theatreId);
-                preparedStatement.setString(2, request.getAddressLine1());
-                preparedStatement.setString(3, request.getAddressLine2());
-                preparedStatement.setString(4, request.getCity());
-                preparedStatement.setString(5, request.getState());
-                preparedStatement.setString(6, request.getCountry());
-                preparedStatement.setString(7, request.getPincode());
-                preparedStatement.setDouble(8, request.getLatitude());
-                preparedStatement.setDouble(9, request.getLongitude());
-
-                int affected = preparedStatement.executeUpdate();
-                if (affected == 0) {
-                    connection.rollback();
-                    throw new SQLException("creating theatre address fail no rows affected.");
-                }
-            }
-
-            connection.commit();
-
             return theatreId;
         }
     }
 
-    public boolean updateTheatreWithAddress(int theatreId, TheatreUpdateRequest request) throws SQLException {
+    public boolean addTheatreAddress(TheatreCreateRequest request, int theatreId) throws SQLException {
+        String insertAddressSql = """
+                INSERT INTO theatre_addresses
+                    (theatre_id, address_line1, address_line2, city, state, country,
+                     pincode, latitude, longitude)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(insertAddressSql);
+
+            preparedStatement.setInt(1, theatreId);
+            preparedStatement.setString(2, request.getAddressLine1());
+            preparedStatement.setString(3, request.getAddressLine2());
+            preparedStatement.setString(4, request.getCity());
+            preparedStatement.setString(5, request.getState());
+            preparedStatement.setString(6, request.getCountry());
+            preparedStatement.setString(7, request.getPincode());
+            preparedStatement.setDouble(8, request.getLatitude());
+            preparedStatement.setDouble(9, request.getLongitude());
+
+            int affected = preparedStatement.executeUpdate();
+            if (affected == 0) {
+                return false;
+            }
+
+        }
+        return true;
+    }
+
+    public boolean updateTheatre(int theatreId, TheatreUpdateRequest request) throws SQLException {
 
         String updateTheatreSql = """
-                UPDATE theatres
-                SET theatre_name = ?,
-                    email = ?,
-                    contact_number = ?,
-                    total_screens = ?,
-                    license_document = ?
-                WHERE theatre_id = ?
+                                UPDATE theatres
+                                SET theatre_name = ?,
+                                    email = ?,
+                                    contact_number = ?,
+                                    total_screens = ?,
+                                    license_document = ?
+                                WHERE theatre_id = ?
                 """;
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            int theatreRows;
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateTheatreSql)) {
+                preparedStatement.setString(1, request.getTheatreName());
+                preparedStatement.setString(2, request.getEmail());
+                preparedStatement.setString(3, request.getContactNumber());
+                preparedStatement.setInt(4, request.getTotalScreens());
+                preparedStatement.setString(5, request.getLicenseDocument());
+                preparedStatement.setInt(6, theatreId);
+
+                theatreRows = preparedStatement.executeUpdate();
+            }
+
+            return theatreRows != 0;
+        }
+    }
+
+    public boolean updateTheatreAddress(int theatreId, TheatreUpdateRequest request) throws SQLException {
 
         String updateAddressSql = """
                 UPDATE theatre_addresses
@@ -200,26 +250,8 @@ public class TheatreRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection()) {
-            connection.setAutoCommit(false);
-
-            int theatreRows;
             int addressRows;
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(updateTheatreSql)) {
-                preparedStatement.setString(1, request.getTheatreName());
-                preparedStatement.setString(2, request.getEmail());
-                preparedStatement.setString(3, request.getContactNumber());
-                preparedStatement.setInt(4, request.getTotalScreens());
-                preparedStatement.setString(5, request.getLicenseDocument());
-                preparedStatement.setInt(6, theatreId);
-
-                theatreRows = preparedStatement.executeUpdate();
-            }
-
-            if (theatreRows == 0) {
-                connection.rollback();
-                return false;
-            }
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(updateAddressSql)) {
                 preparedStatement.setString(1, request.getAddressLine1());
@@ -235,41 +267,22 @@ public class TheatreRepository {
                 addressRows = preparedStatement.executeUpdate();
             }
 
-            if (addressRows == 0) {
-                connection.rollback();
-                return false;
-            }
-
-            connection.commit();
-            return true;
+            return addressRows != 0;
         }
     }
 
+
+
     public boolean deleteTheatre(int theatreId) throws SQLException {
-        String deleteAddressSql = "DELETE FROM theatre_addresses WHERE theatre_id = ?";
         String deleteTheatreSql = "DELETE FROM theatres WHERE theatre_id = ?";
 
         try (Connection connection = DatabaseManager.getConnection()) {
-            connection.setAutoCommit(false);
-
-            try (PreparedStatement preparedStatementAddress = connection.prepareStatement(deleteAddressSql)) {
-                preparedStatementAddress.setInt(1, theatreId);
-                preparedStatementAddress.executeUpdate();
-            }
-
             int theatreRows;
             try (PreparedStatement preparedStatementTheatre = connection.prepareStatement(deleteTheatreSql)) {
                 preparedStatementTheatre.setInt(1, theatreId);
                 theatreRows = preparedStatementTheatre.executeUpdate();
             }
-
-            if (theatreRows == 0) {
-                connection.rollback();
-                return false;
-            }
-
-            connection.commit();
-            return true;
+            return theatreRows != 0;
         }
     }
 

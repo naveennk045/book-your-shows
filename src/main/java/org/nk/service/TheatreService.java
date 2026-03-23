@@ -26,53 +26,14 @@ public class TheatreService {
         return theatreRepository.getAllTheatres(limit, offset, theatreName, city);
     }
 
-    /*public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
-        ResultSet resultSet = theatreRepository.getTheatreById(theatreId);
 
-        try {
-            if (resultSet.next()) {
-                TheatreDetails details = TheatreMapper.mapRowToTheatreDetails(resultSet);
-                return Optional.of(details);
-            }
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        }
-        return Optional.empty();
-
-    }
-
-    public List<TheatreSummary> getAllTheatre(Integer limit,
-                                              Integer offset,
-                                              String theatreName,
-                                              String city) throws SQLException {
-
-        ResultSet resultSet = theatreRepository.getAllTheatres(limit, offset, theatreName, city);
-        List<TheatreSummary> details = new ArrayList<>();
-
-        try {
-
-            while (resultSet.next()) {
-                TheatreSummary detail = mapRowToTheatreSummary(resultSet);
-                details.add(detail);
-            }
-        } catch (SQLException e) {
-            throw new SQLException(e);
-        }
-        return details;
-    }
-*/
     public TheatreDetails createTheatre(TheatreCreateRequest request) throws SQLException {
 
 
-        if (request.getTheatreName() == null || request.getTheatreName().isBlank()) {
-            throw new IllegalArgumentException("theatreName is required");
-        }
-        if (request.getEmail() == null || request.getEmail().isBlank()) {
-            throw new IllegalArgumentException("email is required");
-        }
-        if (request.getContactNumber() == null || request.getContactNumber().isBlank()) {
-            throw new IllegalArgumentException("contactNumber is required");
-        }
+        validateTheatreName(request.getTheatreName());
+        validateEmail(request.getEmail());
+        validateContactNumber(request.getContactNumber());
+
         if (request.getTotalScreens() <= 0) {
             throw new IllegalArgumentException("totalScreens must be greater than 0");
         }
@@ -88,31 +49,39 @@ public class TheatreService {
         if (request.getPincode() == null || request.getPincode().isBlank()) {
             throw new IllegalArgumentException("pincode is required");
         }
-        request.setOwnerId(9);
-        request.setState("APPROVED");
 
+        /*TODO
+            Owner validation
+            - Role verification
+            - Whether User is active.
+         */
+
+        if (theatreRepository.getTheatreByOwnerId(request.getOwnerId()).isPresent()) {
+            throw new RuntimeException("There is already an existing theatre,One user can able to create one theatre");
+        }
+        request.setState("APPROVED");
         int theatreId = theatreRepository.addTheatre(request);
+        boolean isTheatreAddressAdded = theatreRepository.addTheatreAddress(request, theatreId);
+        if (!isTheatreAddressAdded) {
+            throw new RuntimeException("Theatre created successfully, but address creation failed. Please update the address.");
+        }
         Optional<TheatreDetails> theatreDetails = this.getTheatreById(theatreId);
         if (theatreDetails.isPresent()) {
             return theatreDetails.get();
         }
-        throw new SQLException("Theatre created but, not found");
+        throw new RuntimeException("Theatre created but, not found");
     }
+
 
     public boolean updateTheatre(int theatreId,
                                  TheatreUpdateRequest request) throws SQLException {
 
-        if (request.getTheatreName() == null || request.getTheatreName().isBlank()) {
-            throw new IllegalArgumentException("theatreName is required");
-        }
-        if (request.getEmail() == null || request.getEmail().isBlank()) {
-            throw new IllegalArgumentException("email is required");
-        }
-        if (request.getContactNumber() == null || request.getContactNumber().isBlank()) {
-            throw new IllegalArgumentException("contactNumber is required");
-        }
+        validateTheatreName(request.getTheatreName());
+        validateEmail(request.getEmail());
+        validateContactNumber(request.getContactNumber());
+
         if (request.getTotalScreens() <= 0) {
-            throw new IllegalArgumentException("totalScreens must be greater  0");
+            throw new IllegalArgumentException("totalScreens must be greater than 0");
         }
         if (request.getAddressLine1() == null || request.getAddressLine1().isBlank()) {
             throw new IllegalArgumentException("addressLine1 is required");
@@ -120,12 +89,74 @@ public class TheatreService {
         if (request.getCity() == null || request.getCity().isBlank()) {
             throw new IllegalArgumentException("city is required");
         }
+        if (request.getState() == null || request.getState().isBlank()) {
+            throw new IllegalArgumentException("state is required");
+        }
+        if (request.getPincode() == null || request.getPincode().isBlank()) {
+            throw new IllegalArgumentException("pincode is required");
+        }
 
-        return theatreRepository.updateTheatreWithAddress(theatreId, request);
+
+        boolean isTheatreUpdated = theatreRepository.updateTheatre(theatreId, request);
+        if (!isTheatreUpdated) {
+            throw new RuntimeException("Failed to update the theatre");
+        }
+        boolean isTheatreAddressUpdated = theatreRepository.updateTheatreAddress(theatreId, request);
+        if (!isTheatreAddressUpdated) {
+            throw new RuntimeException("Theatre is Updated, Failed to update the theatre address.");
+        }
+        return true;
     }
 
     public boolean deleteTheatre(int theatreId) throws SQLException {
+        /*
+         * TODO :
+         *   Is there any existing show under this theatre.
+         * */
         return theatreRepository.deleteTheatre(theatreId);
+    }
+
+
+    private void validateTheatreName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("theatreName is required");
+        }
+
+        if (name.length() > 150) {
+            throw new IllegalArgumentException("theatreName too long");
+        }
+
+        if (name.matches("\\d+")) {
+            throw new IllegalArgumentException("theatreName cannot be only numbers");
+        }
+
+        if (!name.matches("^[a-zA-Z0-9\\s&().-]+$")) {
+            throw new IllegalArgumentException("Invalid characters in theatreName");
+        }
+    }
+
+    private void validateEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("email is required");
+        }
+
+        String regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+
+        if (!email.matches(regex)) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
+    }
+
+    private void validateContactNumber(String number) {
+        if (number == null || number.isBlank()) {
+            throw new IllegalArgumentException("contactNumber is required");
+        }
+
+        number = number.trim();
+
+        if (!number.matches("^(\\+91)?[6-9]\\d{9}$")) {
+            throw new IllegalArgumentException("Invalid contact number");
+        }
     }
 
 

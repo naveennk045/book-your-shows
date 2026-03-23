@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@WebServlet("/theatres/*")
+//@WebServlet("/theatres/*")
 public class TheatreServlet extends HttpServlet {
 
     private TheatreService theatreService;
@@ -111,6 +111,14 @@ public class TheatreServlet extends HttpServlet {
         TheatreCreateRequest createReq;
         try {
             createReq = objectMapper.readValue(request.getReader(), TheatreCreateRequest.class);
+            int user_id = request.getIntHeader("user_id");
+
+            if(user_id == -1) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "User id is required"));
+                return;
+            }
+            createReq.setOwnerId(user_id);
         } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
@@ -131,11 +139,10 @@ public class TheatreServlet extends HttpServlet {
 
             objectMapper.writeValue(response.getWriter(), body);
 
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
-
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
