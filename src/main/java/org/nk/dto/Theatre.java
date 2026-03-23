@@ -1,4 +1,3 @@
-// src/main/java/org/nk/theatre/model/Theatre.java
 package org.nk.dto;
 
 import java.sql.Timestamp;

@@ -1,7 +1,9 @@
 package org.nk.servlet;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -28,6 +30,8 @@ public class TheatreServlet extends HttpServlet {
     public TheatreServlet() {
         this.theatreService = new TheatreService();
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @Override
@@ -38,11 +42,12 @@ public class TheatreServlet extends HttpServlet {
 
         String path = request.getPathInfo();
 
-        if (path != null && path.length() > 1) {
+        try {
 
-            try {
+            if (path != null && path.length() > 1) {
+
                 int theatreId = Integer.parseInt(path.substring(1));
-                Optional<TheatreDetails> theatreDetails = theatreService.findTheatreById(theatreId);
+                Optional<TheatreDetails> theatreDetails = theatreService.getTheatreById(theatreId);
 
                 if (theatreDetails.isPresent()) {
                     response.setStatus(HttpServletResponse.SC_OK);
@@ -51,26 +56,38 @@ public class TheatreServlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre not found"));
                 }
-
-            } catch (NumberFormatException ex) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre id: " + path.substring(1)));
+                return;
             }
-
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
+            return;
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
             return;
         }
 
+
         String theatreName = request.getParameter("theatre_name");
         String city = request.getParameter("city");
-
         Integer limit = parseIntOrDefault(request.getParameter("limit"), 20);
         Integer offset = parseIntOrDefault(request.getParameter("offset"), 0);
 
-        List<TheatreSummary> theatres = theatreService.findAllTheatre(limit, offset, theatreName, city);
+        if (limit > 100 || limit < 0 || offset < 0) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Limit is greater than 100,should be less than or equal to 100 "));
+            return;
+        }
+        try {
+            List<TheatreSummary> theatres = theatreService.getAllTheatre(limit, offset, theatreName, city);
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), theatres);
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), theatres);
-
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
+        }
     }
 
 
@@ -82,7 +99,6 @@ public class TheatreServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
-
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -119,6 +135,7 @@ public class TheatreServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
+
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
@@ -133,6 +150,14 @@ public class TheatreServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        if (request.getContentType() == null ||
+                !request.getContentType().toLowerCase().contains("application/json")) {
+            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Content-Type must be application/json"));
+            return;
+        }
 
         String path = request.getPathInfo();
         if (path == null || path.length() <= 1) {
@@ -225,9 +250,7 @@ public class TheatreServlet extends HttpServlet {
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre deleted successfully",
-                            "theatre_id", theatreId));
-
+                    Map.of("message", "Theatre deleted successfully"));
 
 
         } catch (SQLException e) {
@@ -236,7 +259,6 @@ public class TheatreServlet extends HttpServlet {
                     Map.of("message", "Database error"));
         }
     }
-
 
 
     private Integer parseIntOrDefault(String value, int defaultValue) {

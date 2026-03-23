@@ -1,9 +1,6 @@
 package org.nk.service;
 
-import org.nk.dto.TheatreDetails;
-import org.nk.dto.TheatreSummary;
-import org.nk.dto.TheatreCreateRequest;
-import org.nk.dto.TheatreUpdateRequest;
+import org.nk.dto.*;
 import org.nk.repository.TheatreRepository;
 
 import java.sql.SQLException;
@@ -18,17 +15,52 @@ public class TheatreService {
         this.theatreRepository = new TheatreRepository();
     }
 
-    public Optional<TheatreDetails> findTheatreById(int theatreId) {
-        return theatreRepository.findTheatreById(theatreId);
+    public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
+        return theatreRepository.getTheatreById(theatreId);
     }
 
-    public List<TheatreSummary> findAllTheatre(Integer limit,
-                                               Integer offset,
-                                               String theatreName,
-                                               String city) {
-        return theatreRepository.findAllTheatres(limit, offset, theatreName, city);
+    public List<TheatreSummary> getAllTheatre(Integer limit,
+                                              Integer offset,
+                                              String theatreName,
+                                              String city) throws SQLException {
+        return theatreRepository.getAllTheatres(limit, offset, theatreName, city);
     }
 
+    /*public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
+        ResultSet resultSet = theatreRepository.getTheatreById(theatreId);
+
+        try {
+            if (resultSet.next()) {
+                TheatreDetails details = TheatreMapper.mapRowToTheatreDetails(resultSet);
+                return Optional.of(details);
+            }
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
+        return Optional.empty();
+
+    }
+
+    public List<TheatreSummary> getAllTheatre(Integer limit,
+                                              Integer offset,
+                                              String theatreName,
+                                              String city) throws SQLException {
+
+        ResultSet resultSet = theatreRepository.getAllTheatres(limit, offset, theatreName, city);
+        List<TheatreSummary> details = new ArrayList<>();
+
+        try {
+
+            while (resultSet.next()) {
+                TheatreSummary detail = mapRowToTheatreSummary(resultSet);
+                details.add(detail);
+            }
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
+        return details;
+    }
+*/
     public TheatreDetails createTheatre(TheatreCreateRequest request) throws SQLException {
 
 
@@ -59,7 +91,12 @@ public class TheatreService {
         request.setOwnerId(9);
         request.setState("APPROVED");
 
-        return theatreRepository.addTheatre(request);
+        int theatreId = theatreRepository.addTheatre(request);
+        Optional<TheatreDetails> theatreDetails = this.getTheatreById(theatreId);
+        if (theatreDetails.isPresent()) {
+            return theatreDetails.get();
+        }
+        throw new SQLException("Theatre created but, not found");
     }
 
     public boolean updateTheatre(int theatreId,
@@ -90,4 +127,6 @@ public class TheatreService {
     public boolean deleteTheatre(int theatreId) throws SQLException {
         return theatreRepository.deleteTheatre(theatreId);
     }
+
+
 }

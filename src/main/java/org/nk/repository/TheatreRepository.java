@@ -3,6 +3,7 @@ package org.nk.repository;
 
 import org.nk.config.DatabaseManager;
 import org.nk.dto.*;
+import org.nk.mapper.TheatreMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,7 +15,8 @@ public class TheatreRepository {
     public TheatreRepository() {
     }
 
-    public Optional<TheatreDetails> findTheatreById(int theatreId) {
+
+    public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
         String sqlQuery = """
                 SELECT t.theatre_id,
                        t.theatre_name,
@@ -31,31 +33,27 @@ public class TheatreRepository {
                 
                 FROM theatres AS t
                 JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
-                WHERE t.theatre_id = ? 
+                WHERE t.theatre_id = ?
                 """;
 
-        try (Connection Connection = DatabaseManager.getConnection(); PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery)) {
+        try (Connection Connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
             preparedStatement.setInt(1, theatreId);
-
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                TheatreDetails details = mapRowToTheatreDetails(resultSet);
+                TheatreDetails details = TheatreMapper.mapRowToTheatreDetails(resultSet);
                 return Optional.of(details);
             }
-
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         }
         return Optional.empty();
+
     }
 
-    public List<TheatreSummary> findAllTheatres(Integer limit,
-                                                Integer offset,
-                                                String theatreName,
-                                                String city) {
+    public List<TheatreSummary> getAllTheatres(Integer limit, Integer offset, String theatreName, String city) throws SQLException {
 
-        StringBuilder sqlQuery = new StringBuilder(
-                """
+        StringBuilder sqlQuery = new StringBuilder("""
                 SELECT t.theatre_id,
                        t.theatre_name,
                        t.total_screens,
@@ -63,8 +61,7 @@ public class TheatreRepository {
                 FROM theatres AS t
                 JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
                 WHERE t.status = 'APPROVED'
-                """
-        );
+                """);
 
         List<Object> params = new ArrayList<>();
 
@@ -88,71 +85,27 @@ public class TheatreRepository {
             params.add(offset);
         }
 
-        try (Connection Connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement =
-                     Connection.prepareStatement(sqlQuery.toString())) {
+        try (Connection Connection = DatabaseManager.getConnection()) {
 
+            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery.toString());
             int index = 1;
             for (Object param : params) {
                 preparedStatement.setObject(index++, param);
             }
-
             ResultSet resultSet = preparedStatement.executeQuery();
             List<TheatreSummary> details = new ArrayList<>();
 
             while (resultSet.next()) {
-                TheatreSummary detail = mapRowToTheatreSummary(resultSet);
+                TheatreSummary detail = TheatreMapper.mapRowToTheatreSummary(resultSet);
                 details.add(detail);
             }
             return details;
-
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         }
     }
 
-
-    private TheatreSummary mapRowToTheatreSummary(ResultSet resultSet) throws SQLException {
-
-        TheatreSummary theatreSummary = new TheatreSummary();
-
-        theatreSummary.setTheatreId(resultSet.getInt("theatre_id"));
-        theatreSummary.setTheatreName(resultSet.getString("theatre_name"));
-        theatreSummary.setTotalScreens(resultSet.getInt("total_screens"));
-
-        TheatreAddress address = new TheatreAddress();
-        theatreSummary.setCity(resultSet.getString("city"));
-
-        return theatreSummary;
-    }
-
-    private TheatreDetails mapRowToTheatreDetails(ResultSet resultSet) throws SQLException {
-
-        Theatre theatre = new Theatre();
-        TheatreAddress theatreAddress = new TheatreAddress();
-        TheatreDetails theatreDetails = new TheatreDetails();
-
-        theatre.setTheatreId(resultSet.getInt("theatre_id"));
-        theatre.setTheatreName(resultSet.getString("theatre_name"));
-        theatre.setEmail(resultSet.getString("email"));
-        theatre.setContactNumber(resultSet.getString("contact_number"));
-        theatre.setTotalScreens(resultSet.getInt("total_screens"));
-        theatreDetails.setTheatre(theatre);
-
-        theatreAddress.setAddressId(resultSet.getInt("address_id"));
-        theatreAddress.setAddressLine1(resultSet.getString("address_line1"));
-        theatreAddress.setCity(resultSet.getString("city"));
-        theatreAddress.setState(resultSet.getString("state"));
-        theatreAddress.setPincode(resultSet.getString("pincode"));
-        theatreAddress.setLatitude(resultSet.getDouble("latitude"));
-        theatreAddress.setLongitude(resultSet.getDouble("longitude"));
-        theatreDetails.setAddress(theatreAddress);
-
-        return theatreDetails;
-    }
-
-
-    public TheatreDetails addTheatre(TheatreCreateRequest request) throws SQLException {
+    public int addTheatre(TheatreCreateRequest request) throws SQLException {
         String insertTheatreSql = """
                 INSERT INTO theatres
                     (owner_id, theatre_name, email, contact_number, total_screens, license_document,status)
@@ -166,24 +119,24 @@ public class TheatreRepository {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
-        try (Connection connectionection = DatabaseManager.getConnection()) {
-            connectionection.setAutoCommit(false);
+        try (Connection connection = DatabaseManager.getConnection()) {
+            connection.setAutoCommit(false);
 
             int theatreId;
 
-            try (PreparedStatement preparedStatement = connectionection.prepareStatement(insertTheatreSql, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertTheatreSql, Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setInt(1, request.getOwnerId());
                 preparedStatement.setString(2, request.getTheatreName());
                 preparedStatement.setString(3, request.getEmail());
                 preparedStatement.setString(4, request.getContactNumber());
                 preparedStatement.setInt(5, request.getTotalScreens());
                 preparedStatement.setString(6, request.getLicenseDocument());
-                preparedStatement.setString(7,request.getState());
+                preparedStatement.setString(7, request.getState());
 
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    connectionection.rollback();
+                    connection.rollback();
                     throw new SQLException("Creating theatre failed.");
                 }
 
@@ -191,13 +144,13 @@ public class TheatreRepository {
                     if (keys.next()) {
                         theatreId = keys.getInt(1);
                     } else {
-                        connectionection.rollback();
+                        connection.rollback();
                         throw new SQLException("Creating theatre failed.");
                     }
                 }
             }
 
-            try (PreparedStatement preparedStatement = connectionection.prepareStatement(insertAddressSql)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertAddressSql)) {
                 preparedStatement.setInt(1, theatreId);
                 preparedStatement.setString(2, request.getAddressLine1());
                 preparedStatement.setString(3, request.getAddressLine2());
@@ -210,43 +163,41 @@ public class TheatreRepository {
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    connectionection.rollback();
+                    connection.rollback();
                     throw new SQLException("creating theatre address fail no rows affected.");
                 }
             }
 
-            connectionection.commit();
+            connection.commit();
 
-            return findTheatreById(theatreId)
-                    .orElseThrow(() -> new SQLException("Theatre created but, not found"));
+            return theatreId;
         }
     }
 
-    public boolean updateTheatreWithAddress(int theatreId,
-                                            TheatreUpdateRequest request) throws SQLException {
+    public boolean updateTheatreWithAddress(int theatreId, TheatreUpdateRequest request) throws SQLException {
 
         String updateTheatreSql = """
-            UPDATE theatres
-            SET theatre_name = ?,
-                email = ?,
-                contact_number = ?,
-                total_screens = ?,
-                license_document = ?
-            WHERE theatre_id = ?
-            """;
+                UPDATE theatres
+                SET theatre_name = ?,
+                    email = ?,
+                    contact_number = ?,
+                    total_screens = ?,
+                    license_document = ?
+                WHERE theatre_id = ?
+                """;
 
         String updateAddressSql = """
-            UPDATE theatre_addresses
-            SET address_line1 = ?,
-                address_line2 = ?,
-                city = ?,
-                state = ?,
-                country = ?,
-                pincode = ?,
-                latitude = ?,
-                longitude = ?
-            WHERE theatre_id = ?
-            """;
+                UPDATE theatre_addresses
+                SET address_line1 = ?,
+                    address_line2 = ?,
+                    city = ?,
+                    state = ?,
+                    country = ?,
+                    pincode = ?,
+                    latitude = ?,
+                    longitude = ?
+                WHERE theatre_id = ?
+                """;
 
         try (Connection connection = DatabaseManager.getConnection()) {
             connection.setAutoCommit(false);
@@ -267,7 +218,7 @@ public class TheatreRepository {
 
             if (theatreRows == 0) {
                 connection.rollback();
-                return false; // theatre not found
+                return false;
             }
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(updateAddressSql)) {
@@ -286,7 +237,7 @@ public class TheatreRepository {
 
             if (addressRows == 0) {
                 connection.rollback();
-                return false; 
+                return false;
             }
 
             connection.commit();
@@ -294,7 +245,6 @@ public class TheatreRepository {
         }
     }
 
-    // in TheatreRepository
     public boolean deleteTheatre(int theatreId) throws SQLException {
         String deleteAddressSql = "DELETE FROM theatre_addresses WHERE theatre_id = ?";
         String deleteTheatreSql = "DELETE FROM theatres WHERE theatre_id = ?";
@@ -322,8 +272,6 @@ public class TheatreRepository {
             return true;
         }
     }
-
-
 
 
 }
