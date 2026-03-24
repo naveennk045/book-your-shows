@@ -406,7 +406,7 @@ Creates a screen under a theatre.
 
 ```json
 {
-  "screen_name": "Screen 1",
+  "screenName": "Screen 1",
   "screen_type_id": 1,
   "total_rows": 10,
   "no_of_seats": 120
@@ -441,14 +441,14 @@ Creates a screen under a theatre.
 [
   {
     "screen_id": 1,
-    "screen_name": "Screen 1",
+    "screenName": "Screen 1",
     "screen_type_id": 1,
     "total_rows": 10,
     "no_of_seats": 120
   },
   {
     "screen_id": 2,
-    "screen_name": "Screen 2",
+    "screenName": "Screen 2",
     "screen_type_id": 2,
     "total_rows": 8,
     "no_of_seats": 100
@@ -473,7 +473,7 @@ Creates a screen under a theatre.
 
 ```json
 {
-  "screen_name": "Screen 2",
+  "screenName": "Screen 2",
   "screen_type": {
     "id": 2,
     "name": "Dolby Cinema",
@@ -496,7 +496,7 @@ Creates a screen under a theatre.
 
 ```json
 {
-  "screen_name": "Screen 1 Updated",
+  "screenName": "Screen 1 Updated",
   "screen_type_id": 2,
   "total_rows": 12,
   "no_of_seats": 140
@@ -993,7 +993,7 @@ Creates a screen under a theatre.
     },
     "screen": {
       "screen_id": 1,
-      "screen_name": "Screen 1",
+      "screenName": "Screen 1",
       "screen_type": {
         "name": "IMAX",
         "price_multiplier": 1.5
@@ -1026,7 +1026,7 @@ Creates a screen under a theatre.
     },
     "screen": {
       "screen_id": 1,
-      "screen_name": "Screen 1"
+      "screenName": "Screen 1"
     }
   },
   {
@@ -1041,7 +1041,7 @@ Creates a screen under a theatre.
     },
     "screen": {
       "screen_id": 1,
-      "screen_name": "Screen 1"
+      "screenName": "Screen 1"
     }
   }
 ]
@@ -1103,7 +1103,7 @@ Creates a screen under a theatre.
 {
   "show_id": 1,
   "screen": {
-    "screen_name": "Screen 1",
+    "screenName": "Screen 1",
     "screen_type": {
       "name": "IMAX",
       "price_multiplier": 1.5
@@ -1198,7 +1198,7 @@ Creates a screen under a theatre.
     "theatre_name": "SVR Cinemas"
   },
   "screen": {
-    "screen_name": "Screen 1"
+    "screenName": "Screen 1"
   },
   "seats": [
     {

@@ -14,4 +14,14 @@
         <url-pattern>/theatres/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>ScreenServlet</servlet-name>
+        <servlet-class>org.bookyourshows.servlet.ScreenServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ScreenServlet</servlet-name>
+        <url-pattern>/screens/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
