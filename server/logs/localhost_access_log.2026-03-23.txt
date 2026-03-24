@@ -83,3 +83,8 @@
 0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:00:14 +0530] "POST /bookyourshow-v1/theatres HTTP/1.1" 400 90
 0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:00:24 +0530] "POST /bookyourshow-v1/theatres HTTP/1.1" 400 34
 0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:09:56 +0530] "POST /bookyourshow-v1/theatres HTTP/1.1" 400 34
+0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:13:00 +0530] "GET /bookyourshow-v1/theatres HTTP/1.1" 200 336
+0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:13:12 +0530] "DELETE /bookyourshow-v1/theatres/4 HTTP/1.1" 200 42
+0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:14:45 +0530] "GET /bookyourshow-v1/theatres HTTP/1.1" 200 244
+0:0:0:0:0:0:0:1 - - [23/Mar/2026:16:20:37 +0530] "GET /api/theatres HTTP/1.1" 200 244
+0:0:0:0:0:0:0:1 - - [23/Mar/2026:18:51:45 +0530] "GET /api/theatres HTTP/1.1" 200 244

@@ -39,7 +39,6 @@ public class TheatreServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-
         String path = request.getPathInfo();
 
         try {

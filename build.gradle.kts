@@ -47,9 +47,17 @@ tasks.register<Copy>("deploy") {
     into(tomcatWebapps)
 
     doLast {
-        println("New WAR deployed successfully 🚀")
+        println("New WAR deployed successfully ")
     }
 }
+/*
+
 tasks.test {
     useJUnitPlatform()
 }
+*/
+
+tasks.named<War>("war") {
+    archiveFileName.set("api.war")
+}
+
