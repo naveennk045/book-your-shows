@@ -23,8 +23,8 @@ import java.util.Optional;
 //@WebServlet("/theatres/*")
 public class TheatreServlet extends HttpServlet {
 
-    private TheatreService theatreService;
-    private ObjectMapper objectMapper;
+    private final TheatreService theatreService;
+    private final ObjectMapper objectMapper;
 
     public TheatreServlet() {
         this.theatreService = new TheatreService();
