@@ -2,7 +2,7 @@ package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
-import org.bookyourshows.dto.screen.ScreenDetail;
+import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
 import org.bookyourshows.mapper.ScreenMapper;
 
@@ -17,7 +17,7 @@ public class ScreenRepository {
 
     }
 
-    public List<ScreenDetail> getScreensByTheatreId(int theatreId) throws SQLException {
+    public List<ScreenDetails> getScreensByTheatreId(int theatreId) throws SQLException {
         String sqlQuery = """
                 
                        SELECT s.screen_id,
@@ -38,11 +38,11 @@ public class ScreenRepository {
             PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
             preparedStatement.setInt(1, theatreId);
 
-            List<ScreenDetail> screenDetails = new ArrayList<>();
+            List<ScreenDetails> screenDetails = new ArrayList<>();
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                ScreenDetail screenDetail = ScreenMapper.mapRowToScreenDetail(resultSet);
+                ScreenDetails screenDetail = ScreenMapper.mapRowToScreenDetail(resultSet);
                 screenDetails.add(screenDetail);
             }
 
@@ -54,7 +54,7 @@ public class ScreenRepository {
 
     }
 
-    public Optional<ScreenDetail> getScreenById(int screenId) throws SQLException {
+    public Optional<ScreenDetails> getScreenById(int screenId) throws SQLException {
         String sqlQuery = """
                        SELECT s.screen_id,
                        s.screen_name,
@@ -77,8 +77,8 @@ public class ScreenRepository {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                ScreenDetail screenDetail = ScreenMapper.mapRowToScreenDetail(resultSet);
-                return Optional.of(screenDetail);
+                ScreenDetails screenDetails = ScreenMapper.mapRowToScreenDetail(resultSet);
+                return Optional.of(screenDetails);
             }
         } catch (SQLException e) {
             throw new SQLException(e);

@@ -2,7 +2,7 @@ package org.bookyourshows.dto.screen;
 
 import java.sql.Timestamp;
 
-public class ScreenDetail {
+public class ScreenDetails {
 
     private Integer screenId;
     private String screenName;

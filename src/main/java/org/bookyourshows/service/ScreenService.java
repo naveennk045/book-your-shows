@@ -1,7 +1,7 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
-import org.bookyourshows.dto.screen.ScreenDetail;
+import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
@@ -25,7 +25,7 @@ public class ScreenService {
         this.screenTypeRepository = new ScreenTypeRepository();
     }
 
-    public List<ScreenDetail> getScreensByTheatreId(Integer theatreId) throws SQLException {
+    public List<ScreenDetails> getScreensByTheatreId(Integer theatreId) throws SQLException {
 
         if (theatreRepository.getTheatreById(theatreId).isEmpty()) {
             throw new RuntimeException("Theatre not found");
@@ -35,7 +35,7 @@ public class ScreenService {
 
     }
 
-    public Optional<ScreenDetail> getScreensByScreenId(Integer screenId) throws SQLException {
+    public Optional<ScreenDetails> getScreensByScreenId(Integer screenId) throws SQLException {
         return screenRepository.getScreenById(screenId);
     }
 

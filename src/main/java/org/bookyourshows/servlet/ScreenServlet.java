@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
-import org.bookyourshows.dto.screen.ScreenDetail;
+import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
 import org.bookyourshows.service.ScreenService;
 
@@ -68,7 +68,7 @@ public class ScreenServlet extends HttpServlet {
         if (path == null || path.equals("/") || path.isEmpty()) {
             try {
 
-                List<ScreenDetail> screenDetails = screenService.getScreensByTheatreId(theatreId);
+                List<ScreenDetails> screenDetails = screenService.getScreensByTheatreId(theatreId);
 
                 if (screenDetails.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -93,7 +93,7 @@ public class ScreenServlet extends HttpServlet {
         try {
             if (path != null && path.length() > 1) {
                 screenId = Integer.parseInt(path.substring(1));
-                Optional<ScreenDetail> screenDetail = screenService.getScreensByScreenId(screenId);
+                Optional<ScreenDetails> screenDetail = screenService.getScreensByScreenId(screenId);
                 if (screenDetail.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     objectMapper.writeValue(response.getWriter(), Map.of("message", "No screen found"));
