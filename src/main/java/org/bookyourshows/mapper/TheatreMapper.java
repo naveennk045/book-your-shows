@@ -1,9 +1,9 @@
 package org.bookyourshows.mapper;
 
-import org.bookyourshows.dto.Theatre;
-import org.bookyourshows.dto.TheatreAddress;
-import org.bookyourshows.dto.TheatreDetails;
-import org.bookyourshows.dto.TheatreSummary;
+import org.bookyourshows.dto.theatre.Theatre;
+import org.bookyourshows.dto.theatre.TheatreAddress;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.theatre.TheatreSummary;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

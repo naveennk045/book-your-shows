@@ -8,10 +8,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bookyourshows.dto.TheatreCreateRequest;
-import org.bookyourshows.dto.TheatreDetails;
-import org.bookyourshows.dto.TheatreSummary;
-import org.bookyourshows.dto.TheatreUpdateRequest;
+import org.bookyourshows.dto.theatre.TheatreCreateRequest;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.theatre.TheatreSummary;
+import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
 import org.bookyourshows.service.TheatreService;
 
 import java.io.IOException;

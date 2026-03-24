@@ -1,0 +1,100 @@
+package org.bookyourshows.dto.theatre;
+
+import java.sql.Timestamp;
+
+public class Theatre {
+
+    private Integer theatreId;
+    private Integer ownerId;
+    private String theatreName;
+    private String email;
+    private String contactNumber;
+    private int totalScreens;
+    private String status;
+    private Timestamp registrationDate;
+    private Timestamp approvalDate;
+    private String licenseDocument;
+
+    public Theatre() {
+    }
+
+    public Integer getTheatreId() {
+        return (int) theatreId;
+    }
+
+    public void setTheatreId(Integer theatreId) {
+        this.theatreId = theatreId;
+    }
+
+    public Integer getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getTheatreName() {
+        return theatreName;
+    }
+
+    public void setTheatreName(String theatreName) {
+        this.theatreName = theatreName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
+    }
+
+    public int getTotalScreens() {
+        return totalScreens;
+    }
+
+    public void setTotalScreens(int totalScreens) {
+        this.totalScreens = totalScreens;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Timestamp getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(Timestamp registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public Timestamp getApprovalDate() {
+        return approvalDate;
+    }
+
+    public void setApprovalDate(Timestamp approvalDate) {
+        this.approvalDate = approvalDate;
+    }
+
+    public String getLicenseDocument() {
+        return licenseDocument;
+    }
+
+    public void setLicenseDocument(String licenseDocument) {
+        this.licenseDocument = licenseDocument;
+    }
+}

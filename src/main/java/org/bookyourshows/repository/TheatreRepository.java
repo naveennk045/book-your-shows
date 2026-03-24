@@ -2,7 +2,10 @@ package org.bookyourshows.repository;
 
 
 import org.bookyourshows.config.DatabaseManager;
-import org.bookyourshows.dto.*;
+import org.bookyourshows.dto.theatre.TheatreCreateRequest;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.theatre.TheatreSummary;
+import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
 import org.bookyourshows.mapper.TheatreMapper;
 
 import java.sql.*;

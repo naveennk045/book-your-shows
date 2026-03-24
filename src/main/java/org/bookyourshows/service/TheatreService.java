@@ -1,6 +1,9 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.*;
+import org.bookyourshows.dto.theatre.TheatreCreateRequest;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.theatre.TheatreSummary;
+import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
 import org.bookyourshows.repository.TheatreRepository;
 
 import java.sql.SQLException;
