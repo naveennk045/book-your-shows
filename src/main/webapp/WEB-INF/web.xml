@@ -24,4 +24,14 @@
         <url-pattern>/screens/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>MovieServlet</servlet-name>
+        <servlet-class>org.bookyourshows.servlet.MovieServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>MovieServlet</servlet-name>
+        <url-pattern>/movies/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>
