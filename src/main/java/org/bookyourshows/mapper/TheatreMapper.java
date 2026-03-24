@@ -1,9 +1,9 @@
-package org.nk.mapper;
+package org.bookyourshows.mapper;
 
-import org.nk.dto.Theatre;
-import org.nk.dto.TheatreAddress;
-import org.nk.dto.TheatreDetails;
-import org.nk.dto.TheatreSummary;
+import org.bookyourshows.dto.Theatre;
+import org.bookyourshows.dto.TheatreAddress;
+import org.bookyourshows.dto.TheatreDetails;
+import org.bookyourshows.dto.TheatreSummary;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

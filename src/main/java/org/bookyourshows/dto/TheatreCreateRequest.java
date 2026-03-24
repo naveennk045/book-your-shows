@@ -1,11 +1,14 @@
-package org.nk.dto;
+package org.bookyourshows.dto;
 
-import java.sql.Timestamp;
+public class TheatreCreateRequest {
 
-public class TheatreAddress {
+    private int ownerId;
+    private String theatreName;
+    private String email;
+    private String contactNumber;
+    private int totalScreens;
+    private String licenseDocument;
 
-    private Integer addressId;
-    private Integer theatreId;
     private String addressLine1;
     private String addressLine2;
     private String city;
@@ -14,26 +17,56 @@ public class TheatreAddress {
     private String pincode;
     private double latitude;
     private double longitude;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
 
-    public TheatreAddress() {
+    public TheatreCreateRequest() {
     }
 
-    public Integer getAddressId() {
-        return addressId;
+    public int getOwnerId() {
+        return ownerId;
     }
 
-    public void setAddressId(Integer addressId) {
-        this.addressId = addressId;
+    public void setOwnerId(int ownerId) {
+        this.ownerId = ownerId;
     }
 
-    public Integer getTheatreId() {
-        return theatreId;
+    public String getTheatreName() {
+        return theatreName;
     }
 
-    public void setTheatreId(Integer theatreId) {
-        this.theatreId = theatreId;
+    public void setTheatreName(String theatreName) {
+        this.theatreName = theatreName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getContactNumber() {
+        return contactNumber;
+    }
+
+    public void setContactNumber(String contactNumber) {
+        this.contactNumber = contactNumber;
+    }
+
+    public int getTotalScreens() {
+        return totalScreens;
+    }
+
+    public void setTotalScreens(int totalScreens) {
+        this.totalScreens = totalScreens;
+    }
+
+    public String getLicenseDocument() {
+        return licenseDocument;
+    }
+
+    public void setLicenseDocument(String licenseDocument) {
+        this.licenseDocument = licenseDocument;
     }
 
     public String getAddressLine1() {
@@ -99,20 +132,5 @@ public class TheatreAddress {
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }
+

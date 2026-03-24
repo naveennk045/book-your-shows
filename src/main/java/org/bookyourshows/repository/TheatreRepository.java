@@ -1,9 +1,9 @@
-package org.nk.repository;
+package org.bookyourshows.repository;
 
 
-import org.nk.config.DatabaseManager;
-import org.nk.dto.*;
-import org.nk.mapper.TheatreMapper;
+import org.bookyourshows.config.DatabaseManager;
+import org.bookyourshows.dto.*;
+import org.bookyourshows.mapper.TheatreMapper;
 
 import java.sql.*;
 import java.util.ArrayList;

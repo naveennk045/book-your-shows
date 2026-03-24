@@ -6,7 +6,7 @@
 
     <servlet>
         <servlet-name>TheatreServlet</servlet-name>
-        <servlet-class>org.nk.servlet.TheatreServlet</servlet-class>
+        <servlet-class>org.bookyourshows.servlet.TheatreServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>

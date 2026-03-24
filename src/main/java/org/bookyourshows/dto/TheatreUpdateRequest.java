@@ -1,8 +1,7 @@
-package org.nk.dto;
+package org.bookyourshows.dto;
 
-public class TheatreCreateRequest {
+public class TheatreUpdateRequest {
 
-    private int ownerId;
     private String theatreName;
     private String email;
     private String contactNumber;
@@ -18,15 +17,7 @@ public class TheatreCreateRequest {
     private double latitude;
     private double longitude;
 
-    public TheatreCreateRequest() {
-    }
-
-    public int getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(int ownerId) {
-        this.ownerId = ownerId;
+    public TheatreUpdateRequest() {
     }
 
     public String getTheatreName() {
@@ -133,4 +124,3 @@ public class TheatreCreateRequest {
         this.longitude = longitude;
     }
 }
-

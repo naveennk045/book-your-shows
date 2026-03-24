@@ -1,7 +1,7 @@
-package org.nk.service;
+package org.bookyourshows.service;
 
-import org.nk.dto.*;
-import org.nk.repository.TheatreRepository;
+import org.bookyourshows.dto.*;
+import org.bookyourshows.repository.TheatreRepository;
 
 import java.sql.SQLException;
 import java.util.List;

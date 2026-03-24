@@ -1,4 +1,4 @@
-package org.nk.dto;
+package org.bookyourshows.dto;
 
 public class TheatreSummary {
 

@@ -1,13 +1,11 @@
-package org.nk.dto;
+package org.bookyourshows.dto;
 
-public class TheatreUpdateRequest {
+import java.sql.Timestamp;
 
-    private String theatreName;
-    private String email;
-    private String contactNumber;
-    private int totalScreens;
-    private String licenseDocument;
+public class TheatreAddress {
 
+    private Integer addressId;
+    private Integer theatreId;
     private String addressLine1;
     private String addressLine2;
     private String city;
@@ -16,48 +14,26 @@ public class TheatreUpdateRequest {
     private String pincode;
     private double latitude;
     private double longitude;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
 
-    public TheatreUpdateRequest() {
+    public TheatreAddress() {
     }
 
-    public String getTheatreName() {
-        return theatreName;
+    public Integer getAddressId() {
+        return addressId;
     }
 
-    public void setTheatreName(String theatreName) {
-        this.theatreName = theatreName;
+    public void setAddressId(Integer addressId) {
+        this.addressId = addressId;
     }
 
-    public String getEmail() {
-        return email;
+    public Integer getTheatreId() {
+        return theatreId;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getContactNumber() {
-        return contactNumber;
-    }
-
-    public void setContactNumber(String contactNumber) {
-        this.contactNumber = contactNumber;
-    }
-
-    public int getTotalScreens() {
-        return totalScreens;
-    }
-
-    public void setTotalScreens(int totalScreens) {
-        this.totalScreens = totalScreens;
-    }
-
-    public String getLicenseDocument() {
-        return licenseDocument;
-    }
-
-    public void setLicenseDocument(String licenseDocument) {
-        this.licenseDocument = licenseDocument;
+    public void setTheatreId(Integer theatreId) {
+        this.theatreId = theatreId;
     }
 
     public String getAddressLine1() {
@@ -122,5 +98,21 @@ public class TheatreUpdateRequest {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

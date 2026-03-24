@@ -1,4 +1,4 @@
-package org.nk.config;
+package org.bookyourshows.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

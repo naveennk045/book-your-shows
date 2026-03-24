@@ -1,19 +1,18 @@
-package org.nk.servlet;
+package org.bookyourshows.servlet;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.nk.dto.TheatreCreateRequest;
-import org.nk.dto.TheatreDetails;
-import org.nk.dto.TheatreSummary;
-import org.nk.dto.TheatreUpdateRequest;
-import org.nk.service.TheatreService;
+import org.bookyourshows.dto.TheatreCreateRequest;
+import org.bookyourshows.dto.TheatreDetails;
+import org.bookyourshows.dto.TheatreSummary;
+import org.bookyourshows.dto.TheatreUpdateRequest;
+import org.bookyourshows.service.TheatreService;
 
 import java.io.IOException;
 import java.sql.SQLException;
