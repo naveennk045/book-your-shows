@@ -1,4 +1,4 @@
-package org.bookyourshows.dto.shows;
+package org.bookyourshows.dto.show;
 
 import java.sql.Date;
 import java.sql.Time;

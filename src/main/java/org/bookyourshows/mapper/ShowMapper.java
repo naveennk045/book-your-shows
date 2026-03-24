@@ -1,7 +1,7 @@
 package org.bookyourshows.mapper;
 
-import org.bookyourshows.dto.shows.ShowDetails;
-import org.bookyourshows.dto.shows.ShowSummary;
+import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.show.ShowSummary;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

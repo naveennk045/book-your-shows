@@ -1,39 +1,40 @@
-package org.bookyourshows.dto.shows;
+package org.bookyourshows.dto.show;
 
 import java.sql.Date;
 import java.sql.Time;
 
-public class ShowSummary {
+public class ShowCreateRequest {
 
-    private int showId;
-    private int screenId;
-    private int movieId;
+    private Integer theatreId;
+    private Integer screenId;
+    private Integer movieId;
     private Date showDate;
     private Time startTime;
     private Time endTime;
-    private double basePrice;
+    private Double basePrice;
 
-    public int getShowId() {
-        return showId;
+
+    public Integer getTheatreId() {
+        return theatreId;
     }
 
-    public void setShowId(int showId) {
-        this.showId = showId;
+    public void setTheatreId(Integer theatreId) {
+        this.theatreId = theatreId;
     }
 
-    public int getScreenId() {
+    public Integer getScreenId() {
         return screenId;
     }
 
-    public void setScreenId(int screenId) {
+    public void setScreenId(Integer screenId) {
         this.screenId = screenId;
     }
 
-    public int getMovieId() {
+    public Integer getMovieId() {
         return movieId;
     }
 
-    public void setMovieId(int movieId) {
+    public void setMovieId(Integer movieId) {
         this.movieId = movieId;
     }
 
@@ -61,11 +62,11 @@ public class ShowSummary {
         this.endTime = endTime;
     }
 
-    public double getBasePrice() {
+    public Double getBasePrice() {
         return basePrice;
     }
 
-    public void setBasePrice(double basePrice) {
+    public void setBasePrice(Double basePrice) {
         this.basePrice = basePrice;
     }
 }

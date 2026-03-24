@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 
-import org.bookyourshows.dto.shows.*;
+import org.bookyourshows.dto.show.*;
 import org.bookyourshows.service.ShowService;
 
 import java.io.IOException;

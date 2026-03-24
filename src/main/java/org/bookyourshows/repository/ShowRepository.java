@@ -2,9 +2,9 @@ package org.bookyourshows.repository;
 
 
 import org.bookyourshows.config.DatabaseManager;
-import org.bookyourshows.dto.shows.ShowCreateRequest;
-import org.bookyourshows.dto.shows.ShowDetails;
-import org.bookyourshows.dto.shows.ShowSummary;
+import org.bookyourshows.dto.show.ShowCreateRequest;
+import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.show.ShowSummary;
 import org.bookyourshows.mapper.ShowMapper;
 
 import java.sql.*;

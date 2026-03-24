@@ -1,9 +1,9 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.shows.ShowCreateRequest;
-import org.bookyourshows.dto.shows.ShowDetails;
-import org.bookyourshows.dto.shows.ShowSummary;
-import org.bookyourshows.dto.shows.ShowUpdateRequest;
+import org.bookyourshows.dto.show.ShowCreateRequest;
+import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.show.ShowSummary;
+import org.bookyourshows.dto.show.ShowUpdateRequest;
 import org.bookyourshows.repository.MovieRepository;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ShowRepository;

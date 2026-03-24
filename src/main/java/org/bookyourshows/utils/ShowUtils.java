@@ -1,6 +1,6 @@
 package org.bookyourshows.utils;
 
-import org.bookyourshows.dto.shows.ShowDetails;
+import org.bookyourshows.dto.show.ShowDetails;
 
 public class ShowUtils {
 
