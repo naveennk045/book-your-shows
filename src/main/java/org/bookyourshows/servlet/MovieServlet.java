@@ -102,6 +102,13 @@ public class MovieServlet extends HttpServlet {
         try {
             List<MovieSummary> movies = movieService.getAllMovies(query);
 
+            if (movies.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "No movies"));
+                return;
+            }
+
+
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(), movies);
 

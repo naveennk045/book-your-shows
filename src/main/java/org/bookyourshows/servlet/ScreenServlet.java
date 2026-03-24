@@ -71,7 +71,7 @@ public class ScreenServlet extends HttpServlet {
                 List<ScreenDetails> screenDetails = screenService.getScreensByTheatreId(theatreId);
 
                 if (screenDetails.isEmpty()) {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    response.setStatus(HttpServletResponse.SC_OK);
                     objectMapper.writeValue(response.getWriter(), Map.of("message", "No screens found"));
                     return;
                 }
