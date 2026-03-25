@@ -198,3 +198,4 @@
 0:0:0:0:0:0:0:1 - - [25/Mar/2026:16:41:17 +0530] "POST /api/theatres/1/screens/2/seats HTTP/1.1" 201 40
 0:0:0:0:0:0:0:1 - - [25/Mar/2026:16:41:20 +0530] "POST /api/theatres/1/screens/2/seats HTTP/1.1" 201 40
 0:0:0:0:0:0:0:1 - - [25/Mar/2026:16:42:34 +0530] "POST /api/theatres/1/screens/2/seats HTTP/1.1" 201 40
+0:0:0:0:0:0:0:1 - - [25/Mar/2026:16:52:42 +0530] "GET /api/seats?screen_id=3 HTTP/1.1" 404 54
