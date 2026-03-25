@@ -44,4 +44,14 @@
         <url-pattern>/shows/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>SeatServlet</servlet-name>
+        <servlet-class>org.bookyourshows.servlet.SeatServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SeatServlet</servlet-name>
+        <url-pattern>/seats/*</url-pattern>
+    </servlet-mapping>
+
 </web-app>

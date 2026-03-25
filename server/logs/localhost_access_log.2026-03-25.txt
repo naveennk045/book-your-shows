@@ -1,0 +1,4 @@
+0:0:0:0:0:0:0:1 - - [25/Mar/2026:10:38:43 +0530] "POST /api/seats?screen_id=2 HTTP/1.1" 200 29
+0:0:0:0:0:0:0:1 - - [25/Mar/2026:10:48:19 +0530] "GET /api/screens?theatre_id=1 HTTP/1.1" 200 462
+0:0:0:0:0:0:0:1 - - [25/Mar/2026:10:48:31 +0530] "GET /api/screens/2?theatre_id=1 HTTP/1.1" 200 168
+0:0:0:0:0:0:0:1 - - [25/Mar/2026:10:48:41 +0530] "GET /api/screens?theatre_id=1 HTTP/1.1" 200 462
