@@ -1,8 +1,6 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.seat.SeatCreateRequest;
-import org.bookyourshows.dto.seat.SeatCreateDetails;
-import org.bookyourshows.dto.seat.SeatSegments;
+import org.bookyourshows.dto.seat.*;
 import org.bookyourshows.repository.SeatRepository;
 
 import java.sql.SQLException;
@@ -18,6 +16,23 @@ public class SeatService {
         this.seatRepository = new SeatRepository();
     }
 
+    public List<SeatRowResponse> getSeatsByScreenId(int screenId, int theatreId) throws SQLException {
+
+        Map<Integer, List<SeatSummary>> map = seatRepository.getSeatByScreenId(screenId);
+
+        List<SeatRowResponse> response = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<SeatSummary>> entry : map.entrySet()) {
+
+            SeatRowResponse row = new SeatRowResponse();
+            row.setRowNo(entry.getKey());
+            row.setSeats(entry.getValue());
+
+            response.add(row);
+        }
+
+        return response;
+    }
 
     public void createSeat(List<SeatCreateRequest> requests, int screenId) throws SQLException {
 
@@ -61,10 +76,23 @@ public class SeatService {
         return sb.reverse().toString();
     }
 
-    public boolean deleteSeat(int seatId, int screenId, int theatreId) throws SQLException {
-        return false;
+    public boolean updateSeat(int seatId, SeatUpdateRequest seatUpdateRequest) throws SQLException {
+
+        if(this.seatRepository.getSeatById(seatId).isEmpty()) {
+            throw new IllegalArgumentException("Seat with id " + seatId + " does not exist");
+        }
+
+        return this.seatRepository.updateSeat(seatId, seatUpdateRequest);
+
+
     }
 
-    public void getSeatsByScreen(int screenId, int theatreId) throws SQLException {
+    public boolean deleteSeat(int seatId) throws SQLException {
+        if(this.seatRepository.getSeatById(seatId).isEmpty()) {
+            throw new IllegalArgumentException("Seat with id " + seatId + " does not exist");
+        }
+        return this.seatRepository.deleteSeat(seatId);
     }
+
+
 }

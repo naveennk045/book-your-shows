@@ -29,15 +29,19 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/seats$", new SeatServlet());
         SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/seats/$", new SeatServlet());
         SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/seats/[^/]$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]/seats$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]/seats/$", new SeatServlet());
+
+
+        SERVLET_REGISTRY.put("^/seats/$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/seats/[^/]$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/seats$", new SeatServlet());
 
         SERVLET_REGISTRY.put("^/movies$", new MovieServlet());
         SERVLET_REGISTRY.put("^/movies/$", new MovieServlet());
         SERVLET_REGISTRY.put("^/movies/[^/]$", new MovieServlet());
 
-        SERVLET_REGISTRY.put("^/seats/$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/seats$", new SeatServlet());
+
+        SERVLET_REGISTRY.put("^/shows/[^/]/seats$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/shows/[^/]/seats/$", new SeatServlet());
 
 
     }
