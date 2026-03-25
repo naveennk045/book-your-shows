@@ -27,6 +27,10 @@ public class ShowService {
         this.movieRepository = new MovieRepository();
     }
 
+    public Optional<ShowDetails> getShowById(int showId) throws SQLException {
+        return this.showRepository.getShowById(showId);
+    }
+
     public List<ShowSummary> getShows(int theatreId, Date showDate) throws SQLException {
 
         if (theatreId <= 0) {
@@ -38,7 +42,7 @@ public class ShowService {
 
     public int createShow(ShowCreateRequest req) throws SQLException {
 
-        if (screenRepository.getScreenById(req.getScreenId()).isEmpty()) {
+        if (screenRepository.getScreenByScreenId(req.getScreenId()).isEmpty()) {
             throw new IllegalArgumentException("Screen not found");
         }
 
@@ -98,6 +102,7 @@ public class ShowService {
 
         return showRepository.deleteShow(showId);
     }
+
 
 
 }

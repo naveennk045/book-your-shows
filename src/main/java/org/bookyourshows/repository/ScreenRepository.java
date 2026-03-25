@@ -8,6 +8,7 @@ import org.bookyourshows.mapper.ScreenMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +55,7 @@ public class ScreenRepository {
 
     }
 
-    public Optional<ScreenDetails> getScreenById(int screenId) throws SQLException {
+    public Optional<ScreenDetails> getScreenByScreenId(Integer screenId) throws SQLException {
         String sqlQuery = """
                        SELECT s.screen_id,
                        s.screen_name,
@@ -72,6 +73,40 @@ public class ScreenRepository {
         try (Connection Connection = DatabaseManager.getConnection()) {
             PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
             preparedStatement.setInt(1, screenId);
+
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                ScreenDetails screenDetails = ScreenMapper.mapRowToScreenDetail(resultSet);
+                return Optional.of(screenDetails);
+            }
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<ScreenDetails> getScreenById(int screenId, int theatreId) throws SQLException {
+        String sqlQuery = """
+                       SELECT s.screen_id,
+                       s.screen_name,
+                       s.screen_type_id,
+                       st.name AS screen_type_name,
+                       st.price_multiplier,
+                       s.total_rows,
+                       s.no_of_seats,
+                       s.theatre_id
+                       FROM screens AS s
+                       JOIN screen_types st on s.screen_type_id = st.screen_type_id
+                       WHERE s.screen_id = ?
+                       AND s.theatre_id = ?
+                """;
+
+        try (Connection Connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            preparedStatement.setInt(1, screenId);
+            preparedStatement.setInt(2, theatreId);
 
 
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -163,6 +198,7 @@ public class ScreenRepository {
             return screenRows != 0;
         }
     }
+
 
 
 }

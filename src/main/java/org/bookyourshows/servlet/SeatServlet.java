@@ -9,17 +9,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bookyourshows.dto.screen.ScreenCreateRequest;
-import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.seat.SeatCreateRequest;
-import org.bookyourshows.service.ScreenService;
 import org.bookyourshows.service.SeatService;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class SeatServlet extends HttpServlet {
 
@@ -33,59 +29,57 @@ public class SeatServlet extends HttpServlet {
         this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
     }
 
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        String path = request.getPathInfo();
 
+        String[] parts = request.getPathInfo().split("/");
 
-        int screenId;
-        String screenIdParam = request.getParameter("screen_id");
-        if (screenIdParam == null) {
+        // /theatres/{id}/screens/{id}/seats
+        if (parts.length < 6) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Screen id required"));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Invalid URL"));
             return;
         }
 
+        int theatreId;
+        int screenId;
+
         try {
-            screenId = Integer.parseInt(screenIdParam);
-            // screenId = Integer.parseInt(part[2]);
+            theatreId = Integer.parseInt(parts[2]);
+            screenId = Integer.parseInt(parts[4]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid screen id"));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Invalid theatre_id or screen_id"));
             return;
         }
-        List<SeatCreateRequest> seatCreateRequest;
+
         try {
-            seatCreateRequest = objectMapper.readValue(
+            List<SeatCreateRequest> seats = objectMapper.readValue(
                     request.getReader(),
-                    new TypeReference<List<SeatCreateRequest>>() {
-                    }
+                    new TypeReference<List<SeatCreateRequest>>() {}
             );
 
-            /*
-            StringBuilder stringBuilder = new StringBuilder();
-            for (SeatCreateRequest scr : seatCreateRequest) {
-                stringBuilder.append(objectMapper.writeValueAsString(scr.getRowNo()));
-                stringBuilder.append(",");
-            }*/
+            seatService.createSeat(seats, screenId);
 
-            seatService.createSeat(seatCreateRequest, screenId);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "seats created"));
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Seats created successfully"));
 
         } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-            return;
+                    Map.of("message", "Invalid JSON"));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Database error"));
         }
     }
-
 }

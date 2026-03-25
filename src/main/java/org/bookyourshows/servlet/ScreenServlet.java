@@ -16,6 +16,7 @@ import org.bookyourshows.service.ScreenService;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,32 +41,21 @@ public class ScreenServlet extends HttpServlet {
         //  /theatres/{theatre_id}/screens
         // /theatres/{theatre_id}/screens/{screen_id}
 
-        // String servletPath = request.getServletPath();
-        // String[] part = path.split("/");
-
-
         String path = request.getPathInfo();
+        String[] part = path.split("/");
 
 
         int theatreId;
-        String theatreIdParam = request.getParameter("theatre_id");
-        if (theatreIdParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre id required"));
-            return;
-        }
 
         try {
-            theatreId = Integer.parseInt(theatreIdParam);
-            // theatreId = Integer.parseInt(part[2]);
+            theatreId = Integer.parseInt(part[2]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
             return;
         }
 
-
-        if (path == null || path.equals("/") || path.isEmpty()) {
+        if (part.length == 4) {
             try {
 
                 List<ScreenDetails> screenDetails = screenService.getScreensByTheatreId(theatreId);
@@ -91,9 +81,9 @@ public class ScreenServlet extends HttpServlet {
 
         int screenId;
         try {
-            if (path != null && path.length() > 1) {
-                screenId = Integer.parseInt(path.substring(1));
-                Optional<ScreenDetails> screenDetail = screenService.getScreensByScreenId(screenId);
+            if (path.length() > 1) {
+                screenId = Integer.parseInt(part[part.length - 1]);
+                Optional<ScreenDetails> screenDetail = screenService.getScreensByScreenId(screenId, theatreId);
                 if (screenDetail.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     objectMapper.writeValue(response.getWriter(), Map.of("message", "No screen found"));
@@ -122,8 +112,6 @@ public class ScreenServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo();
-
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -133,17 +121,14 @@ public class ScreenServlet extends HttpServlet {
             return;
         }
 
+        String path = request.getPathInfo();
+        String[] part = path.split("/");
+
+
         int theatreId;
-        String theatreIdParam = request.getParameter("theatre_id");
-        if (theatreIdParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre id required"));
-            return;
-        }
 
         try {
-            theatreId = Integer.parseInt(theatreIdParam);
-            // theatreId = Integer.parseInt(part[2]);
+            theatreId = Integer.parseInt(part[2]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
@@ -190,8 +175,6 @@ public class ScreenServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo();
-
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -201,24 +184,22 @@ public class ScreenServlet extends HttpServlet {
             return;
         }
 
+        String path = request.getPathInfo();
+        String[] part = path.split("/");
+
+
         int theatreId;
-        String theatreIdParam = request.getParameter("theatre_id");
-        if (theatreIdParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre id required"));
-            return;
-        }
 
         try {
-            theatreId = Integer.parseInt(theatreIdParam);
-            // theatreId = Integer.parseInt(part[2]);
+            theatreId = Integer.parseInt(part[2]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
             return;
         }
 
-        if (path == null || path.length() <= 1) {
+
+        if (path.length() <= 4) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "screen id is required in path"));
@@ -230,7 +211,7 @@ public class ScreenServlet extends HttpServlet {
         ScreenUpdateRequest screenUpdateRequest;
 
         try {
-            screenId = Integer.parseInt(path.substring(1));
+            screenId = Integer.parseInt(part[part.length - 1]);
             screenUpdateRequest = objectMapper.readValue(request.getReader(), ScreenUpdateRequest.class);
 
         } catch (JsonProcessingException e) {
@@ -281,36 +262,31 @@ public class ScreenServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
+        String[] part = path.split("/");
+
 
         int theatreId;
-        String theatreIdParam = request.getParameter("theatre_id");
-        if (theatreIdParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre id required"));
-            return;
-        }
 
         try {
-            theatreId = Integer.parseInt(theatreIdParam);
-            // theatreId = Integer.parseInt(part[2]);
+            theatreId = Integer.parseInt(part[2]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
             return;
         }
 
-        if (path == null || path.length() <= 1) {
+
+        if (path.length() <= 4) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "screen id is required in path"));
             return;
         }
 
-
         int screenId;
 
         try {
-            screenId = Integer.parseInt(path.substring(1));
+            screenId = Integer.parseInt(part[part.length - 1]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
@@ -324,6 +300,7 @@ public class ScreenServlet extends HttpServlet {
             if (!screenDeleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "Screen not found"));
+                return;
             }
 
             response.setStatus(HttpServletResponse.SC_CREATED);
@@ -332,7 +309,6 @@ public class ScreenServlet extends HttpServlet {
                     "message", "Screen Deleted successfully"
             );
             objectMapper.writeValue(response.getWriter(), body);
-
         } catch (RuntimeException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
@@ -341,10 +317,6 @@ public class ScreenServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
-        } catch (AccessDeniedException e) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Access denied"));
         }
     }
 }

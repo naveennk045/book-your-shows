@@ -5,6 +5,17 @@
          version="6.0">
 
     <servlet>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <servlet-class>org.bookyourshows.core.DispatcherServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
+<!--
+    <servlet>
         <servlet-name>TheatreServlet</servlet-name>
         <servlet-class>org.bookyourshows.servlet.TheatreServlet</servlet-class>
     </servlet>
@@ -52,6 +63,6 @@
     <servlet-mapping>
         <servlet-name>SeatServlet</servlet-name>
         <url-pattern>/seats/*</url-pattern>
-    </servlet-mapping>
+    </servlet-mapping>-->
 
 </web-app>

@@ -60,4 +60,11 @@ public class SeatService {
         }
         return sb.reverse().toString();
     }
+
+    public boolean deleteSeat(int seatId, int screenId, int theatreId) throws SQLException {
+        return false;
+    }
+
+    public void getSeatsByScreen(int screenId, int theatreId) throws SQLException {
+    }
 }

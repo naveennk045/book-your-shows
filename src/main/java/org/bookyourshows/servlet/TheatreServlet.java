@@ -38,11 +38,11 @@ public class TheatreServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo();
+        String path = request.getPathInfo().substring("/theatres".length());
 
         try {
 
-            if (path != null && path.length() > 1) {
+            if (path.length() > 1) {
 
                 int theatreId = Integer.parseInt(path.substring(1));
                 Optional<TheatreDetails> theatreDetails = theatreService.getTheatreById(theatreId);
@@ -95,8 +95,6 @@ public class TheatreServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-
-        String path = request.getPathInfo();
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -164,8 +162,9 @@ public class TheatreServlet extends HttpServlet {
             return;
         }
 
-        String path = request.getPathInfo();
-        if (path == null || path.length() <= 1) {
+        String path = request.getPathInfo().substring("/theatres".length());
+
+        if (path.length() <= 1) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Theatre id is required in path"));
@@ -215,6 +214,10 @@ public class TheatreServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        }catch (RuntimeException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
@@ -225,8 +228,8 @@ public class TheatreServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo();
-        if (path == null || path.length() <= 1) {
+        String path = request.getPathInfo().substring("/theatres".length());
+        if (path.length() <= 1) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Theatre id is required in path"));

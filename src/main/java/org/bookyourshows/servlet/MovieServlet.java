@@ -40,10 +40,11 @@ public class MovieServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
+        String[] parts = path.split("/");
 
         try {
-            if (path != null && path.length() > 1) {
-                int movieId = Integer.parseInt(path.substring(1));
+            if (parts.length == 3) {
+                int movieId = Integer.parseInt(parts[2]);
 
                 Optional<MovieDetails> movie = movieService.getMovieById(movieId);
 
@@ -182,9 +183,11 @@ public class MovieServlet extends HttpServlet {
                     Map.of("message", "Content-Type must be application/json"));
             return;
         }
-
         String path = request.getPathInfo();
-        if (path == null || path.length() <= 1) {
+        String[] parts = path.split("/");
+
+
+        if (path.length() < 3) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Movie id required"));
@@ -195,7 +198,7 @@ public class MovieServlet extends HttpServlet {
         MovieUpdateRequest updateReq;
 
         try {
-            movieId = Integer.parseInt(path.substring(1));
+            movieId = Integer.parseInt(parts[2]);
             updateReq = objectMapper.readValue(request.getReader(), MovieUpdateRequest.class);
 
         } catch (NumberFormatException e) {
@@ -239,8 +242,10 @@ public class MovieServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
+        String[] parts = path.split("/");
 
-        if (path == null || path.length() <= 1) {
+
+        if (path.length() < 3) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Movie id required"));
@@ -250,7 +255,7 @@ public class MovieServlet extends HttpServlet {
         int movieId;
 
         try {
-            movieId = Integer.parseInt(path.substring(1));
+            movieId = Integer.parseInt(parts[2]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),

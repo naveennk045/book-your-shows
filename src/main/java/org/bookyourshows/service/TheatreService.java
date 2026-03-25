@@ -103,11 +103,11 @@ public class TheatreService {
 
         boolean isTheatreUpdated = theatreRepository.updateTheatre(theatreId, request);
         if (!isTheatreUpdated) {
-            throw new RuntimeException("Failed to update the theatre");
+            throw new IllegalArgumentException("Theatre not found");
         }
         boolean isTheatreAddressUpdated = theatreRepository.updateTheatreAddress(theatreId, request);
         if (!isTheatreAddressUpdated) {
-            throw new RuntimeException("Theatre is Updated, Failed to update the theatre address.");
+            throw new IllegalArgumentException("Theatre is Updated, Failed to update the theatre address.");
         }
         return true;
     }

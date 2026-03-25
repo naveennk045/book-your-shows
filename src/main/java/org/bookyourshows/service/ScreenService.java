@@ -8,7 +8,6 @@ import org.bookyourshows.repository.ScreenTypeRepository;
 import org.bookyourshows.repository.TheatreRepository;
 import org.bookyourshows.utils.ScreenUtils;
 
-import java.nio.file.AccessDeniedException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -35,8 +34,8 @@ public class ScreenService {
 
     }
 
-    public Optional<ScreenDetails> getScreensByScreenId(Integer screenId) throws SQLException {
-        return screenRepository.getScreenById(screenId);
+    public Optional<ScreenDetails> getScreensByScreenId(Integer screenId, Integer theatreId) throws SQLException {
+        return screenRepository.getScreenById(screenId, theatreId);
     }
 
     public int createScreen(ScreenCreateRequest screenCreateRequest) throws SQLException {
@@ -66,12 +65,13 @@ public class ScreenService {
 
         return screenRepository.addScreen(screenCreateRequest);
     }
-     public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest,int screenId,int theatreId) throws SQLException, AccessDeniedException {
-         if(!screenRepository.getScreenById(screenId).get().getTheatreId().equals(theatreId)){
-             throw new AccessDeniedException("Access denied");
-         }
 
-         if (screenRepository.getScreenById(screenId).isEmpty()) {
+    public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest, int screenId, int theatreId) throws SQLException {
+        if (!screenRepository.getScreenById(screenId,theatreId).get().getTheatreId().equals(theatreId)) {
+            throw new IllegalArgumentException("Screen not found");
+        }
+
+        if (screenRepository.getScreenById(screenId,theatreId).isEmpty()) {
             throw new IllegalArgumentException("Screen is not found");
         }
         ScreenUtils.validateScreenName(screenUpdateRequest.getScreenName());
@@ -101,15 +101,10 @@ public class ScreenService {
         return screenRepository.updateScreen(screenUpdateRequest, screenId);
     }
 
-    public boolean deleteScreen(Integer screenId,Integer theatreId) throws SQLException, AccessDeniedException {
-        if(!screenRepository.getScreenById(screenId).get().getTheatreId().equals(theatreId)){
-            throw new AccessDeniedException("Access denied");
-        }
+    public boolean deleteScreen(Integer screenId, Integer theatreId) throws SQLException {
+
 
 
         return screenRepository.deleteScreen(screenId);
     }
-
-
-
 }
