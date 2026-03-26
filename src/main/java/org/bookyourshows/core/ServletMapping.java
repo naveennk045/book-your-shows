@@ -50,7 +50,10 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/auth/register$", new AuthenticationServlet());
         SERVLET_REGISTRY.put("^/auth/register/$", new AuthenticationServlet());
 
-        SERVLET_REGISTRY.put("^/admin/*", new AdminServlet());
+//        SERVLET_REGISTRY.put("^/admin/.*", new AdminServlet());
+        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new AdminServlet());
+        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new AdminServlet());
+
 
 
 
