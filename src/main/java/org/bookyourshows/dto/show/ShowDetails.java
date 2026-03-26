@@ -8,16 +8,16 @@ public class ShowDetails {
 
     private int showId;
     private Integer theatreId;
+    private String theatreName;
     private Integer screenId;
+    private String screenName;
+    private String screenType;
     private Integer movieId;
+    private String movieName;
     private Date showDate;
     private Time startTime;
     private Time endTime;
     private Double basePrice;
-
-    public Integer getTheatreId() {
-        return theatreId;
-    }
 
     public int getShowId() {
         return showId;
@@ -27,8 +27,20 @@ public class ShowDetails {
         this.showId = showId;
     }
 
+    public Integer getTheatreId() {
+        return theatreId;
+    }
+
     public void setTheatreId(Integer theatreId) {
         this.theatreId = theatreId;
+    }
+
+    public String getTheatreName() {
+        return theatreName;
+    }
+
+    public void setTheatreName(String theatreName) {
+        this.theatreName = theatreName;
     }
 
     public Integer getScreenId() {
@@ -39,12 +51,36 @@ public class ShowDetails {
         this.screenId = screenId;
     }
 
+    public String getScreenName() {
+        return screenName;
+    }
+
+    public void setScreenName(String screenName) {
+        this.screenName = screenName;
+    }
+
+    public String getScreenType() {
+        return screenType;
+    }
+
+    public void setScreenType(String screenType) {
+        this.screenType = screenType;
+    }
+
     public Integer getMovieId() {
         return movieId;
     }
 
     public void setMovieId(Integer movieId) {
         this.movieId = movieId;
+    }
+
+    public String getMovieName() {
+        return movieName;
+    }
+
+    public void setMovieName(String movieName) {
+        this.movieName = movieName;
     }
 
     public Date getShowDate() {

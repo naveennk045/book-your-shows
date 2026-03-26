@@ -5,7 +5,7 @@ import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.show.ShowSeating;
-import org.bookyourshows.dto.show.ShowSummary;
+import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.mapper.ShowMapper;
 
 import java.sql.*;
@@ -13,6 +13,125 @@ import java.sql.Date;
 import java.util.*;
 
 public class ShowRepository {
+
+
+    public Optional<ShowDetails> getShowById(int showId) throws SQLException {
+        String sql = """ 
+                SELECT
+                    show_id,
+                    theatre_id,
+                    screen_id,
+                    movie_id,
+                    show_date,
+                    start_time,
+                    end_time,
+                    base_price
+                FROM shows
+                WHERE show_id = ?
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, showId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return Optional.of(ShowMapper.mapRowShowDetails(resultSet));
+            }
+        }
+        return Optional.empty();
+    }
+
+
+    public Map<Integer, List<ShowSeating>> getShowSeats(Integer showId) throws SQLException {
+
+        String sql = """
+                  SELECT ss.show_seat_id,
+                        s.row_no,
+                       s.seat_id,
+                       s.seat_number,
+                       sc.name                                                               AS category,
+                       ss.status,
+                       (sh.base_price * screen_types.price_multiplier * sc.price_multiplier) AS final_price
+                FROM show_seating ss
+                         JOIN shows as sh ON ss.show_id = sh.show_id
+                         JOIN seats as s ON ss.seat_id = s.seat_id
+                         JOIN seat_categories as sc ON s.seat_category_id = sc.seat_category_id
+                         JOIN screens as scr ON s.screen_id = scr.screen_id
+                         JOIN screen_types ON scr.screen_type_id = screen_types.screen_type_id
+                WHERE sh.show_id = ?;
+                
+                """;
+
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, showId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            Map<Integer, List<ShowSeating>> showSeatLayoutMap = new HashMap<>();
+
+            while (resultSet.next()) {
+                int rowNo = resultSet.getInt("row_no");
+                ShowSeating showSeating = ShowMapper.mapRowShowSeating(resultSet);
+
+                List<ShowSeating> toBeUpdated = showSeatLayoutMap.getOrDefault(rowNo, new ArrayList<>());
+                toBeUpdated.add(showSeating);
+                showSeatLayoutMap.put(rowNo, toBeUpdated);
+            }
+            return showSeatLayoutMap;
+        }
+    }
+
+    public List<ShowDetails> getShows(int theatreId, Date showDate, Integer movieId) throws SQLException {
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    show_id,
+                    screen_id,
+                    movie_id,
+                    show_date,
+                    start_time,
+                    end_time,
+                    base_price
+                FROM shows
+                WHERE theatre_id = ?
+                
+                """);
+
+        List<Object> params = new java.util.ArrayList<>();
+        params.add(theatreId);
+
+        if (showDate != null) {
+            sql.append(" AND show_date = ?");
+            params.add(showDate);
+        }
+        if (movieId != null) {
+            sql.append(" AND movie_id = ?");
+            params.add(movieId);
+        }
+
+        sql.append(" ORDER BY start_time");
+
+        List<ShowDetails> shows = new java.util.ArrayList<>();
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                shows.add(ShowMapper.mapRowShowDetails(rs));
+            }
+        }
+
+        return shows;
+    }
+
+
 
     public Integer createShow(ShowCreateRequest request) throws SQLException {
 
@@ -98,120 +217,6 @@ public class ShowRepository {
         }
     }
 
-    public Map<Integer, List<ShowSeating>> getShowSeats(Integer showId) throws SQLException {
-
-        String sql = """
-                  SELECT ss.show_seat_id,
-                        s.row_no,
-                       s.seat_id,
-                       s.seat_number,
-                       sc.name                                                               AS category,
-                       ss.status,
-                       (sh.base_price * screen_types.price_multiplier * sc.price_multiplier) AS final_price
-                FROM show_seating ss
-                         JOIN shows as sh ON ss.show_id = sh.show_id
-                         JOIN seats as s ON ss.seat_id = s.seat_id
-                         JOIN seat_categories as sc ON s.seat_category_id = sc.seat_category_id
-                         JOIN screens as scr ON s.screen_id = scr.screen_id
-                         JOIN screen_types ON scr.screen_type_id = screen_types.screen_type_id
-                WHERE sh.show_id = ?;
-                
-                """;
-
-
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setInt(1, showId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            Map<Integer, List<ShowSeating>> showSeatLayoutMap = new HashMap<>();
-
-            while (resultSet.next()) {
-                int rowNo = resultSet.getInt("row_no");
-                ShowSeating showSeating = ShowMapper.mapRowShowSeating(resultSet);
-
-                List<ShowSeating> toBeUpdated = showSeatLayoutMap.getOrDefault(rowNo, new ArrayList<>());
-                toBeUpdated.add(showSeating);
-                showSeatLayoutMap.put(rowNo, toBeUpdated);
-            }
-            return showSeatLayoutMap;
-        }
-    }
-
-    public List<ShowSummary> getShows(int theatreId, Date showDate, Integer movieId) throws SQLException {
-
-        StringBuilder sql = new StringBuilder("""
-                SELECT
-                    show_id,
-                    screen_id,
-                    movie_id,
-                    show_date,
-                    start_time,
-                    end_time,
-                    base_price
-                FROM shows
-                WHERE theatre_id = ?
-                
-                """);
-
-        List<Object> params = new java.util.ArrayList<>();
-        params.add(theatreId);
-
-        if (showDate != null) {
-            sql.append(" AND show_date = ?");
-            params.add(showDate);
-        }
-        if (movieId != null) {
-            sql.append(" AND movie_id = ?");
-            params.add(movieId);
-        }
-
-        sql.append(" ORDER BY start_time");
-
-        List<ShowSummary> shows = new java.util.ArrayList<>();
-
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                shows.add(ShowMapper.mapRowShowSummary(rs));
-            }
-        }
-
-        return shows;
-    }
-
-    public Optional<ShowDetails> getShowById(int showId) throws SQLException {
-        String sql = """ 
-                SELECT
-                    show_id,
-                    theatre_id,
-                    screen_id,
-                    movie_id,
-                    show_date,
-                    start_time,
-                    end_time,
-                    base_price
-                FROM shows
-                WHERE show_id = ?
-                """;
-
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setInt(1, showId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                return Optional.of(ShowMapper.mapRowShowDetails(resultSet));
-            }
-        }
-        return Optional.empty();
-    }
 
 
     public boolean updateShowTiming(int showId, Time start, Time end) throws SQLException {

@@ -27,7 +27,7 @@ public class ShowService {
         return this.showRepository.getShowById(showId);
     }
 
-    public List<ShowSummary> getShows(int theatreId, Date showDate,int movieId) throws SQLException {
+    public List<ShowDetails> getShows(int theatreId, Date showDate,int movieId) throws SQLException {
 
         if (theatreId <= 0) {
             throw new IllegalArgumentException("Invalid theatre_id");

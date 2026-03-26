@@ -135,7 +135,7 @@ public class ShowServlet extends HttpServlet {
             Date date = Date.valueOf(dateParam);
             int movieId = Integer.parseInt(movieIdParam);
 
-            List<ShowSummary> shows = showService.getShows(theatreId, date, movieId);
+            List<ShowDetails> shows = showService.getShows(theatreId, date, movieId);
 
             response.setStatus(HttpServletResponse.SC_OK);
             if(shows.isEmpty()) {
