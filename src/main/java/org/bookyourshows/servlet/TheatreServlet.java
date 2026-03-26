@@ -69,6 +69,7 @@ public class TheatreServlet extends HttpServlet {
 
         String theatreName = request.getParameter("theatre_name");
         String city = request.getParameter("city");
+        String status = request.getParameter("status");
         Integer limit = parseIntOrDefault(request.getParameter("limit"), 20);
         Integer offset = parseIntOrDefault(request.getParameter("offset"), 0);
 
@@ -78,7 +79,7 @@ public class TheatreServlet extends HttpServlet {
             return;
         }
         try {
-            List<TheatreSummary> theatres = theatreService.getAllTheatre(limit, offset, theatreName, city);
+            List<TheatreSummary> theatres = theatreService.getAllTheatre(limit, offset, theatreName, city, status);
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(), theatres);
 
@@ -109,7 +110,7 @@ public class TheatreServlet extends HttpServlet {
             createReq = objectMapper.readValue(request.getReader(), TheatreCreateRequest.class);
             int user_id = request.getIntHeader("user_id");
 
-            if(user_id == -1) {
+            if (user_id == -1) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "User id is required"));
                 return;
@@ -214,7 +215,7 @@ public class TheatreServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
-        }catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));

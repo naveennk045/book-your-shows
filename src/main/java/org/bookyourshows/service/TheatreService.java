@@ -27,8 +27,10 @@ public class TheatreService {
     public List<TheatreSummary> getAllTheatre(Integer limit,
                                               Integer offset,
                                               String theatreName,
-                                              String city) throws SQLException {
-        return theatreRepository.getAllTheatres(limit, offset, theatreName, city);
+                                              String city,
+                                              String status
+    ) throws SQLException {
+        return theatreRepository.getAllTheatres(limit, offset, theatreName, city, status);
     }
 
 

@@ -54,7 +54,7 @@ public class TheatreRepository {
 
     }
 
-    public List<TheatreSummary> getAllTheatres(Integer limit, Integer offset, String theatreName, String city) throws SQLException {
+    public List<TheatreSummary> getAllTheatres(Integer limit, Integer offset, String theatreName, String city, String status) throws SQLException {
 
         StringBuilder sqlQuery = new StringBuilder("""
                 SELECT t.theatre_id,
@@ -63,7 +63,7 @@ public class TheatreRepository {
                        a.city
                 FROM theatres AS t
                 JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
-                WHERE t.status = 'APPROVED'
+                WHERE 1=1
                 """);
 
         List<Object> params = new ArrayList<>();
@@ -73,9 +73,15 @@ public class TheatreRepository {
             params.add("%" + theatreName + "%");
         }
 
+
         if (city != null && !city.isBlank()) {
             sqlQuery.append(" AND a.city LIKE ?");
             params.add("%" + city + "%");
+        }
+
+        if(status != null && !status.isBlank()) {
+            sqlQuery.append(" AND t.status = ?");
+            params.add(status);
         }
 
         if (limit != null) {
