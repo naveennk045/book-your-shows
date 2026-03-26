@@ -14,34 +14,38 @@ public class ServletMapping {
 
         SERVLET_REGISTRY.put("^/theatres$", new TheatreServlet());
         SERVLET_REGISTRY.put("^/theatres/$", new TheatreServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]$", new TheatreServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+$", new TheatreServlet());
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens$", new ScreenServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/$", new ScreenServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]$", new ScreenServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens$", new ScreenServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/$", new ScreenServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+$", new ScreenServlet());
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/shows$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/shows/$", new ShowServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows$", new ShowServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows/$", new ShowServlet());
         SERVLET_REGISTRY.put("^/shows$", new ShowServlet());
         SERVLET_REGISTRY.put("^/shows/$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]$", new ShowServlet());
+        SERVLET_REGISTRY.put("^/shows/[^/]+$", new ShowServlet());
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/seats$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/seats/$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]/screens/[^/]/seats/[^/]$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/[^/]+$", new SeatServlet());
 
 
         SERVLET_REGISTRY.put("^/seats/$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/seats/[^/]$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/seats/[^/]+$", new SeatServlet());
         SERVLET_REGISTRY.put("^/seats$", new SeatServlet());
 
         SERVLET_REGISTRY.put("^/movies$", new MovieServlet());
         SERVLET_REGISTRY.put("^/movies/$", new MovieServlet());
-        SERVLET_REGISTRY.put("^/movies/[^/]$", new MovieServlet());
+        SERVLET_REGISTRY.put("^/movies/[^/]+$", new MovieServlet());
 
 
-        SERVLET_REGISTRY.put("^/shows/[^/]/seats$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]/seats/$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new SeatServlet());
+
+        SERVLET_REGISTRY.put("^/users/$", new UserServlet());
+        SERVLET_REGISTRY.put("^/users$", new UserServlet());
+        SERVLET_REGISTRY.put("^/users/[^/]+$", new UserServlet());
 
 
     }
