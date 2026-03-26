@@ -40,8 +40,8 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/movies/[^/]+$", new MovieServlet());
 
 
-        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new ShowServlet());
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new ShowServlet());
 
         SERVLET_REGISTRY.put("^/users/$", new UserServlet());
         SERVLET_REGISTRY.put("^/users$", new UserServlet());

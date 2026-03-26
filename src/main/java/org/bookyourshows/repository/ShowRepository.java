@@ -4,16 +4,17 @@ package org.bookyourshows.repository;
 import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.dto.show.ShowSummary;
 import org.bookyourshows.mapper.ShowMapper;
 
 import java.sql.*;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Date;
+import java.util.*;
 
 public class ShowRepository {
 
-    public int createShow(ShowCreateRequest request) throws SQLException {
+    public Integer createShow(ShowCreateRequest request) throws SQLException {
 
         String sql = """
                 INSERT INTO shows
@@ -40,6 +41,29 @@ public class ShowRepository {
 
         throw new RuntimeException("Failed to create show");
     }
+
+    public boolean createShowSeating(Integer screenId, Integer showId) throws SQLException {
+
+        String sql = """
+                
+                INSERT INTO show_seating (show_id, seat_id, status)
+                SELECT ?, seat_id, 'AVAILABLE'
+                FROM seats
+                WHERE screen_id = ? AND seat_status = 'AVAILABLE';
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            preparedStatement.setInt(1, showId);
+            preparedStatement.setInt(2, screenId);
+
+            return preparedStatement.executeUpdate() != 0;
+        }
+
+
+    }
+
 
     public boolean isShowConflict(int screenId, Date date, Time start, Time end) throws SQLException {
 
@@ -71,6 +95,45 @@ public class ShowRepository {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             return resultSet.next();
+        }
+    }
+    public Map<Integer, List<ShowSeating>> getShowSeats(Integer showId) throws SQLException {
+
+        String sql = """
+                  SELECT ss.show_seat_id,
+                        s.row_no,
+                       s.seat_id,
+                       s.seat_number,
+                       sc.name                                                               AS category,
+                       ss.status,
+                       (sh.base_price * screen_types.price_multiplier * sc.price_multiplier) AS final_price
+                FROM show_seating ss
+                         JOIN shows as sh ON ss.show_id = sh.show_id
+                         JOIN seats as s ON ss.seat_id = s.seat_id
+                         JOIN seat_categories as sc ON s.seat_category_id = sc.seat_category_id
+                         JOIN screens as scr ON s.screen_id = scr.screen_id
+                         JOIN screen_types ON scr.screen_type_id = screen_types.screen_type_id
+                WHERE sh.show_id = ?;
+                
+                """;
+
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, showId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            Map<Integer, List<ShowSeating>> showSeatLayoutMap = new HashMap<>();
+
+            while (resultSet.next()) {
+                int rowNo = resultSet.getInt("row_no");
+                ShowSeating showSeating = ShowMapper.mapRowShowSeating(resultSet);
+
+                List<ShowSeating> toBeUpdated = showSeatLayoutMap.getOrDefault(rowNo, new ArrayList<>());
+                toBeUpdated.add(showSeating);
+                showSeatLayoutMap.put(rowNo, toBeUpdated);
+            }
+            return showSeatLayoutMap;
         }
     }
 
@@ -143,6 +206,8 @@ public class ShowRepository {
         }
         return Optional.empty();
     }
+
+
 
     public boolean updateShowTiming(int showId, Time start, Time end) throws SQLException {
 

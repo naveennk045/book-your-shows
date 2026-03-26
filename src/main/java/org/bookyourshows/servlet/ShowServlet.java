@@ -74,10 +74,10 @@ public class ShowServlet extends HttpServlet {
                     Map.of("message", "Invalid JSON"));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), "Database error");
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Database error"));
         }
     }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -88,6 +88,18 @@ public class ShowServlet extends HttpServlet {
         String[] parts = path.split("/");
 
         try {
+
+            //  /shows/{show_id}/seats ( seat availability for a show)
+            if (parts.length == 4 && parts[3].equals("seats")) {
+                int showId = Integer.parseInt(parts[2]);
+
+                List<ShowSeatingResponse> seats = showService.getShowSeats(showId);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), seats);
+                return;
+            }
+
             // /shows/{id}
             if (parts.length == 3) {
                 int showId = Integer.parseInt(parts[2]);
@@ -106,7 +118,7 @@ public class ShowServlet extends HttpServlet {
                 return;
             }
 
-            // /shows?theatre_id=&date=
+            // /shows?theatre_id=&show_date=
             String theatreIdParam = request.getParameter("theatre_id");
             String dateParam = request.getParameter("show_date");
 
@@ -122,9 +134,14 @@ public class ShowServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid show id or theatre id"));
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), "Database error");
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 

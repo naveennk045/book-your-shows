@@ -1,17 +1,13 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.show.ShowCreateRequest;
-import org.bookyourshows.dto.show.ShowDetails;
-import org.bookyourshows.dto.show.ShowSummary;
-import org.bookyourshows.dto.show.ShowUpdateRequest;
+import org.bookyourshows.dto.show.*;
 import org.bookyourshows.repository.MovieRepository;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ShowRepository;
 
+import java.sql.*;
 import java.sql.Date;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.bookyourshows.utils.ShowUtils.validateModificationAllowed;
 
@@ -40,33 +36,67 @@ public class ShowService {
         return showRepository.getShows(theatreId, showDate);
     }
 
-    public int createShow(ShowCreateRequest req) throws SQLException {
+    public int createShow(ShowCreateRequest request) throws SQLException {
 
-        if (screenRepository.getScreenByScreenId(req.getScreenId()).isEmpty()) {
+        if (screenRepository.getScreenByScreenId(request.getScreenId()).isEmpty()) {
             throw new IllegalArgumentException("Screen not found");
         }
 
-        if (movieRepository.getMovieById(req.getMovieId()).isEmpty()) {
+        if (movieRepository.getMovieById(request.getMovieId()).isEmpty()) {
             throw new IllegalArgumentException("Movie not found");
         }
 
-        if (req.getStartTime().after(req.getEndTime())) {
+        if (request.getStartTime().after(request.getEndTime())) {
             throw new IllegalArgumentException("Invalid timing");
         }
 
         if (showRepository.isShowConflict(
-                req.getScreenId(),
-                req.getShowDate(),
-                req.getStartTime(),
-                req.getEndTime()
+                request.getScreenId(),
+                request.getShowDate(),
+                request.getStartTime(),
+                request.getEndTime()
         )) {
             throw new IllegalArgumentException("Show timing conflicts with existing show");
         }
 
-        return showRepository.createShow(req);
+        Integer showId = showRepository.createShow(request);
+
+        if (showId == null) {
+            throw new IllegalArgumentException("Create show failed");
+        }
+
+        boolean isShowSeatingCreated = this.showRepository.createShowSeating(request.getScreenId(), showId);
+        if (!isShowSeatingCreated) {
+            this.showRepository.deleteShow(showId);
+            throw new IllegalArgumentException("Create show failed");
+        }
+
+        return showId;
     }
 
-    public boolean updateShow(int showId, ShowUpdateRequest req) throws SQLException {
+
+    public List<ShowSeatingResponse> getShowSeats(Integer showId) throws SQLException {
+
+        if(showRepository.getShowSeats(showId).isEmpty()) {
+            throw new IllegalArgumentException("Show seats not found");
+        }
+
+        Map<Integer, List<ShowSeating>> map = showRepository.getShowSeats(showId);
+
+        List<ShowSeatingResponse> response = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<ShowSeating>> entry : map.entrySet()) {
+
+            ShowSeatingResponse row = new ShowSeatingResponse();
+            row.setRowNo(entry.getKey());
+            row.setSeats(entry.getValue());
+
+            response.add(row);
+        }
+        return response;
+    }
+
+    public boolean updateShow(int showId, ShowUpdateRequest request) throws SQLException {
 
         Optional<ShowDetails> showDetails = showRepository.getShowById(showId);
         if (showDetails.isEmpty()) {
@@ -77,20 +107,20 @@ public class ShowService {
 
         validateModificationAllowed(show);
 
-        if (req.getStartTime().after(req.getEndTime())) {
+        if (request.getStartTime().after(request.getEndTime())) {
             throw new IllegalArgumentException("Invalid timing");
         }
 
         if (showRepository.isShowConflict(
                 show.getScreenId(),
                 show.getShowDate(),
-                req.getStartTime(),
-                req.getEndTime()
+                request.getStartTime(),
+                request.getEndTime()
         )) {
             throw new IllegalArgumentException("Timing conflict");
         }
 
-        return showRepository.updateShowTiming(showId, req.getStartTime(), req.getEndTime());
+        return showRepository.updateShowTiming(showId, request.getStartTime(), request.getEndTime());
     }
 
     public boolean deleteShow(int showId) throws SQLException {
@@ -102,7 +132,4 @@ public class ShowService {
 
         return showRepository.deleteShow(showId);
     }
-
-
-
 }

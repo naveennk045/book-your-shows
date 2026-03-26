@@ -1,6 +1,7 @@
 package org.bookyourshows.mapper;
 
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.dto.show.ShowSummary;
 
 import java.sql.ResultSet;
@@ -34,6 +35,19 @@ public class ShowMapper {
         showSummary.setEndTime(resultSet.getTime("end_time"));
         showSummary.setBasePrice(resultSet.getDouble("base_price"));
         return showSummary;
+
+    }
+
+    public static ShowSeating mapRowShowSeating(ResultSet resultSet) throws SQLException {
+
+        ShowSeating showSeating = new ShowSeating();
+        showSeating.setShowSeatId(resultSet.getInt("show_seat_id"));
+        showSeating.setSeatNumber(resultSet.getString("seat_number"));
+        showSeating.setCategory(resultSet.getString("category"));
+        showSeating.setStatus(resultSet.getString("status"));
+        showSeating.setFinalPrice(resultSet.getDouble("final_price"));
+
+        return showSeating;
 
     }
 }
