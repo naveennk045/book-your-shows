@@ -22,6 +22,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("com.mysql:mysql-connector-j:9.6.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.21.1")
+    implementation("at.favre.lib:bcrypt:0.10.2")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
 
 }

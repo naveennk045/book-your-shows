@@ -47,6 +47,12 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/users$", new UserServlet());
         SERVLET_REGISTRY.put("^/users/[^/]+$", new UserServlet());
 
+        SERVLET_REGISTRY.put("^/auth/register$", new AuthenticationServlet());
+        SERVLET_REGISTRY.put("^/auth/register/$", new AuthenticationServlet());
+
+        SERVLET_REGISTRY.put("^/admin/*", new AdminServlet());
+
+
 
     }
 

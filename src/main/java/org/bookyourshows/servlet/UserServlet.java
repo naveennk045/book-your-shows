@@ -97,12 +97,18 @@ public class UserServlet extends HttpServlet {
             writeMessage(response, "Database error");
         }
     }
+/*
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        if(request.getPathInfo().equals("/users")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        }
 
         if (request.getContentType() == null ||
                 !request.getContentType().contains("application/json")) {
@@ -129,6 +135,7 @@ public class UserServlet extends HttpServlet {
             writeMessage(response, e.getMessage());
         }
     }
+*/
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)

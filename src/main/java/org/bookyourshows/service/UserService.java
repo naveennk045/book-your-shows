@@ -44,6 +44,7 @@ public class UserService {
 
         return userRepository.getAllUsers(limit, offset, email, role);
     }
+/*
 
     public UserDetails createUser(UserCreateRequest request) throws SQLException {
 
@@ -74,6 +75,7 @@ public class UserService {
 
         throw new RuntimeException("User created but not found");
     }
+*/
 
     public boolean updateUser(int userId, UserUpdateRequest request) throws SQLException {
 
