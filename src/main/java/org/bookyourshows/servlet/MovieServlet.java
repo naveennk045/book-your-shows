@@ -124,6 +124,14 @@ public class MovieServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        if (!request.getAttribute("user_role").equals("ADMIN")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Unauthorized"));
+            return;
+        }
+
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
@@ -172,8 +180,20 @@ public class MovieServlet extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        System.out.println("role : " + request.getAttribute("user_role"));
+
+        if (!request.getAttribute("user_role").equals("ADMIN")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Unauthorized"));
+            return;
+        }
+
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -240,6 +260,13 @@ public class MovieServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        if (!request.getAttribute("user_role").equals("ADMIN")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Unauthorized"));
+            return;
+        }
 
         String path = request.getPathInfo();
         String[] parts = path.split("/");

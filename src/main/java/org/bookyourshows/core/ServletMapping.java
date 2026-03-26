@@ -1,6 +1,5 @@
 package org.bookyourshows.core;
 
-import jakarta.servlet.http.HttpServlet;
 import org.bookyourshows.servlet.*;
 
 import java.util.LinkedHashMap;
@@ -8,66 +7,62 @@ import java.util.Map;
 
 public class ServletMapping {
 
-    private static final Map<String, HttpServlet> SERVLET_REGISTRY = new LinkedHashMap<>();
+    private static final Map<String, ServletDetails> SERVLET_REGISTRY = new LinkedHashMap<>();
 
     static {
 
-        SERVLET_REGISTRY.put("^/theatres$", new TheatreServlet());
-        SERVLET_REGISTRY.put("^/theatres/$", new TheatreServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]+$", new TheatreServlet());
+        SERVLET_REGISTRY.put("^/theatres$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens$", new ScreenServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/$", new ScreenServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+$", new ScreenServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens$", new ServletDetails(new ScreenServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/$", new ServletDetails(new ScreenServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+$", new ServletDetails(new ScreenServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows/$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/shows$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/shows/$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]+$", new ShowServlet());
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows/$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/[^/]+$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/shows$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/shows/$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/shows/[^/]+$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
 
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/[^/]+$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/seats/$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/seats/[^/]+$", new SeatServlet());
-        SERVLET_REGISTRY.put("^/seats$", new SeatServlet());
+        SERVLET_REGISTRY.put("^/seats/$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/seats/[^/]+$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/seats$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/movies$", new MovieServlet());
-        SERVLET_REGISTRY.put("^/movies/$", new MovieServlet());
-        SERVLET_REGISTRY.put("^/movies/[^/]+$", new MovieServlet());
+        SERVLET_REGISTRY.put("^/movies$", new ServletDetails(new MovieServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/movies/$", new ServletDetails(new MovieServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/movies/[^/]+$", new ServletDetails(new MovieServlet(), AccessLevel.PUBLIC));
 
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new ShowServlet());
-        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new ShowServlet());
+        SERVLET_REGISTRY.put("^/users/$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/users$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/users/[^/]+$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC ));
 
-        SERVLET_REGISTRY.put("^/users/$", new UserServlet());
-        SERVLET_REGISTRY.put("^/users$", new UserServlet());
-        SERVLET_REGISTRY.put("^/users/[^/]+$", new UserServlet());
+        SERVLET_REGISTRY.put("^/auth/register$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/auth/register/$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
 
-        SERVLET_REGISTRY.put("^/auth/register$", new AuthenticationServlet());
-        SERVLET_REGISTRY.put("^/auth/register/$", new AuthenticationServlet());
-
-//        SERVLET_REGISTRY.put("^/admin/.*", new AdminServlet());
-        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new AdminServlet());
-        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new AdminServlet());
-
-
-
-
+        // Admin routes
+        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC ));
+        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC ));
     }
 
-    public HttpServlet getServlet(String requestUri) {
+
+    public ServletDetails getServlet(String requestUri) {
         if (requestUri == null) return null;
 
-        for (Map.Entry<String, HttpServlet> entry : SERVLET_REGISTRY.entrySet()) {
+        for (Map.Entry<String, ServletDetails> entry : SERVLET_REGISTRY.entrySet()) {
             if (requestUri.matches(entry.getKey())) {
+                System.out.println("Matched request URI: " + entry.getKey());
                 return entry.getValue();
             }
         }
-
         throw new RuntimeException("No servlet found for request URI: " + requestUri);
     }
 }
