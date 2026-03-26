@@ -65,7 +65,7 @@ public class TheatreService {
         if (theatreRepository.getTheatreByOwnerId(request.getOwnerId()).isPresent()) {
             throw new RuntimeException("There is already an existing theatre,One user can able to create one theatre");
         }
-        request.setState("APPROVED");
+//        request.setState("APPROVED");
         int theatreId = theatreRepository.addTheatre(request);
         boolean isTheatreAddressAdded = theatreRepository.addTheatreAddress(request, theatreId);
         if (!isTheatreAddressAdded) {

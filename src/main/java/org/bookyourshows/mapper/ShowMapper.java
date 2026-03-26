@@ -7,21 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ShowMapper {
-    public static ShowDetails mapRowShowDetails(ResultSet resultSet) throws SQLException {
-
-        ShowDetails showDetails = new ShowDetails();
-
-        showDetails.setShowId(resultSet.getInt("show_id"));
-        showDetails.setTheatreId(resultSet.getInt("theatre_id"));
-        showDetails.setScreenId(resultSet.getInt("screen_id"));
-        showDetails.setMovieId(resultSet.getInt("movie_id"));
-        showDetails.setShowDate(resultSet.getDate("show_date"));
-        showDetails.setBasePrice(resultSet.getDouble("base_price"));
-        showDetails.setStartTime(resultSet.getTime("start_time"));
-        showDetails.setEndTime(resultSet.getTime("end_time"));
-
-        return showDetails;
-    }
 
     public static ShowSeating mapRowShowSeating(ResultSet resultSet) throws SQLException {
 
@@ -34,5 +19,38 @@ public class ShowMapper {
 
         return showSeating;
 
+    }
+
+    private static boolean hasColumn(ResultSet rs, String column) {
+        try {
+            rs.findColumn(column);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public static ShowDetails mapRowShowDetails(ResultSet rs) throws SQLException {
+
+        ShowDetails show = new ShowDetails();
+
+        if (hasColumn(rs, "show_id")) show.setShowId(rs.getInt("show_id"));
+        if (hasColumn(rs, "theatre_id")) show.setTheatreId(rs.getInt("theatre_id"));
+        if (hasColumn(rs, "theatre_name")) show.setTheatreName(rs.getString("theatre_name"));
+        if (hasColumn(rs, "city")) show.setTheatreLocation(rs.getString("city"));
+
+        if (hasColumn(rs, "screen_id")) show.setScreenId(rs.getInt("screen_id"));
+        if (hasColumn(rs, "screen_name")) show.setScreenName(rs.getString("screen_name"));
+
+        if (hasColumn(rs, "movie_id")) show.setMovieId(rs.getInt("movie_id"));
+        if (hasColumn(rs, "movie_name")) show.setMovieName(rs.getString("movie_name"));
+
+        if (hasColumn(rs, "show_date")) show.setShowDate(rs.getDate("show_date"));
+        if (hasColumn(rs, "start_time")) show.setStartTime(rs.getTime("start_time"));
+        if (hasColumn(rs, "end_time")) show.setEndTime(rs.getTime("end_time"));
+
+        if (hasColumn(rs, "base_price")) show.setBasePrice(rs.getDouble("base_price"));
+
+        return show;
     }
 }

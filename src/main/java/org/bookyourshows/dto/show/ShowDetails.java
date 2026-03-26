@@ -9,6 +9,7 @@ public class ShowDetails {
     private int showId;
     private Integer theatreId;
     private String theatreName;
+    private String theatreLocation;
     private Integer screenId;
     private String screenName;
     private String screenType;
@@ -42,6 +43,15 @@ public class ShowDetails {
     public void setTheatreName(String theatreName) {
         this.theatreName = theatreName;
     }
+
+    public String getTheatreLocation() {
+        return theatreLocation;
+    }
+
+    public void setTheatreLocation(String theatreLocation) {
+        this.theatreLocation = theatreLocation;
+    }
+
 
     public Integer getScreenId() {
         return screenId;

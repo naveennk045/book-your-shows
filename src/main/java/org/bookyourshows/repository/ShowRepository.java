@@ -5,7 +5,6 @@ import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.show.ShowSeating;
-import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.mapper.ShowMapper;
 
 import java.sql.*;
@@ -84,7 +83,7 @@ public class ShowRepository {
         }
     }
 
-    public List<ShowDetails> getShows(int theatreId, Date showDate, Integer movieId) throws SQLException {
+    public List<ShowDetails> getShowsByTheatreId(int theatreId, Date showDate, Integer movieId) throws SQLException {
 
         StringBuilder sql = new StringBuilder("""
                 SELECT
@@ -117,20 +116,70 @@ public class ShowRepository {
         List<ShowDetails> shows = new java.util.ArrayList<>();
 
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+             PreparedStatement preparedStatement = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
+                preparedStatement.setObject(i + 1, params.get(i));
             }
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                shows.add(ShowMapper.mapRowShowDetails(rs));
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                shows.add(ShowMapper.mapRowShowDetails(resultSet));
             }
         }
 
         return shows;
     }
 
+    public List<ShowDetails>  getShows(Integer theatreId, String location, Date showDate, Integer movieId) throws SQLException {
+
+        StringBuilder query = new StringBuilder("""
+                SELECT
+                    s.show_id,
+                    s.theatre_id,
+                    t.theatre_name,
+                    ta.city,
+                    s.movie_id,
+                    s.screen_id,
+                    scr.screen_name,
+                    s.show_date,
+                    s.start_time,
+                    s.end_time,
+                    s.base_price
+                FROM shows AS s
+                         JOIN theatres AS t ON s.theatre_id = t.theatre_id
+                         JOIN theatre_addresses AS ta ON t.theatre_id = ta.theatre_id
+                         JOIN screens  AS scr ON s.screen_id = scr.screen_id
+                         JOIN screen_types AS scrt ON scrt.screen_type_id = scr.screen_type_id
+                WHERE LOWER(ta.city) = LOWER (?) AND
+                    s.movie_id = ? AND
+                    s.show_date = ?
+                    AND ( s.status = 'SCHEDULED'  OR s.status = 'RESCHEDULED')
+                """);
+
+        if (theatreId != null) {
+            query.append(" AND s.theatre_id = ?");
+        }
+
+        query.append(" ORDER BY s.theatre_id, s.start_time;");
+        List<ShowDetails> shows = new java.util.ArrayList<>();
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = conn.prepareStatement(query.toString())) {
+
+
+            preparedStatement.setString(1, location);
+            preparedStatement.setInt(2, movieId);
+            preparedStatement.setDate(3, showDate);
+            if (theatreId != null) {
+                preparedStatement.setInt(4, theatreId);
+            }
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                shows.add(ShowMapper.mapRowShowDetails(resultSet));
+            }
+        }
+        return shows;
+    }
 
 
     public Integer createShow(ShowCreateRequest request) throws SQLException {
@@ -154,10 +203,10 @@ public class ShowRepository {
 
             preparedStatement.executeUpdate();
 
-            ResultSet resultSet = preparedStatement.getGeneratedKeys();
-            if (resultSet.next()) return resultSet.getInt(1);
+            try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
+                if (resultSet.next()) return resultSet.getInt(1);
+            }
         }
-
         throw new RuntimeException("Failed to create show");
     }
 
@@ -216,7 +265,6 @@ public class ShowRepository {
             return resultSet.next();
         }
     }
-
 
 
     public boolean updateShowTiming(int showId, Time start, Time end) throws SQLException {

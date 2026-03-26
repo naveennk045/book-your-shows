@@ -119,26 +119,29 @@ public class ShowServlet extends HttpServlet {
                 return;
             }
 
-            // /shows?theatre_id=&show_date=&movie_id=
+            // /shows?theatre_id=&show_date=&movie_id=&location
             String theatreIdParam = request.getParameter("theatre_id");
             String dateParam = request.getParameter("show_date");
             String movieIdParam = request.getParameter("movie_id");
+            String locationParam = request.getParameter("location");
 
-            if (theatreIdParam == null || dateParam == null || movieIdParam == null) {
+            if (dateParam == null || movieIdParam == null || locationParam == null) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Invalid parameters"));
+                        Map.of("message", "Required parameters are missing"));
                 return;
             }
-
-            int theatreId = Integer.parseInt(theatreIdParam);
+            Integer theatreId = null;
+            if (theatreIdParam != null) {
+                theatreId = Integer.parseInt(theatreIdParam);
+            }
             Date date = Date.valueOf(dateParam);
             int movieId = Integer.parseInt(movieIdParam);
 
-            List<ShowDetails> shows = showService.getShows(theatreId, date, movieId);
+            List<TheatreShowsResponse> shows = showService.getShows(theatreId, locationParam, date, movieId);
 
             response.setStatus(HttpServletResponse.SC_OK);
-            if(shows.isEmpty()) {
+            if (shows.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "No live shows found"));
             }
@@ -155,7 +158,7 @@ public class ShowServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+                    Map.of("message", "Database error"));
         }
     }
 
