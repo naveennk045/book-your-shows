@@ -97,6 +97,7 @@ public class ShowRepository {
             return resultSet.next();
         }
     }
+
     public Map<Integer, List<ShowSeating>> getShowSeats(Integer showId) throws SQLException {
 
         String sql = """
@@ -137,7 +138,7 @@ public class ShowRepository {
         }
     }
 
-    public List<ShowSummary> getShows(int theatreId, Date showDate) throws SQLException {
+    public List<ShowSummary> getShows(int theatreId, Date showDate, Integer movieId) throws SQLException {
 
         StringBuilder sql = new StringBuilder("""
                 SELECT
@@ -150,6 +151,7 @@ public class ShowRepository {
                     base_price
                 FROM shows
                 WHERE theatre_id = ?
+                
                 """);
 
         List<Object> params = new java.util.ArrayList<>();
@@ -158,6 +160,10 @@ public class ShowRepository {
         if (showDate != null) {
             sql.append(" AND show_date = ?");
             params.add(showDate);
+        }
+        if (movieId != null) {
+            sql.append(" AND movie_id = ?");
+            params.add(movieId);
         }
 
         sql.append(" ORDER BY start_time");
@@ -206,7 +212,6 @@ public class ShowRepository {
         }
         return Optional.empty();
     }
-
 
 
     public boolean updateShowTiming(int showId, Time start, Time end) throws SQLException {

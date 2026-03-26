@@ -78,6 +78,7 @@ public class ShowServlet extends HttpServlet {
                     Map.of("message", "Database error"));
         }
     }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -118,16 +119,29 @@ public class ShowServlet extends HttpServlet {
                 return;
             }
 
-            // /shows?theatre_id=&show_date=
+            // /shows?theatre_id=&show_date=&movie_id=
             String theatreIdParam = request.getParameter("theatre_id");
             String dateParam = request.getParameter("show_date");
+            String movieIdParam = request.getParameter("movie_id");
+
+            if (theatreIdParam == null || dateParam == null || movieIdParam == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Invalid parameters"));
+                return;
+            }
 
             int theatreId = Integer.parseInt(theatreIdParam);
-            Date date = dateParam != null ? Date.valueOf(dateParam) : null;
+            Date date = Date.valueOf(dateParam);
+            int movieId = Integer.parseInt(movieIdParam);
 
-            List<ShowSummary> shows = showService.getShows(theatreId, date);
+            List<ShowSummary> shows = showService.getShows(theatreId, date, movieId);
 
             response.setStatus(HttpServletResponse.SC_OK);
+            if(shows.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "No live shows found"));
+            }
             objectMapper.writeValue(response.getWriter(), shows);
 
         } catch (NumberFormatException e) {
