@@ -1,0 +1,122 @@
+package org.bookyourshows.repository;
+
+import org.bookyourshows.config.DatabaseManager;
+import org.bookyourshows.dto.payment.PaymentDetails;
+import org.bookyourshows.dto.payment.PaymentInitiateRequest;
+import org.bookyourshows.dto.payment.PaymentWebhookPayload;
+import org.bookyourshows.mapper.PaymentMapper;
+
+import java.sql.*;
+import java.util.Optional;
+
+public class PaymentRepository {
+
+
+    public PaymentRepository() {
+
+    }
+
+    public Optional<PaymentDetails> getPaymentDetailsByGatewayTransactionId(String gatewayTransactionId) throws SQLException {
+        String query = "SELECT * FROM payments WHERE gateway_transaction_id = ?";
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, gatewayTransactionId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(PaymentMapper.mapRowToPayementDetails(resultSet));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<PaymentDetails> getPaymentDetailsByBookingId(Integer bookingId) throws SQLException {
+        String query = "SELECT * FROM payments WHERE booking_id = ?";
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, bookingId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(PaymentMapper.mapRowToPayementDetails(resultSet));
+            }
+        }
+        return Optional.empty();
+    }
+
+
+    public Integer createPayment(Integer bookingId, PaymentInitiateRequest paymentInitiateRequest) throws SQLException {
+
+        String query = """
+                INSERT INTO payments(booking_id, amount,payment_gateway,gateway_transaction_id)
+                VALUES (?, ?, ?, ?)
+                """;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setInt(1, bookingId);
+            preparedStatement.setDouble(2, paymentInitiateRequest.getAmount());
+            preparedStatement.setString(3, paymentInitiateRequest.getPaymentGateway());
+            preparedStatement.setString(4, paymentInitiateRequest.getPaymentGatewayTransactionId());
+
+            int affected = preparedStatement.executeUpdate();
+            if (affected == 0) throw new RuntimeException("Payment initiation failed");
+
+
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        }
+
+        throw new RuntimeException("Payment initiation failed");
+    }
+/*
+
+    public void updatePayment(Connection connection, PaymentWebhookPayload paymentWebhookPayload, String gatewayTransactionId) throws SQLException {
+
+        String query = """
+                        UPDATE payments
+                        SET
+                        payment_gateway = ?,
+                        status = ?
+                        WHERE gateway_transaction_id = ?;
+                """;
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        preparedStatement.setString(1, paymentWebhookPayload.getPaymentMode() + "flux");
+        preparedStatement.setString(2, paymentWebhookPayload.getStatus());
+        preparedStatement.setString(3, gatewayTransactionId);
+
+        int affected = preparedStatement.executeUpdate();
+
+        if (affected == 0) {
+            connection.rollback();
+            throw new RuntimeException("Payment record failed");
+
+        }
+    }
+*/
+
+    public void updatePaymentStatus(Connection connection, Integer transactionId, String paymentStatus) throws SQLException {
+
+        String query = """
+                        UPDATE payments
+                        SET
+                        status = ?
+                        WHERE trasaction_id = ?;
+                """;
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        preparedStatement.setString(1, paymentStatus);
+        preparedStatement.setInt(2, transactionId);
+
+        int affected = preparedStatement.executeUpdate();
+
+        if (affected == 0) {
+            connection.rollback();
+            throw new RuntimeException("Payment refund update failed");
+
+        }
+    }
+}
+

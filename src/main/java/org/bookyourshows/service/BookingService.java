@@ -1,8 +1,10 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.booking.*;
+import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.repository.BookingRepository;
+import org.bookyourshows.repository.PaymentRepository;
 import org.bookyourshows.repository.ShowRepository;
 
 import java.sql.SQLException;
@@ -12,10 +14,12 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ShowRepository showRepository;
+    private final PaymentRepository paymentRepository;
 
     public BookingService() {
         this.bookingRepository = new BookingRepository();
         this.showRepository = new ShowRepository();
+        this.paymentRepository = new PaymentRepository();
     }
 
     public Optional<BookingDetails> getBookingById(int bookingId) throws SQLException {
@@ -32,20 +36,54 @@ public class BookingService {
 
 
         Map<Integer, ShowSeating> showSeating = showRepository.getShowSeatsByShowId(request.getShowId());
-        double totalAmount = 0;
+        Double totalAmount = (double) 0;
 
 
         for (Integer showSeatId : request.getShowSeatIds()) {
-            totalAmount += showSeating.get(showSeatId).getFinalPrice();
+            if (showSeating.containsKey(showSeatId)) {
+                totalAmount += showSeating.get(showSeatId).getFinalPrice();
+            } else {
+                throw new IllegalArgumentException("no show seat found");
+            }
         }
 
 
         if (request.getClientTotalAmount() == null) {
             throw new IllegalArgumentException("total amount is required");
-        } else if(totalAmount != request.getClientTotalAmount()) {
+        } else if (!totalAmount.equals(request.getClientTotalAmount())) {
             throw new IllegalArgumentException("calculated total amount is not equal to the requested total amount");
         }
 
         return bookingRepository.createBookingWithSeats(userId, request, totalAmount);
+    }
+
+    public void cancelBooking(Integer bookingId) throws SQLException {
+
+
+        Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
+
+        Optional<PaymentDetails> paymentDetailsOptional = paymentRepository.getPaymentDetailsByBookingId(bookingId);
+
+        if (paymentDetailsOptional.isEmpty()) {
+            throw new RuntimeException("Payment not found");
+        }
+
+        if (!paymentDetailsOptional.get().getStatus().equals("COMPLETED")) {
+            throw new RuntimeException("Payment not completed.");
+        }
+        if (!paymentDetailsOptional.get().getStatus().equals("REFUNDED")) {
+            throw new RuntimeException("Payment already refunded.");
+        }
+
+        if (bookingDetails.isEmpty()) {
+            throw new RuntimeException("Booking not found");
+        }
+
+
+        String paymentStatus = "REFUNDED";
+        String bookingStatus = "CANCELLED";
+        Integer paymentTransactionId = paymentDetailsOptional.get().getTransactionId();
+
+        bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, paymentTransactionId);
     }
 }

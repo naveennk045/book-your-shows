@@ -59,7 +59,8 @@ public class ShowRepository {
                          JOIN seat_categories as sc ON s.seat_category_id = sc.seat_category_id
                          JOIN screens as scr ON s.screen_id = scr.screen_id
                          JOIN screen_types ON scr.screen_type_id = screen_types.screen_type_id
-                WHERE sh.show_id = ?;
+                WHERE sh.show_id = ?
+                ;
                 
                 """;
 
@@ -334,4 +335,50 @@ public class ShowRepository {
             return showSeatingMap;
         }
     }
+
+    public static void releaseExpiredSeats() {
+
+        String sql = """
+                    UPDATE show_seating
+                    SET status = 'AVAILABLE',
+                        locked_by = NULL,
+                        locked_at = NULL,
+                        lock_expiry = NULL
+                    WHERE status = 'LOCKED'
+                      AND lock_expiry < NOW()
+                """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            int rows = ps.executeUpdate();
+            System.out.println("Released seats count: " + rows);
+
+        } catch (Exception e) {
+            System.out.println("Error while releasing seats: " + e.getMessage());
+            ;
+        }
+    }
+
+    public static void updateCompletedShows() {
+
+        String sql = """
+                    UPDATE shows
+                    SET status = 'COMPLETED'
+                    WHERE status IN ('SCHEDULED', 'RESCHEDULED')
+                      AND TIMESTAMP(show_date, end_time) < NOW()
+                """;
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            int rows = ps.executeUpdate();
+            System.out.println("Shows marked completed: " + rows);
+
+        } catch (Exception e) {
+            System.out.println("Error updating show status: " + e.getMessage());
+        }
+    }
 }
+
+

@@ -158,7 +158,7 @@ public class ShowServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+                    Map.of("message", e.getMessage()));
         }
     }
 

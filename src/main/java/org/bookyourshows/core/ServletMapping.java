@@ -51,6 +51,17 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/bookings/[^/]+$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/payments$/", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/status$/", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/status$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$/", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/fluxpay/[^/]+", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/fluxpay/[^/]+/", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/refund/[^/]+/status/", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/refund/[^/]+/status$/", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
 
         // Admin routes
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));

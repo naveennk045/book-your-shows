@@ -7,13 +7,18 @@ import org.bookyourshows.mapper.BookingMapper;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class BookingRepository {
     private final ShowRepository showRepository;
+    private final PaymentRepository paymentRepository;
+
 
     public BookingRepository() {
+
         this.showRepository = new ShowRepository();
+        this.paymentRepository = new PaymentRepository();
     }
 
     public Optional<BookingDetails> getBookingById(int bookingId) throws SQLException {
@@ -167,11 +172,12 @@ public class BookingRepository {
                     JOIN screen_types scrt on scr.screen_type_id = scrt.screen_type_id
                     WHERE shs.show_id = ? AND shs.show_seat_id = ?
                 """;
-
         String updateShowSeatSql = """
                     UPDATE show_seating
                     SET status = 'LOCKED',
-                        locked_by = ?
+                        locked_by = ?,
+                        locked_at = NOW(),
+                        lock_expiry = NOW() + INTERVAL 5 MINUTE
                     WHERE show_seat_id = ? AND status = 'AVAILABLE'
                 """;
 
@@ -228,6 +234,67 @@ public class BookingRepository {
 
             connection.commit();
             return bookingId;
+        }
+    }
+
+
+    public void updateBookingStatus(Integer bookingId, String bookingStatus, String paymentStatus, Integer transactionId) throws SQLException {
+
+
+        String query = """
+                        UPDATE bookings
+                        SET booking_status = ?,
+                        payment_status = ?
+                        WHERE booking_id = ?
+                """;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, bookingStatus);
+            preparedStatement.setString(2, paymentStatus);
+            preparedStatement.setInt(3, bookingId);
+
+            int updated = preparedStatement.executeUpdate();
+            if (updated == 0) {
+                connection.rollback();
+                throw new RuntimeException("Booking status not updated");
+            }
+
+
+            boolean isSeatsUpdated = (Objects.equals(paymentStatus, "PENDING"));
+            if (Objects.equals(paymentStatus, "FAILED")) {
+                updateShowSeatingStatus(connection, bookingId, "AVAILABLE");
+            } else if (Objects.equals(bookingStatus, "CONFIRMED")) {
+                updateShowSeatingStatus(connection, bookingId, "BOOKED");
+            } else if (Objects.equals(paymentStatus, "REFUNDED")) {
+                updateShowSeatingStatus(connection, bookingId, "AVAILABLE");
+            }
+
+            if (isSeatsUpdated) {
+                paymentRepository.updatePaymentStatus(connection, transactionId, paymentStatus);
+            }
+            connection.commit();
+        }
+    }
+
+    private void updateShowSeatingStatus(Connection connection, Integer bookingId, String status) throws SQLException {
+
+        String query = """
+                       UPDATE show_seating ss
+                       JOIN booking_seat_details bsd\s
+                         ON bsd.show_seat_id = ss.show_seat_id
+                       SET ss.status = ?
+                       WHERE bsd.booking_id = ?
+                """;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, status);
+            preparedStatement.setInt(2, bookingId);
+
+            int updated = preparedStatement.executeUpdate();
+            if (updated == 0) {
+                connection.rollback();
+                throw new RuntimeException("Seating status not updated");
+            }
         }
     }
 }
