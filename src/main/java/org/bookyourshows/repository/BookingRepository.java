@@ -135,6 +135,7 @@ public class BookingRepository {
                         p.updated_at
                     FROM payments p
                     WHERE p.booking_id = ?
+                    AND p.status = 'SUCCESS'
                     ORDER BY p.created_at DESC
                 """;
 
@@ -261,7 +262,7 @@ public class BookingRepository {
             }
 
 
-            boolean isSeatsUpdated = (Objects.equals(paymentStatus, "PENDING"));
+            boolean shouldUpdatePayment = !Objects.equals(paymentStatus, "PENDING");
             if (Objects.equals(paymentStatus, "FAILED")) {
                 updateShowSeatingStatus(connection, bookingId, "AVAILABLE");
             } else if (Objects.equals(bookingStatus, "CONFIRMED")) {
@@ -270,7 +271,7 @@ public class BookingRepository {
                 updateShowSeatingStatus(connection, bookingId, "AVAILABLE");
             }
 
-            if (isSeatsUpdated) {
+            if (shouldUpdatePayment) {
                 paymentRepository.updatePaymentStatus(connection, transactionId, paymentStatus);
             }
             connection.commit();

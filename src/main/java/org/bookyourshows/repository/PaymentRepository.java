@@ -31,7 +31,7 @@ public class PaymentRepository {
     }
 
     public Optional<PaymentDetails> getPaymentDetailsByBookingId(Integer bookingId) throws SQLException {
-        String query = "SELECT * FROM payments WHERE booking_id = ?";
+        String query = "SELECT * FROM payments WHERE booking_id = ? ORDER BY created_at DESC LIMIT 1";
 
         try (Connection connection = DatabaseManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -103,7 +103,7 @@ public class PaymentRepository {
                         UPDATE payments
                         SET
                         status = ?
-                        WHERE trasaction_id = ?;
+                        WHERE transaction_id = ?;
                 """;
         PreparedStatement preparedStatement = connection.prepareStatement(query);
 

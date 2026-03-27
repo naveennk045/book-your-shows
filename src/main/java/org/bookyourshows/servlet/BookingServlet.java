@@ -102,7 +102,7 @@ public class BookingServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+                    Map.of("message", e.getMessage()));
         }
     }
 
@@ -117,12 +117,9 @@ public class BookingServlet extends HttpServlet {
         String[] parts = path.split("/");
 
         if (parts.length == 4 && Objects.equals(parts[3], "cancel")) {
-            Integer bookingId = Integer.parseInt(parts[2]);
-
-
-
+            handleBookingCancellation(request, response);
+            return;
         }
-
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -132,7 +129,7 @@ public class BookingServlet extends HttpServlet {
             return;
         }
         // /bookings
-        if (path == null || !path.startsWith("/bookings")) {
+        if (!path.startsWith("/bookings")) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Not found"));
@@ -148,6 +145,33 @@ public class BookingServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Not found"));
         }
+    }
+
+    private void handleBookingCancellation(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            String[] parts = request.getPathInfo().split("/");
+            Integer bookingId = Integer.parseInt(parts[2]);
+            Integer refundId = bookingService.cancelBooking(bookingId);
+
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("refund_id", refundId));
+
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Invalid booking id"));
+            return;
+        } catch (RuntimeException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        }
+
     }
 
     private void handleCreateBooking(HttpServletRequest request,
@@ -190,4 +214,5 @@ public class BookingServlet extends HttpServlet {
         }
     }
 }
+
 

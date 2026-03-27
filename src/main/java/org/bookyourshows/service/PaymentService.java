@@ -81,8 +81,7 @@ public class PaymentService {
         } else if (paymentStatus.equals("SUCCESS")) {
             bookingStatus = "CONFIRMED";
         }
-        Integer transactionId = paymentDetailsOptional.get().getBookingId();
-
+        Integer transactionId = paymentDetailsOptional.get().getTransactionId();
 
         bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, transactionId);
     }

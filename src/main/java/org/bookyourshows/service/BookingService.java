@@ -2,10 +2,13 @@ package org.bookyourshows.service;
 
 import org.bookyourshows.dto.booking.*;
 import org.bookyourshows.dto.payment.PaymentDetails;
+import org.bookyourshows.dto.refund.RefundCreateRequest;
 import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.repository.BookingRepository;
 import org.bookyourshows.repository.PaymentRepository;
+import org.bookyourshows.repository.RefundRepository;
 import org.bookyourshows.repository.ShowRepository;
+import org.bookyourshows.utils.PaymentUtils;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -15,11 +18,13 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ShowRepository showRepository;
     private final PaymentRepository paymentRepository;
+    private final RefundRepository refundRepository;
 
     public BookingService() {
         this.bookingRepository = new BookingRepository();
         this.showRepository = new ShowRepository();
         this.paymentRepository = new PaymentRepository();
+        this.refundRepository = new RefundRepository();
     }
 
     public Optional<BookingDetails> getBookingById(int bookingId) throws SQLException {
@@ -57,7 +62,7 @@ public class BookingService {
         return bookingRepository.createBookingWithSeats(userId, request, totalAmount);
     }
 
-    public void cancelBooking(Integer bookingId) throws SQLException {
+    public Integer cancelBooking(Integer bookingId) throws SQLException {
 
 
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
@@ -68,11 +73,12 @@ public class BookingService {
             throw new RuntimeException("Payment not found");
         }
 
-        if (!paymentDetailsOptional.get().getStatus().equals("COMPLETED")) {
-            throw new RuntimeException("Payment not completed.");
+        if (!paymentDetailsOptional.get().getStatus().equals("SUCCESS")) {
+            throw new RuntimeException("Only successful payments can be refunded");
         }
-        if (!paymentDetailsOptional.get().getStatus().equals("REFUNDED")) {
-            throw new RuntimeException("Payment already refunded.");
+
+        if (paymentDetailsOptional.get().getStatus().equals("REFUNDED")) {
+            throw new RuntimeException("Already refunded");
         }
 
         if (bookingDetails.isEmpty()) {
@@ -85,5 +91,13 @@ public class BookingService {
         Integer paymentTransactionId = paymentDetailsOptional.get().getTransactionId();
 
         bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, paymentTransactionId);
+
+        RefundCreateRequest refundCreateRequest = new RefundCreateRequest();
+        refundCreateRequest.setGatewayRefundId(PaymentUtils.generateGateWayTransactionId());
+        refundCreateRequest.setReason("Booking Cancelled");
+        refundCreateRequest.setAmount(paymentDetailsOptional.get().getAmount());
+        refundCreateRequest.setTransactionId(paymentTransactionId);
+
+        return refundRepository.createRefund(refundCreateRequest);
     }
 }
