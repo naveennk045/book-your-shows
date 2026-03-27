@@ -41,7 +41,7 @@ public class TheatreServlet extends HttpServlet {
         String path = request.getPathInfo().substring("/theatres".length());
 
         try {
-
+            // GET : /theatres/{theatre_id}
             if (path.length() > 1) {
 
                 int theatreId = Integer.parseInt(path.substring(1));
@@ -66,6 +66,7 @@ public class TheatreServlet extends HttpServlet {
             return;
         }
 
+        // GET : /theatres?theatre_name=&city=&status=&
 
         String theatreName = request.getParameter("theatre_name");
         String city = request.getParameter("city");
@@ -96,6 +97,8 @@ public class TheatreServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        // POST : /theatres
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -154,6 +157,8 @@ public class TheatreServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        // PUT : /theatres/{theatre_id}
 
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
@@ -228,6 +233,8 @@ public class TheatreServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        // DELETE : /theatres/{theatre_id}
 
         String path = request.getPathInfo().substring("/theatres".length());
         if (path.length() <= 1) {

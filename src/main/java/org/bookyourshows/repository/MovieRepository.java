@@ -12,7 +12,7 @@ import java.util.Optional;
 public class MovieRepository {
 
     public Optional<MovieDetails> getMovieById(int movieId) throws SQLException {
-        String sql = """
+        String query = """
                 SELECT
                     movie_id,
                     title,
@@ -29,22 +29,22 @@ public class MovieRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, movieId);
-            ResultSet rs = preparedStatement.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            if (rs.next()) {
-                return Optional.of(MovieMapper.mapRowToMovieDetail(rs));
+            if (resultSet.next()) {
+                return Optional.of(MovieMapper.mapRowToMovieDetail(resultSet));
             }
         }
 
         return Optional.empty();
     }
 
-    public List<MovieSummary> getAllMovies(MovieQueryParameter query) throws SQLException {
+    public List<MovieSummary> getAllMovies(MovieQueryParameter queryParameter) throws SQLException {
 
-        StringBuilder sql = new StringBuilder("""
+        StringBuilder query = new StringBuilder("""
                 SELECT
                     movie_id,
                     title,
@@ -55,54 +55,54 @@ public class MovieRepository {
 
         List<Object> params = new ArrayList<>();
 
-        if (query.getName() != null) {
-            sql.append(" AND LOWER(title) LIKE LOWER(?)");
-            params.add("%" + query.getName() + "%");
+        if (queryParameter.getName() != null) {
+            query.append(" AND LOWER(title) LIKE LOWER(?)");
+            params.add("%" + queryParameter.getName() + "%");
         }
 
-        if (query.getLanguage() != null) {
-            sql.append(" AND language = ?");
-            params.add(query.getLanguage());
+        if (queryParameter.getLanguage() != null) {
+            query.append(" AND language = ?");
+            params.add(queryParameter.getLanguage());
         }
 
-        if (query.getGenre() != null) {
-            sql.append(" AND genre = ?");
-            params.add(query.getGenre());
+        if (queryParameter.getGenre() != null) {
+            query.append(" AND genre = ?");
+            params.add(queryParameter.getGenre());
         }
 
-        if (query.getReleaseYear() != null) {
-            sql.append(" AND YEAR(release_date) = ?");
-            params.add(query.getReleaseYear());
+        if (queryParameter.getReleaseYear() != null) {
+            query.append(" AND YEAR(release_date) = ?");
+            params.add(queryParameter.getReleaseYear());
         }
 
-        if ("release_date".equalsIgnoreCase(query.getSort())) {
-            sql.append(" ORDER BY release_date DESC");
+        if ("release_date".equalsIgnoreCase(queryParameter.getSort())) {
+            query.append(" ORDER BY release_date DESC");
         } else {
-            sql.append(" ORDER BY movie_id DESC");
+            query.append(" ORDER BY movie_id DESC");
         }
 
-        if (query.getLimit() != null) {
-            sql.append(" LIMIT ?");
-            params.add(query.getLimit());
+        if (queryParameter.getLimit() != null) {
+            query.append(" LIMIT ?");
+            params.add(queryParameter.getLimit());
         }
 
-        if (query.getOffset() != null) {
-            sql.append(" OFFSET ?");
-            params.add(query.getOffset());
+        if (queryParameter.getOffset() != null) {
+            query.append(" OFFSET ?");
+            params.add(queryParameter.getOffset());
         }
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 preparedStatement.setObject(i + 1, params.get(i));
             }
 
-            ResultSet rs = preparedStatement.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
             List<MovieSummary> movies = new ArrayList<>();
 
-            while (rs.next()) {
-                movies.add(MovieMapper.mapRowToMovieSummary(rs));
+            while (resultSet.next()) {
+                movies.add(MovieMapper.mapRowToMovieSummary(resultSet));
             }
 
             return movies;
@@ -111,7 +111,7 @@ public class MovieRepository {
 
     public int createMovie(MovieCreateRequest request) throws SQLException {
 
-        String sql = """
+        String query = """
                 INSERT INTO movies
                 (title, language, genre, duration, release_date,
                  poster_url, trailer_url, description, censor_rating)
@@ -119,7 +119,7 @@ public class MovieRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, request.getTitle());
             preparedStatement.setString(2, request.getLanguage());
@@ -146,9 +146,9 @@ public class MovieRepository {
         throw new RuntimeException("Failed to retrieve movie ID");
     }
 
-    public boolean updateMovie(int movieId, MovieUpdateRequest request) throws SQLException {
+    public boolean updateMovie(Integer movieId, MovieUpdateRequest request) throws SQLException {
 
-        String sql = """
+        String query = """
                 UPDATE movies
                 SET language = ?,
                     genre = ?,
@@ -162,7 +162,7 @@ public class MovieRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setString(1, request.getLanguage());
             preparedStatement.setString(2, request.getGenre());
@@ -180,10 +180,10 @@ public class MovieRepository {
 
     public boolean deleteMovie(int movieId) throws SQLException {
 
-        String sql = "DELETE FROM movies WHERE movie_id = ?";
+        String query = "DELETE FROM movies WHERE movie_id = ?";
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, movieId);
             return preparedStatement.executeUpdate() > 0;

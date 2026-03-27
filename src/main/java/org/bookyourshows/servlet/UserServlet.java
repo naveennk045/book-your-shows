@@ -42,6 +42,7 @@ public class UserServlet extends HttpServlet {
         String[] parts = path.split("/");
 
         try {
+            // /users/{user_id}
             if (parts.length == 3) {
                 int userId;
                 try {
@@ -63,6 +64,8 @@ public class UserServlet extends HttpServlet {
                 }
                 return;
             }
+
+            // /users?email=&mobile=&role=&
 
             String email = request.getParameter("email");
             String mobile = request.getParameter("mobile");
@@ -143,6 +146,9 @@ public class UserServlet extends HttpServlet {
 
         response.setContentType("application/json");
 
+        // PUT : /users/{user_id}
+
+
         String path = request.getPathInfo();
         String[] parts = path.split("/");
 
@@ -180,6 +186,9 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         response.setContentType("application/json");
+
+        // DELETE :  /users/{user_id}
+
 
         String path = request.getPathInfo();
         String[] parts = path.split("/");

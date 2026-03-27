@@ -2,6 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/src/main/java/org/bookyourshows/repository/AdminRepository.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/main/java/org/bookyourshows/repository/BookingRepository.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/org/bookyourshows/repository/MovieRepository.java" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/org/bookyourshows/repository/ScreenRepository.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/org/bookyourshows/repository/ScreenTypeRepository.java" dialect="GenericSQL" />

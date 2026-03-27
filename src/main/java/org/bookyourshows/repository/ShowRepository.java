@@ -15,7 +15,7 @@ public class ShowRepository {
 
 
     public Optional<ShowDetails> getShowById(int showId) throws SQLException {
-        String sql = """ 
+        String query = """ 
                 SELECT
                     show_id,
                     theatre_id,
@@ -30,7 +30,7 @@ public class ShowRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, showId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -45,7 +45,7 @@ public class ShowRepository {
 
     public Map<Integer, List<ShowSeating>> getShowSeats(Integer showId) throws SQLException {
 
-        String sql = """
+        String query = """
                   SELECT ss.show_seat_id,
                         s.row_no,
                        s.seat_id,
@@ -65,7 +65,7 @@ public class ShowRepository {
 
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, showId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -85,7 +85,7 @@ public class ShowRepository {
 
     public List<ShowDetails> getShowsByTheatreId(int theatreId, Date showDate, Integer movieId) throws SQLException {
 
-        StringBuilder sql = new StringBuilder("""
+        StringBuilder query = new StringBuilder("""
                 SELECT
                     show_id,
                     screen_id,
@@ -103,20 +103,20 @@ public class ShowRepository {
         params.add(theatreId);
 
         if (showDate != null) {
-            sql.append(" AND show_date = ?");
+            query.append(" AND show_date = ?");
             params.add(showDate);
         }
         if (movieId != null) {
-            sql.append(" AND movie_id = ?");
+            query.append(" AND movie_id = ?");
             params.add(movieId);
         }
 
-        sql.append(" ORDER BY start_time");
+        query.append(" ORDER BY start_time");
 
         List<ShowDetails> shows = new java.util.ArrayList<>();
 
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = conn.prepareStatement(sql.toString())) {
+             PreparedStatement preparedStatement = conn.prepareStatement(query.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 preparedStatement.setObject(i + 1, params.get(i));
@@ -130,7 +130,7 @@ public class ShowRepository {
         return shows;
     }
 
-    public List<ShowDetails>  getShows(Integer theatreId, String location, Date showDate, Integer movieId) throws SQLException {
+    public List<ShowDetails> getShows(Integer theatreId, String location, Date showDate, Integer movieId) throws SQLException {
 
         StringBuilder query = new StringBuilder("""
                 SELECT
@@ -184,14 +184,14 @@ public class ShowRepository {
 
     public Integer createShow(ShowCreateRequest request) throws SQLException {
 
-        String sql = """
+        String query = """
                 INSERT INTO shows
                 (theatre_id, screen_id, movie_id, show_date, start_time, end_time, base_price)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setInt(1, request.getTheatreId());
             preparedStatement.setInt(2, request.getScreenId());
@@ -212,7 +212,7 @@ public class ShowRepository {
 
     public boolean createShowSeating(Integer screenId, Integer showId) throws SQLException {
 
-        String sql = """
+        String query = """
                 
                 INSERT INTO show_seating (show_id, seat_id, status)
                 SELECT ?, seat_id, 'AVAILABLE'
@@ -221,7 +221,7 @@ public class ShowRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setInt(1, showId);
             preparedStatement.setInt(2, screenId);
@@ -235,7 +235,7 @@ public class ShowRepository {
 
     public boolean isShowConflict(int screenId, Date date, Time start, Time end) throws SQLException {
 
-        String sql = """
+        String query = """
                 SELECT 1 FROM shows
                 WHERE screen_id = ?
                 AND show_date = ?
@@ -247,7 +247,7 @@ public class ShowRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, screenId);
             preparedStatement.setDate(2, date);
@@ -269,14 +269,14 @@ public class ShowRepository {
 
     public boolean updateShowTiming(int showId, Time start, Time end) throws SQLException {
 
-        String sql = """
+        String query = """
                 UPDATE shows
                 SET start_time = ?, end_time = ?, status = 'RESCHEDULED'
                 WHERE show_id = ?
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setTime(1, start);
             preparedStatement.setTime(2, end);
@@ -288,13 +288,50 @@ public class ShowRepository {
 
     public boolean deleteShow(int showId) throws SQLException {
 
-        String sql = "DELETE FROM shows WHERE show_id = ?";
+        String query = "DELETE FROM shows WHERE show_id = ?";
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, showId);
             return preparedStatement.executeUpdate() > 0;
+        }
+    }
+
+    public Map<Integer, ShowSeating> getShowSeatsByShowId(Integer showId) throws SQLException {
+
+        String query = """
+                  SELECT ss.show_seat_id,
+                        s.row_no,
+                       s.seat_id,
+                       s.seat_number,
+                       sc.name                                                               AS category,
+                       ss.status,
+                       (sh.base_price * screen_types.price_multiplier * sc.price_multiplier) AS final_price
+                FROM show_seating ss
+                         JOIN shows as sh ON ss.show_id = sh.show_id
+                         JOIN seats as s ON ss.seat_id = s.seat_id
+                         JOIN seat_categories as sc ON s.seat_category_id = sc.seat_category_id
+                         JOIN screens as scr ON s.screen_id = scr.screen_id
+                         JOIN screen_types ON scr.screen_type_id = screen_types.screen_type_id
+                WHERE sh.show_id = ?;
+                
+                """;
+
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setInt(1, showId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            Map<Integer, ShowSeating> showSeatingMap = new HashMap<>();
+
+            while (resultSet.next()) {
+                int showSeatId = resultSet.getInt("show_seat_id");
+                ShowSeating showSeating = ShowMapper.mapRowShowSeating(resultSet);
+                showSeatingMap.put(showSeatId, showSeating);
+            }
+            return showSeatingMap;
         }
     }
 }

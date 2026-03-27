@@ -168,6 +168,7 @@ public class ShowServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        // /shows/{show_id}
         String path = request.getPathInfo();
         String[] parts = path.split("/");
 
@@ -224,6 +225,7 @@ public class ShowServlet extends HttpServlet {
         String path = request.getPathInfo();
         String[] parts = path.split("/");
 
+        // /shows/{show_id}
         if (parts.length < 3) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),

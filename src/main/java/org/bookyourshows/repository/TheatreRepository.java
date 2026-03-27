@@ -19,8 +19,8 @@ public class TheatreRepository {
     }
 
 
-    public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
-        String sqlQuery = """
+    public Optional<TheatreDetails> getTheatreById(Integer theatreId) throws SQLException {
+        String query = """
                 SELECT t.theatre_id,
                        t.theatre_name,
                        t.email,
@@ -40,7 +40,7 @@ public class TheatreRepository {
                 """;
 
         try (Connection Connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
             preparedStatement.setInt(1, theatreId);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
@@ -56,7 +56,7 @@ public class TheatreRepository {
 
     public List<TheatreSummary> getAllTheatres(Integer limit, Integer offset, String theatreName, String city, String status) throws SQLException {
 
-        StringBuilder sqlQuery = new StringBuilder("""
+        StringBuilder query = new StringBuilder("""
                 SELECT t.theatre_id,
                        t.theatre_name,
                        t.total_screens,
@@ -69,34 +69,34 @@ public class TheatreRepository {
         List<Object> params = new ArrayList<>();
 
         if (theatreName != null && !theatreName.isBlank()) {
-            sqlQuery.append(" AND t.theatre_name LIKE ?");
+            query.append(" AND t.theatre_name LIKE ?");
             params.add("%" + theatreName + "%");
         }
 
 
         if (city != null && !city.isBlank()) {
-            sqlQuery.append(" AND a.city LIKE ?");
+            query.append(" AND a.city LIKE ?");
             params.add("%" + city + "%");
         }
 
-        if(status != null && !status.isBlank()) {
-            sqlQuery.append(" AND t.status = ?");
+        if (status != null && !status.isBlank()) {
+            query.append(" AND t.status = ?");
             params.add(status);
         }
 
         if (limit != null) {
-            sqlQuery.append(" LIMIT ?");
+            query.append(" LIMIT ?");
             params.add(limit);
         }
 
         if (offset != null) {
-            sqlQuery.append(" OFFSET ?");
+            query.append(" OFFSET ?");
             params.add(offset);
         }
 
         try (Connection Connection = DatabaseManager.getConnection()) {
 
-            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery.toString());
+            PreparedStatement preparedStatement = Connection.prepareStatement(query.toString());
             int index = 1;
             for (Object param : params) {
                 preparedStatement.setObject(index++, param);
@@ -114,8 +114,8 @@ public class TheatreRepository {
         }
     }
 
-    public Optional<TheatreDetails> getTheatreByOwnerId(int ownerId) throws SQLException {
-        String sqlQuery = """
+    public Optional<TheatreDetails> getTheatreByOwnerId(Integer ownerId) throws SQLException {
+        String query = """
                 SELECT t.theatre_id,
                        t.theatre_name,
                        t.email,
@@ -135,7 +135,7 @@ public class TheatreRepository {
                 """;
 
         try (Connection Connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
             preparedStatement.setInt(1, ownerId);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
@@ -150,7 +150,7 @@ public class TheatreRepository {
     }
 
     public int addTheatre(TheatreCreateRequest request) throws SQLException {
-        String insertTheatreSql = """
+        String insertTheatreQuery = """
                 INSERT INTO theatres
                     (owner_id, theatre_name, email, contact_number, total_screens, license_document,status)
                 VALUES (?, ?, ?, ?, ?, ?,?)
@@ -158,7 +158,7 @@ public class TheatreRepository {
 
         try (Connection connection = DatabaseManager.getConnection()) {
             int theatreId;
-            try (PreparedStatement preparedStatement = connection.prepareStatement(insertTheatreSql, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertTheatreQuery, Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setInt(1, request.getOwnerId());
                 preparedStatement.setString(2, request.getTheatreName());
                 preparedStatement.setString(3, request.getEmail());
@@ -170,13 +170,15 @@ public class TheatreRepository {
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    throw new RuntimeException("Failed to create theatre");                }
+                    throw new RuntimeException("Failed to create theatre");
+                }
 
                 try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                     if (keys.next()) {
                         theatreId = keys.getInt(1);
                     } else {
-                        throw new RuntimeException("Failed to create theatre");                    }
+                        throw new RuntimeException("Failed to create theatre");
+                    }
                 }
             }
             return theatreId;
@@ -184,7 +186,7 @@ public class TheatreRepository {
     }
 
     public boolean addTheatreAddress(TheatreCreateRequest request, int theatreId) throws SQLException {
-        String insertAddressSql = """
+        String insertAddressQuery = """
                 INSERT INTO theatre_addresses
                     (theatre_id, address_line1, address_line2, city, state, country,
                      pincode, latitude, longitude)
@@ -192,7 +194,7 @@ public class TheatreRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(insertAddressSql);
+            PreparedStatement preparedStatement = connection.prepareStatement(insertAddressQuery);
 
             preparedStatement.setInt(1, theatreId);
             preparedStatement.setString(2, request.getAddressLine1());
@@ -215,7 +217,7 @@ public class TheatreRepository {
 
     public boolean updateTheatre(int theatreId, TheatreUpdateRequest request) throws SQLException {
 
-        String updateTheatreSql = """
+        String updateTheatreQuery = """
                                 UPDATE theatres
                                 SET theatre_name = ?,
                                     email = ?,
@@ -228,7 +230,7 @@ public class TheatreRepository {
         try (Connection connection = DatabaseManager.getConnection()) {
             int theatreRows;
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(updateTheatreSql)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateTheatreQuery)) {
                 preparedStatement.setString(1, request.getTheatreName());
                 preparedStatement.setString(2, request.getEmail());
                 preparedStatement.setString(3, request.getContactNumber());
@@ -245,7 +247,7 @@ public class TheatreRepository {
 
     public boolean updateTheatreAddress(int theatreId, TheatreUpdateRequest request) throws SQLException {
 
-        String updateAddressSql = """
+        String updateAddressQuery = """
                 UPDATE theatre_addresses
                 SET address_line1 = ?,
                     address_line2 = ?,
@@ -262,7 +264,7 @@ public class TheatreRepository {
             int addressRows;
 
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(updateAddressSql)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateAddressQuery)) {
                 preparedStatement.setString(1, request.getAddressLine1());
                 preparedStatement.setString(2, request.getAddressLine2());
                 preparedStatement.setString(3, request.getCity());
@@ -281,13 +283,12 @@ public class TheatreRepository {
     }
 
 
-
     public boolean deleteTheatre(int theatreId) throws SQLException {
-        String deleteTheatreSql = "DELETE FROM theatres WHERE theatre_id = ?";
+        String deleteTheatreQuery = "DELETE FROM theatres WHERE theatre_id = ?";
 
         try (Connection connection = DatabaseManager.getConnection()) {
             int theatreRows;
-            try (PreparedStatement preparedStatementTheatre = connection.prepareStatement(deleteTheatreSql)) {
+            try (PreparedStatement preparedStatementTheatre = connection.prepareStatement(deleteTheatreQuery)) {
                 preparedStatementTheatre.setInt(1, theatreId);
                 theatreRows = preparedStatementTheatre.executeUpdate();
             }

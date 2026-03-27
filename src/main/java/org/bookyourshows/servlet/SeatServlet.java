@@ -42,7 +42,7 @@ public class SeatServlet extends HttpServlet {
 
         String[] parts = request.getPathInfo().split("/");
 
-        // /theatres/{id}/screens/{id}/seats
+        // POST : /theatres/{id}/screens/{id}/seats
         if (parts.length < 6) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
@@ -96,7 +96,7 @@ public class SeatServlet extends HttpServlet {
 
         String[] parts = request.getPathInfo().split("/");
 
-        // /theatres/{id}/screens/{id}/seats
+        // GET /theatres/{id}/screens/{id}/seats
         if (parts.length < 6) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
@@ -148,7 +148,7 @@ public class SeatServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // /shows/{show_id}
+        // /seats/{seat_id}
         String[] parts = request.getPathInfo().split("/");
         if (parts.length < 3) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -189,7 +189,7 @@ public class SeatServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // /shows/{show_id}
+        // /seats/{seat_id}
         String[] parts = request.getPathInfo().split("/");
         if (parts.length < 3) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

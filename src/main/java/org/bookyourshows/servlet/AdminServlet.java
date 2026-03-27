@@ -35,6 +35,7 @@ public class AdminServlet extends HttpServlet {
 
 
         try{
+            // /admin/theatre/{theatre_id}/aprrove
             Integer theatreId = Integer.valueOf(parts[3]);
 
             if (parts.length == 5 && parts[4].equals("approve")) {
@@ -44,6 +45,7 @@ public class AdminServlet extends HttpServlet {
                     objectMapper.writeValue(response.getWriter(),Map.of("message","Theatre approved successfully"));
                 }
             }
+            // /admin/theatre/{theatre_id}/reject
             if (parts.length == 5 && parts[4].equals("reject")) {
                 boolean isReject = this.adminService.updateTheatreStatus(theatreId,"REJECTED");
                 if(isReject){

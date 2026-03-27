@@ -17,7 +17,7 @@ public class ScreenTypeRepository {
 
     public Optional<ScreenType> getScreenTypeById(Integer screenTypeId) throws SQLException {
 
-        String sqlQuery = """
+        String query = """
                 SELECT
                   screen_type_id,
                   name as screen_type,
@@ -28,7 +28,7 @@ public class ScreenTypeRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setInt(1, screenTypeId);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {

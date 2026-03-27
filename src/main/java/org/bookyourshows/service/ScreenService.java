@@ -97,7 +97,6 @@ public class ScreenService {
             throw new IllegalArgumentException("Minimum 1 row is required");
         }*/
 
-
         return screenRepository.updateScreen(screenUpdateRequest, screenId);
     }
 

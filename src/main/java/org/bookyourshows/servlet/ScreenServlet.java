@@ -38,8 +38,6 @@ public class ScreenServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        //  /theatres/{theatre_id}/screens
-        // /theatres/{theatre_id}/screens/{screen_id}
 
         String path = request.getPathInfo();
         String[] part = path.split("/");
@@ -55,6 +53,7 @@ public class ScreenServlet extends HttpServlet {
             return;
         }
 
+        // GET : /theatres/{theatre_id}/screens
         if (part.length == 4) {
             try {
 
@@ -79,6 +78,7 @@ public class ScreenServlet extends HttpServlet {
             }
         }
 
+        // GET :  /theatres/{theatre_id}/screens/{screen_id}
         int screenId;
         try {
             if (path.length() > 1) {
@@ -113,6 +113,7 @@ public class ScreenServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
 
+        // POST : /theatres/{theatre_id}/screens
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
             response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
@@ -175,7 +176,7 @@ public class ScreenServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-
+        // /screens/{screen_id}
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
             response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
@@ -264,7 +265,7 @@ public class ScreenServlet extends HttpServlet {
         String path = request.getPathInfo();
         String[] part = path.split("/");
 
-
+        // /screens/{screen_id}
         int theatreId;
 
         try {

@@ -8,7 +8,6 @@ import org.bookyourshows.mapper.ScreenMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,8 +17,8 @@ public class ScreenRepository {
 
     }
 
-    public List<ScreenDetails> getScreensByTheatreId(int theatreId) throws SQLException {
-        String sqlQuery = """
+    public List<ScreenDetails> getScreensByTheatreId(Integer theatreId) throws SQLException {
+        String query = """
                 
                        SELECT s.screen_id,
                        s.screen_name,
@@ -36,7 +35,7 @@ public class ScreenRepository {
                 """;
 
         try (Connection Connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
             preparedStatement.setInt(1, theatreId);
 
             List<ScreenDetails> screenDetails = new ArrayList<>();
@@ -56,7 +55,7 @@ public class ScreenRepository {
     }
 
     public Optional<ScreenDetails> getScreenByScreenId(Integer screenId) throws SQLException {
-        String sqlQuery = """
+        String query = """
                        SELECT s.screen_id,
                        s.screen_name,
                        s.screen_type_id,
@@ -71,7 +70,7 @@ public class ScreenRepository {
                 """;
 
         try (Connection Connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
             preparedStatement.setInt(1, screenId);
 
 
@@ -88,7 +87,7 @@ public class ScreenRepository {
     }
 
     public Optional<ScreenDetails> getScreenById(int screenId, int theatreId) throws SQLException {
-        String sqlQuery = """
+        String query = """
                        SELECT s.screen_id,
                        s.screen_name,
                        s.screen_type_id,
@@ -104,7 +103,7 @@ public class ScreenRepository {
                 """;
 
         try (Connection Connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = Connection.prepareStatement(sqlQuery);
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
             preparedStatement.setInt(1, screenId);
             preparedStatement.setInt(2, theatreId);
 
@@ -123,7 +122,7 @@ public class ScreenRepository {
 
 
     public int addScreen(ScreenCreateRequest request) throws SQLException {
-        String insertTheatreSql = """
+        String insertScreenQuery = """
                 INSERT INTO screens(theatre_id, screen_name, screen_type_id, total_rows, no_of_seats)
                 VALUES (?, ?, ?, ?, ?)
                 """;
@@ -131,7 +130,7 @@ public class ScreenRepository {
         try (Connection connection = DatabaseManager.getConnection()) {
             int screenId;
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(insertTheatreSql, Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertScreenQuery, Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setInt(1, request.getTheatreId());
                 preparedStatement.setString(2, request.getScreenName());
                 preparedStatement.setInt(3, request.getScreenTypeId());
@@ -158,7 +157,7 @@ public class ScreenRepository {
 
     public boolean updateScreen(ScreenUpdateRequest request, int screenId) throws SQLException {
 
-        String insertTheatreSql = """
+        String updateScreenQuery = """
                 UPDATE screens
                 SET screen_name    = ?,
                     screen_type_id = ?,
@@ -168,7 +167,7 @@ public class ScreenRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(insertTheatreSql);
+            PreparedStatement preparedStatement = connection.prepareStatement(updateScreenQuery);
             {
                 preparedStatement.setString(1, request.getScreenName());
                 preparedStatement.setInt(2, request.getScreenTypeId());
@@ -187,11 +186,11 @@ public class ScreenRepository {
     }
 
     public boolean deleteScreen(int screenId) throws SQLException {
-        String deleteTheatreSql = "DELETE FROM screens WHERE screen_id = ?";
+        String deleteScreenQuery = "DELETE FROM screens WHERE screen_id = ?";
 
         try (Connection connection = DatabaseManager.getConnection()) {
             int screenRows;
-            try (PreparedStatement preparedStatementTheatre = connection.prepareStatement(deleteTheatreSql)) {
+            try (PreparedStatement preparedStatementTheatre = connection.prepareStatement(deleteScreenQuery)) {
                 preparedStatementTheatre.setInt(1, screenId);
                 screenRows = preparedStatementTheatre.executeUpdate();
             }

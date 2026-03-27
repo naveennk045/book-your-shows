@@ -43,9 +43,9 @@ public class MovieServlet extends HttpServlet {
         String[] parts = path.split("/");
 
         try {
+            //  /movies/{movie_id}
             if (parts.length == 3) {
                 int movieId = Integer.parseInt(parts[2]);
-
                 Optional<MovieDetails> movie = movieService.getMovieById(movieId);
 
                 if (movie.isPresent()) {
@@ -71,6 +71,7 @@ public class MovieServlet extends HttpServlet {
             return;
         }
 
+        // /movies?name=&language=&genre=&sort=&
         MovieQueryParameter query = new MovieQueryParameter();
 
         query.setName(request.getParameter("name"));
@@ -80,8 +81,8 @@ public class MovieServlet extends HttpServlet {
 
         query.setLimit(parseIntOrDefault(request.getParameter("limit"), 20));
         query.setOffset(parseIntOrDefault(request.getParameter("offset"), 0));
-
         String year = request.getParameter("release_year");
+
         if (year != null) {
             try {
                 query.setReleaseYear(Integer.parseInt(year));
@@ -179,7 +180,6 @@ public class MovieServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
 
 
         response.setContentType("application/json");

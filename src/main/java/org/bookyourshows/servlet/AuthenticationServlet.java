@@ -42,8 +42,8 @@ public class AuthenticationServlet extends HttpServlet {
         }
 
         try {
+            // /auth/register
             UserCreateRequest req = objectMapper.readValue(request.getReader(), UserCreateRequest.class);
-
             UserDetails created = authenticationService.registerUser(req);
 
             response.setStatus(HttpServletResponse.SC_CREATED);

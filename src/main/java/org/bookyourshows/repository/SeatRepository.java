@@ -17,9 +17,9 @@ public class SeatRepository {
     public SeatRepository() {
     }
 
-    public Optional<SeatSummary> getSeatById(int seatId) throws SQLException {
+    public Optional<SeatSummary> getSeatById(Integer seatId) throws SQLException {
 
-        String sql = """
+        String query = """
                   SELECT s.seat_id,
                            s.row_no,
                            s.seat_number,
@@ -34,7 +34,7 @@ public class SeatRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, seatId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -47,7 +47,7 @@ public class SeatRepository {
     }
 
 
-    public Map<Integer, Integer> getMaxSeatNumberByScreen(int screenId) throws SQLException {
+    public Map<Integer, Integer> getMaxSeatNumberByScreen(Integer screenId) throws SQLException {
 
         String sql = """
                         SELECT
@@ -80,7 +80,7 @@ public class SeatRepository {
         return rowMaxSeatMap;
     }
 
-    public Map<Integer, List<SeatSummary>> getSeatByScreenId(int screenId) throws SQLException {
+    public Map<Integer, List<SeatSummary>> getSeatByScreenId(Integer screenId) throws SQLException {
 
         String sql = """
                     SELECT s.seat_id,
@@ -112,7 +112,6 @@ public class SeatRepository {
                 toBeUpdated.add(seatSummary);
                 seatLayoutMap.put(rowNo, toBeUpdated);
             }
-
             return seatLayoutMap;
         }
     }
