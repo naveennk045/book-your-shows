@@ -11,6 +11,9 @@ import org.bookyourshows.repository.ShowRepository;
 import org.bookyourshows.utils.PaymentUtils;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 public class BookingService {
@@ -83,6 +86,19 @@ public class BookingService {
 
         if (bookingDetails.isEmpty()) {
             throw new RuntimeException("Booking not found");
+        }
+
+        LocalDate showDate = LocalDate.parse(bookingDetails.get().getShow().getShowDate());
+        LocalTime startTime = LocalTime.parse(bookingDetails.get().getShow().getStartTime());
+
+        LocalDateTime showDateTime = LocalDateTime.of(showDate, startTime);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime cutoffTime = showDateTime.minusHours(5);
+
+        if (now.isAfter(cutoffTime)) {
+            throw new RuntimeException("Cancellation not allowed within 5 hours of show time");
         }
 
 

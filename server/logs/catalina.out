@@ -14316,3 +14316,17 @@ Matched request URI: ^/refunds/[^/]+
 Running cleanup job...
 Released seats count: 0
 Shows marked completed: 0
+Matched request URI: ^/bookings/[^/]+$
+[, 17]
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
