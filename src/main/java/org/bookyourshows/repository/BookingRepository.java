@@ -35,11 +35,12 @@ public class BookingRepository {
             return Optional.of(details);
         }
     }
+
     public List<BookingSummary> getAllBookings() throws SQLException {
         String query = """
-        SELECT * FROM bookings
-        ORDER BY booked_at DESC
-    """;
+                    SELECT * FROM bookings
+                    ORDER BY booked_at DESC
+                """;
 
         List<BookingSummary> list = new ArrayList<>();
 
@@ -54,15 +55,45 @@ public class BookingRepository {
 
         return list;
     }
+
+    public Optional<BookingMovieInfo> findBookingWithMovieAndUser(int bookingId) throws SQLException {
+        String sql = """
+                SELECT 
+                    b.booking_id,
+                    b.user_id,
+                    s.movie_id
+                FROM bookings b
+                JOIN shows s ON b.show_id = s.show_id
+                WHERE b.booking_id = ?
+                """;
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(new BookingMovieInfo(
+                        rs.getInt("booking_id"),
+                        rs.getInt("user_id"),
+                        rs.getInt("movie_id")
+                ));
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public List<BookingSummary> getBookingsByTheatreId(int theatreId) throws SQLException {
 
         String query = """
-        SELECT b.*
-        FROM bookings b
-        JOIN shows s ON b.show_id = s.show_id
-        WHERE s.theatre_id = ?
-        ORDER BY b.booked_at DESC
-    """;
+                    SELECT b.*
+                    FROM bookings b
+                    JOIN shows s ON b.show_id = s.show_id
+                    WHERE s.theatre_id = ?
+                    ORDER BY b.booked_at DESC
+                """;
 
         List<BookingSummary> list = new ArrayList<>();
 
@@ -80,13 +111,14 @@ public class BookingRepository {
 
         return list;
     }
+
     public List<BookingSummary> getBookingsByUserId(int userId) throws SQLException {
 
         String query = """
-        SELECT * FROM bookings
-        WHERE user_id = ?
-        ORDER BY booked_at DESC
-    """;
+                    SELECT * FROM bookings
+                    WHERE user_id = ?
+                    ORDER BY booked_at DESC
+                """;
 
         List<BookingSummary> list = new ArrayList<>();
 
@@ -103,6 +135,35 @@ public class BookingRepository {
         }
 
         return list;
+    }
+
+    public Optional<BookingInfo> findBookingWithTheatreAndUser(int bookingId) throws SQLException {
+        String sql = """
+                SELECT 
+                    b.booking_id,
+                    b.user_id,
+                    s.theatre_id
+                FROM bookings b
+                JOIN shows s ON b.show_id = s.show_id
+                WHERE b.booking_id = ?
+                """;
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(new BookingInfo(
+                        rs.getInt("booking_id"),
+                        rs.getInt("user_id"),
+                        rs.getInt("theatre_id")
+                ));
+            }
+        }
+
+        return Optional.empty();
     }
 
     private BookingDetails getBookingSummaryAndShow(Connection connection, int bookingId) throws SQLException {

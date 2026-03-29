@@ -51,7 +51,7 @@ public class MovieFeedbackServlet extends HttpServlet {
         System.out.println("MovieFeedbackServlet GET path parts: " + Arrays.toString(parts));
 
         // /movies/{movie_id}/feedback
-        if (parts.length == 4 && "feedbacsk".equals(parts[3])) {
+        if (parts.length == 4 && "feedbacks".equals(parts[3])) {
 
             int movieId;
             try {

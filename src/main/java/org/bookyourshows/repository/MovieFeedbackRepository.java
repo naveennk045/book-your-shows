@@ -1,6 +1,7 @@
 package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
+import org.bookyourshows.dto.booking.BookingMovieInfo;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackCreateRequest;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackResponse;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackUpdateRequest;
