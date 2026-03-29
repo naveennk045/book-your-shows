@@ -10,6 +10,16 @@ import java.sql.SQLException;
 
 public class TheatreMapper {
 
+
+    private static boolean hasColumn(ResultSet rs, String column) {
+        try {
+            rs.findColumn(column);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public static TheatreSummary mapRowToTheatreSummary(ResultSet resultSet) throws SQLException {
 
         TheatreSummary theatreSummary = new TheatreSummary();
@@ -35,7 +45,12 @@ public class TheatreMapper {
         theatre.setEmail(resultSet.getString("email"));
         theatre.setContactNumber(resultSet.getString("contact_number"));
         theatre.setTotalScreens(resultSet.getInt("total_screens"));
+        if (hasColumn(resultSet, "owner_id")) {
+            theatre.setOwnerId(resultSet.getInt("owner_id"));
+        }
+
         theatreDetails.setTheatre(theatre);
+
 
         theatreAddress.setAddressId(resultSet.getInt("address_id"));
         theatreAddress.setAddressLine1(resultSet.getString("address_line1"));

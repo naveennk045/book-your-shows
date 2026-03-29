@@ -23,6 +23,9 @@ public class TheatreService {
     public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
         return theatreRepository.getTheatreById(theatreId);
     }
+    public Optional<TheatreDetails> getTheatreByOwnerId(Integer ownerId) throws SQLException {
+        return theatreRepository.getTheatreByOwnerId(ownerId);
+    }
 
     public List<TheatreSummary> getAllTheatre(Integer limit,
                                               Integer offset,

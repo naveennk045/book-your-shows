@@ -34,7 +34,12 @@ public class DispatcherServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+
         try {
+
+            System.out.println("Incoming request : " + request.getRequestURI());
+            System.out.println("Incoming path : " + request.getPathInfo());
+
 
             ServletDetails servletDetails = servletMapping.getServlet(request.getPathInfo());
 
@@ -77,7 +82,7 @@ public class DispatcherServlet extends HttpServlet {
             servletExecution.forwardRequest(servletDetails.getServlet(), request, response);
 
         } catch (RuntimeException e) {
-            sendError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+            sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (SQLException e) {
             sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }

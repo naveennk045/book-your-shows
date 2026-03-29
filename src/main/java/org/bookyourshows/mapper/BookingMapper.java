@@ -6,6 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class BookingMapper {
+    private static boolean hasColumn(ResultSet rs, String column) {
+        try {
+            rs.findColumn(column);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
 
     public static BookingSummary mapRowToBookingSummary(ResultSet rs) throws SQLException {
         BookingSummary b = new BookingSummary();

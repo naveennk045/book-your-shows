@@ -117,6 +117,7 @@ public class TheatreRepository {
     public Optional<TheatreDetails> getTheatreByOwnerId(Integer ownerId) throws SQLException {
         String query = """
                 SELECT t.theatre_id,
+                       t.owner_id,
                        t.theatre_name,
                        t.email,
                        t.contact_number,
