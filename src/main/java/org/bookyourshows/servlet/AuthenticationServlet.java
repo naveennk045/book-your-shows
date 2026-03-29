@@ -12,6 +12,7 @@ import org.bookyourshows.service.AuthenticationService;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Map;
 
 public class AuthenticationServlet extends HttpServlet {
@@ -31,9 +32,11 @@ public class AuthenticationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+
         response.setContentType("application/json");
 
-        String path = request.getPathInfo();
+        String path = request.getPathInfo().substring("/auth".length());
+
 
         try {
 
@@ -50,6 +53,8 @@ public class AuthenticationServlet extends HttpServlet {
 
             // LOGIN
             else if (path.equals("/login")) {
+
+                System.out.println("efscjvnkef");
 
                 Map<String, String> body = objectMapper.readValue(request.getReader(), Map.class);
 
@@ -83,7 +88,7 @@ public class AuthenticationServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(500);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "DB error"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 }

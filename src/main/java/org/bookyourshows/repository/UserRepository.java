@@ -2,10 +2,7 @@ package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.address.AddressDTO;
-import org.bookyourshows.dto.user.UserCreateRequest;
-import org.bookyourshows.dto.user.UserDetails;
-import org.bookyourshows.dto.user.UserSummary;
-import org.bookyourshows.dto.user.UserUpdateRequest;
+import org.bookyourshows.dto.user.*;
 import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.UserMapper;
 
@@ -66,8 +63,7 @@ public class UserRepository {
                     WHERE user_id = ?
                 """;
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection con = DatabaseManager.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {
 
             ps.setInt(1, userId);
 
@@ -108,6 +104,40 @@ public class UserRepository {
             return ps.executeUpdate() > 0;
         }
     }
+
+
+    public Optional<UserAuth> getUserAuthByEmail(String email) throws SQLException {
+
+        String query = """
+                SELECT user_id, email, password_hash, user_role
+                FROM users
+                WHERE email = ?
+                LIMIT 1
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, email);
+
+            try (ResultSet rs = statement.executeQuery()) {
+
+                if (rs.next()) {
+
+                    UserAuth user = new UserAuth();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPassword(rs.getString("password_hash"));
+                    user.setRole(rs.getString("user_role"));
+                    System.out.println("User: " + user.getUserId() + " " + user.getEmail() + " " + user.getPassword() + " " + user.getRole());
+
+                    return Optional.of(user);
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
 
     public Optional<UserDetails> getUserByEmail(String email) throws SQLException {
 
@@ -191,10 +221,7 @@ public class UserRepository {
         return Optional.empty();
     }
 
-    public List<UserSummary> getAllUsers(Integer limit,
-                                         Integer offset,
-                                         String email,
-                                         String role) throws SQLException {
+    public List<UserSummary> getAllUsers(Integer limit, Integer offset, String email, String role) throws SQLException {
 
         StringBuilder query = new StringBuilder("""
                 SELECT user_id, first_name, last_name, email, user_role, account_status

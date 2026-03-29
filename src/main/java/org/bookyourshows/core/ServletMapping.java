@@ -5,6 +5,7 @@ import org.bookyourshows.servlet.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@SuppressWarnings("StringTemplateMigration")
 public class ServletMapping {
 
     private static final Map<String, ServletDetails> SERVLET_REGISTRY = new LinkedHashMap<>();

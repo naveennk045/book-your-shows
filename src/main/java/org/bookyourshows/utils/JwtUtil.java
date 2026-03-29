@@ -1,6 +1,7 @@
 package org.bookyourshows.utils;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
@@ -14,6 +15,7 @@ public class JwtUtil {
     private static final long EXPIRATION = 1000 * 60 * 60; // 1 hour
 
     public static String generateToken(Integer userId, String role) {
+
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .claim("role", role)
@@ -24,6 +26,7 @@ public class JwtUtil {
     }
 
     public static Claims validateToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(KEY)
                 .build()

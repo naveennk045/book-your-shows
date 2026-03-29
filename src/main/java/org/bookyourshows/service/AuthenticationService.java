@@ -1,9 +1,12 @@
 package org.bookyourshows.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import io.jsonwebtoken.Claims;
+import org.bookyourshows.dto.user.UserAuth;
 import org.bookyourshows.dto.user.UserCreateRequest;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.repository.UserRepository;
+import org.bookyourshows.utils.JwtUtil;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -55,16 +58,16 @@ public class AuthenticationService {
 
         throw new RuntimeException("User created but not found");
     }
-
     public String login(String email, String password) throws SQLException {
 
-        Optional<UserDetails> userOptional = userRepository.getUserByEmail(email);
+        Optional<UserAuth> userOptional = userRepository.getUserAuthByEmail(email);
 
         if (userOptional.isEmpty()) {
             throw new RuntimeException("Invalid credentials");
+
         }
 
-        UserDetails user = userOptional.get();
+        UserAuth user = userOptional.get();
 
         BCrypt.Result result = BCrypt.verifyer()
                 .verify(password.toCharArray(), user.getPassword());
@@ -73,7 +76,7 @@ public class AuthenticationService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return JwtUtil.generateToken(user.getUserId(), user.getUserRole());
+        return JwtUtil.generateToken(user.getUserId(), user.getRole());
     }
 
     public String refreshToken(String token) {
