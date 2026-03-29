@@ -94,6 +94,15 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/analytics/top-spent$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/analytics/top-spent/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
 
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/[^/]+$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
 
         // Admin routes
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));
