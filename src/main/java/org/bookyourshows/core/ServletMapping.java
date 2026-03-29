@@ -73,16 +73,26 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/payments/$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
 
-        SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-
-
         SERVLET_REGISTRY.put("^/users/[^/]+/address$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/users/[^/]+/address/$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
 
         SERVLET_REGISTRY.put("^/theatres/[^/]+/address$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/theatres/[^/]+/address/$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
 
+        SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/analytics/peak-show-times$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/analytics/peak-show-times/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/analytics/users-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/analytics/users-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/analytics/theatres-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/analytics/theatres-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/analytics/top-spent$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/analytics/top-spent/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
 
 
         // Admin routes

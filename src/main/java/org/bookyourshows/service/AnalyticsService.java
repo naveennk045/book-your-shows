@@ -1,7 +1,6 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.analytics.MoviePerformanceRequest;
-import org.bookyourshows.dto.analytics.MoviePerformanceResponse;
+import org.bookyourshows.dto.analytics.*;
 import org.bookyourshows.repository.AnalyticsRepository;
 
 import java.sql.SQLException;
@@ -24,6 +23,21 @@ public class AnalyticsService {
         }
 
         return analyticsRepository.getMoviePerformance(request);
+    }
+    public List<PeakShowTimeResponse> getPeakShowTimes(Integer theatreId, Integer year, Integer month) throws SQLException {
+        return analyticsRepository.getPeakShowTimes(theatreId, year, month);
+    }
+
+    public List<UserBookingAnalytics> getUserBookingsAnalytics() throws SQLException {
+        return analyticsRepository.getUserBookingsAnalytics();
+    }
+
+    public List<TheatreBookingAnalytics> getTheatreBookingsAnalytics() throws SQLException {
+        return analyticsRepository.getTheatreBookingsAnalytics();
+    }
+
+    public List<TopSpentUser> getTopSpentUsers() throws SQLException {
+        return analyticsRepository.getTopSpentUsers();
     }
 
 }

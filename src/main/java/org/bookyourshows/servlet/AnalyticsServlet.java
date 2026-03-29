@@ -3,8 +3,7 @@ package org.bookyourshows.servlet;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import org.bookyourshows.dto.analytics.MoviePerformanceRequest;
-import org.bookyourshows.dto.analytics.MoviePerformanceResponse;
+import org.bookyourshows.dto.analytics.*;
 import org.bookyourshows.service.AnalyticsService;
 
 import jakarta.servlet.http.HttpServlet;
@@ -15,7 +14,6 @@ import org.bookyourshows.service.TheatreService;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,22 +39,110 @@ public class AnalyticsServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
 
         String path = req.getPathInfo();
-        String[] parts = path.split("/");
 
-        // "/analytics/movie-performance"
-        System.out.println(Arrays.toString(parts));
-        if (parts[2].equals("movie-performance")) {
-            handleMoviePerformance(req, resp);
+        if (path == null) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(resp.getWriter(), Map.of("message", "Not found"));
             return;
         }
 
-        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        objectMapper.writeValue(resp.getWriter(), Map.of("message", "Not found"));
+        String[] parts = path.split("/");
+
+        try {
+
+            // 1. MOVIE PERFORMANCE (PUBLIC + OWNER + ADMIN)
+            if (parts.length > 2 && "movie-performance".equals(parts[2])) {
+                handleMoviePerformance(req, resp);
+                return;
+            }
+
+            // 2. ADMIN CHECK
+            String role = String.valueOf(req.getHeader("user_role"));
+            if (!"ADMIN".equals(role)) {
+                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                objectMapper.writeValue(resp.getWriter(),
+                        Map.of("message", "Unauthorized"));
+                return;
+            }
+
+            // 3. PEAK SHOW TIMES
+            if (parts.length > 2 && "peak-show-times".equals(parts[2])) {
+
+                Integer theatreId = parseInt(req.getParameter("theatre_id"));
+                Integer year = parseInt(req.getParameter("year"));
+                Integer month = parseInt(req.getParameter("month"));
+
+                if (theatreId == null || year == null || month == null) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(resp.getWriter(),
+                            Map.of("message", "theatre_id, year, month are required"));
+                    return;
+                }
+
+                List<PeakShowTimeResponse> data =
+                        analyticsService.getPeakShowTimes(theatreId, year, month);
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(resp.getWriter(), data);
+                return;
+            }
+
+            // 4. USER BOOKINGS
+            if (parts.length > 2 && "users-bookings".equals(parts[2])) {
+
+                List<UserBookingAnalytics> data =
+                        analyticsService.getUserBookingsAnalytics();
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(resp.getWriter(), data);
+                return;
+            }
+
+
+            // 5. THEATRE BOOKINGS
+            if (parts.length > 2 && "theatres-bookings".equals(parts[2])) {
+
+                List<TheatreBookingAnalytics> data =
+                        analyticsService.getTheatreBookingsAnalytics();
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(resp.getWriter(), data);
+                return;
+            }
+
+
+            // 6. TOP SPENT USERS
+            if (parts.length > 2 && "top-spent".equals(parts[2])) {
+
+                List<TopSpentUser> data =
+                        analyticsService.getTopSpentUsers();
+
+                resp.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(resp.getWriter(), data);
+                return;
+            }
+
+
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(resp.getWriter(),
+                    Map.of("message", "Not found"));
+
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(resp.getWriter(),
+                    Map.of("message", "Database error"));
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(resp.getWriter(),
+                    Map.of("message", e.getMessage()));
+        }
     }
+
 
     private void handleMoviePerformance(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -98,7 +184,7 @@ public class AnalyticsServlet extends HttpServlet {
 
 
                 Integer theatreId = theatreService.getTheatreByOwnerId(userId).get().getTheatre().getTheatreId();
-                if(theatreId == null) {
+                if (theatreId == null) {
                     resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     objectMapper.writeValue(resp.getWriter(), Map.of("message", "Not found"));
                     return;
@@ -125,4 +211,15 @@ public class AnalyticsServlet extends HttpServlet {
                     Map.of("message", ex.getMessage()));
         }
     }
+
+    private Integer parseInt(String val) {
+        if (val == null || val.isBlank()) return null;
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
 }
