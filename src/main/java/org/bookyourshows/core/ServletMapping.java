@@ -104,6 +104,9 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
 
+        SERVLET_REGISTRY.put("^/auth/login$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/auth/refresh$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
+
         // Admin routes
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));

@@ -24,6 +24,9 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.21.1")
     implementation("at.favre.lib:bcrypt:0.10.2")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
 }
 tasks.register<Copy>("deploy") {

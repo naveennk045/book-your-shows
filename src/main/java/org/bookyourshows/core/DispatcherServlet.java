@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import org.bookyourshows.utils.JwtUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -53,23 +55,27 @@ public class DispatcherServlet extends HttpServlet {
                 return;
             }
 
-            String token = request.getHeader("token");
+            String header = request.getHeader("Authorization");
 
-            if (token == null || token.isEmpty()) {
+            if (header == null || !header.startsWith("Bearer ")) {
+                sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Missing token");
+                return;
+            }
+
+            String token = header.substring(7);
+
+            Claims claims;
+
+            try {
+                claims = JwtUtil.validateToken(token);
+            } catch (Exception e) {
                 sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
 
-            Optional<UserDetails> userOptional = userRepository.getUserByEmail(token);
+            Integer userId = Integer.parseInt(claims.getSubject());
+            String userRole = claims.get("role", String.class);
 
-            if (userOptional.isEmpty()) {
-                sendError(response, HttpServletResponse.SC_NOT_FOUND, "User not found");
-                return;
-            }
-
-            UserDetails user = userOptional.get();
-            String userRole = user.getUserRole();
-            Integer userId = user.getUserId();
 
             if (!isAuthorized(servletDetails.getAccessLevel(), userRole)) {
                 sendError(response, HttpServletResponse.SC_FORBIDDEN, "Access Denied");
@@ -83,8 +89,6 @@ public class DispatcherServlet extends HttpServlet {
 
         } catch (RuntimeException e) {
             sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        } catch (SQLException e) {
-            sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 

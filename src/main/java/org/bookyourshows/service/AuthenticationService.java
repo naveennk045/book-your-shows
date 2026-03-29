@@ -55,4 +55,33 @@ public class AuthenticationService {
 
         throw new RuntimeException("User created but not found");
     }
+
+    public String login(String email, String password) throws SQLException {
+
+        Optional<UserDetails> userOptional = userRepository.getUserByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        UserDetails user = userOptional.get();
+
+        BCrypt.Result result = BCrypt.verifyer()
+                .verify(password.toCharArray(), user.getPassword());
+
+        if (!result.verified) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        return JwtUtil.generateToken(user.getUserId(), user.getUserRole());
+    }
+
+    public String refreshToken(String token) {
+        Claims claims = JwtUtil.validateToken(token);
+
+        Integer userId = Integer.parseInt(claims.getSubject());
+        String role = claims.get("role", String.class);
+
+        return JwtUtil.generateToken(userId, role);
+    }
 }
