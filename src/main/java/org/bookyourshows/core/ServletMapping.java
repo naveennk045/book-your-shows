@@ -57,6 +57,12 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/bookings/[^/]+/status$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$/", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/users/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/users/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
+
         SERVLET_REGISTRY.put("^/fluxpay/[^/]+", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/fluxpay/[^/]+/", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
 
@@ -65,6 +71,15 @@ public class ServletMapping {
 
         SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
+
+
+        SERVLET_REGISTRY.put("^/users/[^/]+/address$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/users/[^/]+/address/$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
+
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/address$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/address/$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
+
+
 
         // Admin routes
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));

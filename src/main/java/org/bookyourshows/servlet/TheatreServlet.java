@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.bookyourshows.dto.address.AddressDTO;
 import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
@@ -34,14 +35,48 @@ public class TheatreServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo().substring("/theatres".length());
+        String fullPath = request.getPathInfo();
+        String[] parts = fullPath.split("/");
 
         try {
-            // GET : /theatres/{theatre_id}
+
+            // 1. GET /theatres/{id}/address
+            if (parts.length == 4 && "address".equals(parts[3])) {
+
+                int theatreId;
+                try {
+                    theatreId = Integer.parseInt(parts[2]);
+                } catch (NumberFormatException e) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Invalid theatre id"));
+                    return;
+                }
+
+                Optional<AddressDTO> address = theatreService.getTheatreAddress(theatreId);
+
+                if (address.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Address not found"));
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), address.get());
+                return;
+            }
+
+
+            // 2. GET /theatres/{id}
+            String path = fullPath.substring("/theatres".length());
+
             if (path.length() > 1) {
 
                 int theatreId = Integer.parseInt(path.substring(1));
@@ -52,22 +87,25 @@ public class TheatreServlet extends HttpServlet {
                     objectMapper.writeValue(response.getWriter(), theatreDetails.get());
                 } else {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre not found"));
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Theatre not found"));
                 }
                 return;
             }
+
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Invalid theatre_id"));
             return;
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Database error"));
             return;
         }
 
-        // GET : /theatres?theatre_name=&city=&status=&
-
+        // 3. LIST THEATRES
         String theatreName = request.getParameter("theatre_name");
         String city = request.getParameter("city");
         String status = request.getParameter("status");
@@ -76,20 +114,24 @@ public class TheatreServlet extends HttpServlet {
 
         if (limit > 100 || limit < 0 || offset < 0) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Limit is greater than 100,should be less than or equal to 100 "));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Invalid pagination"));
             return;
         }
+
         try {
-            List<TheatreSummary> theatres = theatreService.getAllTheatre(limit, offset, theatreName, city, status);
+            List<TheatreSummary> theatres =
+                    theatreService.getAllTheatre(limit, offset, theatreName, city, status);
+
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(), theatres);
 
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", "Database error"));
         }
     }
-
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -158,8 +200,6 @@ public class TheatreServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // PUT : /theatres/{theatre_id}
-
         if (request.getContentType() == null ||
                 !request.getContentType().toLowerCase().contains("application/json")) {
             response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
@@ -168,12 +208,60 @@ public class TheatreServlet extends HttpServlet {
             return;
         }
 
-        String path = request.getPathInfo().substring("/theatres".length());
+        String fullPath = request.getPathInfo();
+        String[] parts = fullPath.split("/");
+
+        // 1. PUT /theatres/{id}/address
+        if (parts.length == 4 && "address".equals(parts[3])) {
+
+            int theatreId;
+            try {
+                theatreId = Integer.parseInt(parts[2]);
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Invalid theatre id"));
+                return;
+            }
+
+            AddressDTO req;
+            try {
+                req = objectMapper.readValue(request.getReader(), AddressDTO.class);
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Invalid JSON body"));
+                return;
+            }
+
+            try {
+                theatreService.updateTheatreAddress(theatreId, req);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Theatre address updated successfully"));
+
+            } catch (IllegalArgumentException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", e.getMessage()));
+            } catch (SQLException e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Database error"));
+            }
+
+            return; // IMPORTANT
+        }
+
+
+        // 2. PUT /theatres/{id}
+        String path = fullPath.substring("/theatres".length());
 
         if (path.length() <= 1) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre id is required in path"));
+                    Map.of("message", "Theatre id is required"));
             return;
         }
 
@@ -183,7 +271,7 @@ public class TheatreServlet extends HttpServlet {
         } catch (NumberFormatException ex) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid theatre id: " + path.substring(1)));
+                    Map.of("message", "Invalid theatre id"));
             return;
         }
 
@@ -209,8 +297,7 @@ public class TheatreServlet extends HttpServlet {
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre updated successfully",
-                            "theatre_id", theatreId));
+                    Map.of("message", "Theatre updated successfully"));
 
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -220,10 +307,6 @@ public class TheatreServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
         }
     }
 

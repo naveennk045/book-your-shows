@@ -35,6 +35,75 @@ public class BookingRepository {
             return Optional.of(details);
         }
     }
+    public List<BookingSummary> getAllBookings() throws SQLException {
+        String query = """
+        SELECT * FROM bookings
+        ORDER BY booked_at DESC
+    """;
+
+        List<BookingSummary> list = new ArrayList<>();
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(BookingMapper.mapRowToBookingSummary(rs));
+            }
+        }
+
+        return list;
+    }
+    public List<BookingSummary> getBookingsByTheatreId(int theatreId) throws SQLException {
+
+        String query = """
+        SELECT b.*
+        FROM bookings b
+        JOIN shows s ON b.show_id = s.show_id
+        WHERE s.theatre_id = ?
+        ORDER BY b.booked_at DESC
+    """;
+
+        List<BookingSummary> list = new ArrayList<>();
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setInt(1, theatreId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(BookingMapper.mapRowToBookingSummary(rs));
+                }
+            }
+        }
+
+        return list;
+    }
+    public List<BookingSummary> getBookingsByUserId(int userId) throws SQLException {
+
+        String query = """
+        SELECT * FROM bookings
+        WHERE user_id = ?
+        ORDER BY booked_at DESC
+    """;
+
+        List<BookingSummary> list = new ArrayList<>();
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(BookingMapper.mapRowToBookingSummary(rs));
+                }
+            }
+        }
+
+        return list;
+    }
 
     private BookingDetails getBookingSummaryAndShow(Connection connection, int bookingId) throws SQLException {
 

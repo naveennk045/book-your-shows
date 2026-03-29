@@ -34,6 +34,18 @@ public class BookingService {
         return bookingRepository.getBookingById(bookingId);
     }
 
+    public List<BookingSummary> getAllBookings() throws SQLException {
+        return bookingRepository.getAllBookings();
+    }
+
+    public List<BookingSummary> getBookingsByUserId(int userId) throws SQLException {
+        return bookingRepository.getBookingsByUserId(userId);
+    }
+
+    public List<BookingSummary> getBookingsByTheatreId(int theatreId) throws SQLException {
+        return bookingRepository.getBookingsByTheatreId(theatreId);
+    }
+
     public int createBooking(int userId, BookingCreateRequest request) throws SQLException {
         if (request.getShowId() <= 0) {
             throw new IllegalArgumentException("show_id is required");

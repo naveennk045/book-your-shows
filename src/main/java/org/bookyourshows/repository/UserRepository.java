@@ -1,10 +1,12 @@
 package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
+import org.bookyourshows.dto.address.AddressDTO;
 import org.bookyourshows.dto.user.UserCreateRequest;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
+import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.UserMapper;
 
 import java.sql.*;
@@ -54,6 +56,57 @@ public class UserRepository {
 
         }
         return Optional.empty();
+    }
+
+    public Optional<AddressDTO> getUserAddress(int userId) throws SQLException {
+
+        String query = """
+                    SELECT address_line1, address_line2, city, state, country, pincode
+                    FROM user_addresses
+                    WHERE user_id = ?
+                """;
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(AddressMapper.mapRowToAddress(rs));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public boolean updateUserAddress(AddressDTO req, int userId) throws SQLException {
+
+        String query = """
+                    UPDATE user_addresses
+                    SET address_line1 = ?,
+                        address_line2 = ?,
+                        city = ?,
+                        state = ?,
+                        country = ?,
+                        pincode = ?
+                    WHERE user_id = ?
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement ps = connection.prepareStatement(query);
+
+            ps.setString(1, req.getAddressLine1());
+            ps.setString(2, req.getAddressLine2());
+            ps.setString(3, req.getCity());
+            ps.setString(4, req.getState());
+            ps.setString(5, req.getCountry());
+            ps.setString(6, req.getPincode());
+            ps.setInt(7, userId);
+
+            return ps.executeUpdate() > 0;
+        }
     }
 
     public Optional<UserDetails> getUserByEmail(String email) throws SQLException {
@@ -144,10 +197,10 @@ public class UserRepository {
                                          String role) throws SQLException {
 
         StringBuilder query = new StringBuilder("""
-            SELECT user_id, first_name, last_name, email, user_role, account_status
-            FROM users
-            WHERE 1=1
-            """);
+                SELECT user_id, first_name, last_name, email, user_role, account_status
+                FROM users
+                WHERE 1=1
+                """);
 
         if (email != null && !email.isBlank()) {
             query.append(" AND email LIKE ?");
@@ -244,7 +297,6 @@ public class UserRepository {
             preparedStatement.setString(5, userCreateRequest.getState());
             preparedStatement.setString(6, userCreateRequest.getCountry());
             preparedStatement.setString(7, userCreateRequest.getPincode());
-
 
 
             return preparedStatement.executeUpdate() != 0;

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.sql.Array;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,67 +40,151 @@ public class BookingServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
-        if (path == null || !path.startsWith("/bookings")) {
+
+        try {
+
+            if (path == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Not found"));
+                return;
+            }
+
+            // 1. ADMIN → /bookings
+            if (path.equals("/bookings") || path.equals("/bookings/")) {
+
+                String userRole = String.valueOf(request.getHeader("user_role"));
+
+
+                if (!"ADMIN".equals(userRole)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Unauthorized"));
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(),
+                        bookingService.getAllBookings());
+                return;
+            }
+
+            // 2. USER → /users/{user_id}/bookings
+            if (path.startsWith("/users/")) {
+
+                String[] parts = path.split("/");
+
+                if (parts.length < 4 || !"bookings".equals(parts[3])) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Invalid user bookings path"));
+                    return;
+                }
+
+                int userId;
+                try {
+                    userId = Integer.parseInt(parts[2]);
+                } catch (NumberFormatException e) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Invalid user id"));
+                    return;
+                }
+
+                // Optional security check
+                Integer loggedInUser = (Integer) request.getAttribute("user_id");
+                if (loggedInUser != null && !loggedInUser.equals(userId)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Unauthorized"));
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(),
+                        bookingService.getBookingsByUserId(userId));
+                return;
+            }
+
+            // 3. THEATRE → /theatres/{id}/bookings
+            if (path.startsWith("/theatres/")) {
+
+                String[] parts = path.split("/");
+
+                if (parts.length < 4 || !"bookings".equals(parts[3])) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Invalid theatre bookings path"));
+                    return;
+                }
+
+                int theatreId;
+                try {
+                    theatreId = Integer.parseInt(parts[2]);
+                } catch (NumberFormatException e) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Invalid theatre id"));
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(),
+                        bookingService.getBookingsByTheatreId(theatreId));
+                return;
+            }
+
+            // 4.  BOOKING → /bookings/{id}
+            if (path.startsWith("/bookings/")) {
+
+                String remainder = path.substring("/bookings".length());
+                String[] parts = remainder.split("/");
+
+                if (parts.length < 2) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "booking_id is required in path"));
+                    return;
+                }
+
+                int bookingId;
+                try {
+                    bookingId = Integer.parseInt(parts[1]);
+                } catch (NumberFormatException e) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Invalid booking id: " + parts[1]));
+                    return;
+                }
+
+                Optional<BookingDetails> details = bookingService.getBookingById(bookingId);
+
+                if (details.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Booking not found"));
+                    return;
+                }
+
+                // /bookings/{id}/status
+                if (parts.length == 3 && "status".equals(parts[2])) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("status",
+                                    details.get().getBooking().getBookingStatus()));
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), details.get());
+                return;
+            }
+
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Not found"));
-            return;
-        }
 
-        String remainder = path.substring("/bookings".length());
-        if (remainder.isEmpty() || "/".equals(remainder)) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "booking_id is required in path"));
-            return;
-        }
-
-        //  /bookings/{booking_id}
-
-        String[] parts = remainder.split("/");
-
-
-        if (parts.length < 2) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "booking_id is required in path"));
-            return;
-        }
-
-
-        int bookingId;
-        try {
-            bookingId = Integer.parseInt(parts[1]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid booking id: " + parts[1]));
-            return;
-        }
-
-
-        try {
-            Optional<BookingDetails> details = bookingService.getBookingById(bookingId);
-            System.out.println(Arrays.toString(parts));
-            if (details.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Booking not found"));
-                return;
-            }
-            response.setStatus(HttpServletResponse.SC_OK);
-
-            if (parts.length == 3 && Objects.equals(parts[2], "status")) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of(
-                                "status", details.get().getBooking().getBookingStatus()
-                        ));
-                return;
-            }
-
-            objectMapper.writeValue(response.getWriter(), details.get());
-        } catch (SQLException e) {
+        } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
@@ -212,6 +297,39 @@ public class BookingServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
+    }
+
+    private void handleAdminBookings(HttpServletRequest request,
+                                     HttpServletResponse response) throws Exception {
+
+        List<BookingSummary> bookings = bookingService.getAllBookings();
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), bookings);
+    }
+
+    private void handleUserBookings(HttpServletRequest request,
+                                    HttpServletResponse response) throws Exception {
+
+        String[] parts = request.getPathInfo().split("/");
+        int userId = Integer.parseInt(parts[2]);
+
+        List<BookingSummary> bookings = bookingService.getBookingsByUserId(userId);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), bookings);
+    }
+
+    private void handleTheatreBookings(HttpServletRequest request,
+                                       HttpServletResponse response) throws Exception {
+
+        String[] parts = request.getPathInfo().split("/");
+        int theatreId = Integer.parseInt(parts[2]);
+
+        List<BookingSummary> bookings = bookingService.getBookingsByTheatreId(theatreId);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), bookings);
     }
 }
 

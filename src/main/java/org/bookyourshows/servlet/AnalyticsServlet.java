@@ -86,7 +86,7 @@ public class AnalyticsServlet extends HttpServlet {
             List<MoviePerformanceResponse> topMovies =
                     analyticsService.getMoviePerformance(requestDto);
 
-            boolean isAdmin = "ADMIN".equals(req.getAttribute("user_role"));
+            boolean isAdmin = "ADMIN".equals(req.getHeader("user_role"));
             Integer userId = req.getIntHeader("user_id");
             System.out.println("User id: " + userId);
 
@@ -98,13 +98,20 @@ public class AnalyticsServlet extends HttpServlet {
 
 
                 Integer theatreId = theatreService.getTheatreByOwnerId(userId).get().getTheatre().getTheatreId();
+                if(theatreId == null) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    objectMapper.writeValue(resp.getWriter(), Map.of("message", "Not found"));
+                    return;
+                }
+                List<MoviePerformanceResponse> topMoviesByTheatre =
+                        analyticsService.getMoviePerformance(requestDto);
                 requestDto.setTheatreId(theatreId);
 
 
                 Map<String, Object> body = new HashMap<>();
                 System.out.println("body: " + objectMapper.writeValueAsString(body));
                 body.put("theatre_id", requestDto.getTheatreId());
-                body.put("top_movies", topMovies);
+                body.put("top_movies", topMoviesByTheatre);
                 objectMapper.writeValue(resp.getWriter(), body);
             }
 

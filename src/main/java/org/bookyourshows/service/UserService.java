@@ -1,6 +1,8 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.user.UserCreateRequest;
+import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.user.address.AddressResponse;
+import org.bookyourshows.dto.user.address.AddressUpdateRequest;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
@@ -43,6 +45,35 @@ public class UserService {
         }
 
         return userRepository.getAllUsers(limit, offset, email, role);
+    }
+    public Optional<AddressDTO> getUserAddress(int userId) throws SQLException {
+        return userRepository.getUserAddress(userId);
+    }
+    public boolean updateUserAddress(int userId, AddressDTO request) throws SQLException {
+
+        if (request.getAddressLine1() == null || request.getAddressLine1().isBlank()) {
+            throw new IllegalArgumentException("address_line1 is required");
+        }
+
+        if (request.getCity() == null || request.getCity().isBlank()) {
+            throw new IllegalArgumentException("city is required");
+        }
+
+        if (request.getState() == null || request.getState().isBlank()) {
+            throw new IllegalArgumentException("state is required");
+        }
+
+        if (request.getPincode() == null || request.getPincode().isBlank()) {
+            throw new IllegalArgumentException("pincode is required");
+        }
+
+        boolean updated = userRepository.updateUserAddress(request, userId);
+
+        if (!updated) {
+            throw new IllegalArgumentException("User address not found");
+        }
+
+        return true;
     }
 /*
 

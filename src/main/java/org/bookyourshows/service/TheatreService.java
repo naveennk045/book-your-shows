@@ -1,5 +1,6 @@
 package org.bookyourshows.service;
 
+import org.bookyourshows.dto.address.AddressDTO;
 import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
@@ -34,6 +35,33 @@ public class TheatreService {
                                               String status
     ) throws SQLException {
         return theatreRepository.getAllTheatres(limit, offset, theatreName, city, status);
+    }
+
+    public Optional<AddressDTO> getTheatreAddress(int theatreId) throws SQLException {
+        return theatreRepository.getTheatreAddress(theatreId);
+    }
+
+    public boolean updateTheatreAddress(int theatreId, AddressDTO req) throws SQLException {
+
+        if (req.getAddressLine1() == null || req.getAddressLine1().isBlank()) {
+            throw new IllegalArgumentException("address_line1 is required");
+        }
+
+        if (req.getCity() == null || req.getCity().isBlank()) {
+            throw new IllegalArgumentException("city is required");
+        }
+
+        if (req.getLatitude() == null || req.getLongitude() == null) {
+            throw new IllegalArgumentException("latitude and longitude are required");
+        }
+
+        boolean updated = theatreRepository.updateTheatreAddress(theatreId, req);
+
+        if (!updated) {
+            throw new IllegalArgumentException("Theatre address not found");
+        }
+
+        return true;
     }
 
 

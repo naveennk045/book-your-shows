@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
-import jakarta.servlet.ServletException;
 
-import org.bookyourshows.dto.user.UserCreateRequest;
+import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.user.address.AddressResponse;
+import org.bookyourshows.dto.user.address.AddressUpdateRequest;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
 import org.bookyourshows.dto.user.UserDetails;
@@ -62,6 +63,22 @@ public class UserServlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     writeMessage(response, "User not found");
                 }
+                return;
+            }
+            if (parts.length == 4 && "address".equals(parts[3])) {
+
+                int userId = Integer.parseInt(parts[2]);
+
+                Optional<AddressDTO> address = userService.getUserAddress(userId);
+
+                if (address.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    writeMessage(response, "Address not found");
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), address.get());
                 return;
             }
 
@@ -145,33 +162,89 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         response.setContentType("application/json");
-
-        // PUT : /users/{user_id}
-
+        response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
+
+        if (path == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writeMessage(response, "Invalid path");
+            return;
+        }
+
         String[] parts = path.split("/");
 
+        // 1. UPDATE ADDRESS → /users/{id}/address
+        if (parts.length == 4 && "address".equals(parts[3])) {
+
+            int userId;
+            try {
+                userId = Integer.parseInt(parts[2]);
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                writeMessage(response, "Invalid user id");
+                return;
+            }
+
+            AddressDTO req;
+            try {
+                req = objectMapper.readValue(request.getReader(), AddressDTO.class);
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                writeMessage(response, "Invalid JSON body");
+                return;
+            }
+
+            try {
+                userService.updateUserAddress(userId, req);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "User address updated successfully"));
+
+            } catch (IllegalArgumentException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                writeMessage(response, e.getMessage());
+            } catch (SQLException e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                writeMessage(response, "Database error");
+            }
+
+            return;
+        }
+
+        // 2. UPDATE USER → /users/{id}
         if (parts.length < 3) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             writeMessage(response, "User id required");
             return;
         }
 
+        int userId;
         try {
-            int userId = Integer.parseInt(parts[2]);
+            userId = Integer.parseInt(parts[2]);
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writeMessage(response, "Invalid user id");
+            return;
+        }
 
-            UserUpdateRequest req = objectMapper.readValue(request.getReader(), UserUpdateRequest.class);
+        UserUpdateRequest req;
+        try {
+            req = objectMapper.readValue(request.getReader(), UserUpdateRequest.class);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writeMessage(response, "Invalid JSON body");
+            return;
+        }
 
-            boolean updated = userService.updateUser(userId, req);
+        try {
+            userService.updateUser(userId, req);
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "User updated successfully"));
 
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            writeMessage(response, "Invalid user id");
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             writeMessage(response, e.getMessage());

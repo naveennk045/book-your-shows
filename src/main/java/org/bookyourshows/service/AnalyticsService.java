@@ -25,4 +25,5 @@ public class AnalyticsService {
 
         return analyticsRepository.getMoviePerformance(request);
     }
+
 }

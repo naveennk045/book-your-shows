@@ -2,10 +2,12 @@ package org.bookyourshows.repository;
 
 
 import org.bookyourshows.config.DatabaseManager;
+import org.bookyourshows.dto.address.AddressDTO;
 import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
+import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.TheatreMapper;
 
 import java.sql.*;
@@ -148,6 +150,59 @@ public class TheatreRepository {
         }
         return Optional.empty();
 
+    }
+
+    public Optional<AddressDTO> getTheatreAddress(int theatreId) throws SQLException {
+
+        String query = """
+        SELECT address_line1, address_line2, city, state, country, pincode, latitude, longitude
+        FROM theatre_addresses
+        WHERE theatre_id = ?
+    """;
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setInt(1, theatreId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(AddressMapper.mapRowToAddress(rs));
+            }
+        }
+
+        return Optional.empty();
+    }
+    public boolean updateTheatreAddress(int theatreId, AddressDTO req) throws SQLException {
+
+        String query = """
+        UPDATE theatre_addresses
+        SET address_line1 = ?,
+            address_line2 = ?,
+            city = ?,
+            state = ?,
+            country = ?,
+            pincode = ?,
+            latitude = ?,
+            longitude = ?
+        WHERE theatre_id = ?
+    """;
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+
+            ps.setString(1, req.getAddressLine1());
+            ps.setString(2, req.getAddressLine2());
+            ps.setString(3, req.getCity());
+            ps.setString(4, req.getState());
+            ps.setString(5, req.getCountry());
+            ps.setString(6, req.getPincode());
+            ps.setBigDecimal(7, req.getLatitude());
+            ps.setBigDecimal(8, req.getLongitude());
+            ps.setInt(9, theatreId);
+
+            return ps.executeUpdate() > 0;
+        }
     }
 
     public int addTheatre(TheatreCreateRequest request) throws SQLException {
