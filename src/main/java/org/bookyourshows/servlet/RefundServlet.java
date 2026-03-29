@@ -12,6 +12,7 @@ import org.bookyourshows.service.RefundService;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,50 +31,77 @@ public class RefundServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request,
-                         HttpServletResponse response) throws ServletException, IOException {
+                         HttpServletResponse response) throws IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
 
-        // GET : /refund/{refund_id}
-        if (path == null || !path.startsWith("/refund")) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Not found"));
-            return;
-        }
-
-        String remainder = path.substring("/refund".length());
-
-        if (remainder.isEmpty() || "/".equals(remainder)) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "refund_id is required in path"));
-            return;
-        }
-
-        String[] parts = remainder.split("/");
-
-        if (parts.length < 2) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "refund_id is required in path"));
-            return;
-        }
-
-        int refundId;
         try {
-            refundId = Integer.parseInt(parts[1]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid refund id: " + parts[1]));
-            return;
-        }
 
-        try {
+
+            // 1. ADMIN LIST → /refunds
+            if ("/refunds".equals(path) || "/refunds/".equals(path)) {
+
+                String role = String.valueOf(request.getHeader("user_role"));
+
+                if (!"ADMIN".equals(role)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Unauthorized"));
+                    return;
+                }
+
+                Integer year = parseInt(request.getParameter("year"));
+                Integer paymentId = parseInt(request.getParameter("payment_id"));
+                String status = request.getParameter("status");
+
+                List<RefundDetails> refunds =
+                        refundService.getRefunds(year, paymentId, status);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), refunds);
+                return;
+            }
+
+
+            // 2. SINGLE → /refund/{id}
+            if (path == null || !path.startsWith("/refund")) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Not found"));
+                return;
+            }
+
+            String remainder = path.substring("/refund".length());
+
+            if (remainder.isEmpty() || "/".equals(remainder)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "refund_id is required in path"));
+                return;
+            }
+
+            String[] parts = remainder.split("/");
+
+            if (parts.length < 2) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "refund_id is required in path"));
+                return;
+            }
+
+            int refundId;
+            try {
+                refundId = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Invalid refund id: " + parts[1]));
+                return;
+            }
+
             Optional<RefundDetails> refundDetails = refundService.getRefundById(refundId);
 
             if (refundDetails.isEmpty()) {
@@ -90,6 +118,19 @@ public class RefundServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        }
+    }
+
+    private Integer parseInt(String val) {
+        if (val == null || val.isBlank()) return null;
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }

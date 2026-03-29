@@ -4,6 +4,7 @@ import org.bookyourshows.dto.refund.RefundDetails;
 import org.bookyourshows.repository.RefundRepository;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 public class RefundService {
@@ -22,5 +23,13 @@ public class RefundService {
         }
 
         return refundRepository.getRefundById(refundId);
+    }
+
+    public List<RefundDetails> getRefunds(
+            Integer year,
+            Integer paymentId,
+            String status) throws SQLException {
+
+        return refundRepository.getRefunds(year, paymentId, status);
     }
 }

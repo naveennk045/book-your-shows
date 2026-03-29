@@ -62,6 +62,51 @@ public class RefundRepository {
         return Optional.empty();
     }
 
+    public List<RefundDetails> getRefunds(
+            Integer year,
+            Integer paymentId,
+            String status) throws SQLException {
+
+        StringBuilder query = new StringBuilder("""
+        SELECT * FROM refunds
+        WHERE 1=1
+    """);
+
+        if (year != null) {
+            query.append(" AND YEAR(created_at) = ?");
+        }
+
+        if (paymentId != null) {
+            query.append(" AND transaction_id = ?");
+        }
+
+        if (status != null && !status.isBlank()) {
+            query.append(" AND status = ?");
+        }
+
+        query.append(" ORDER BY created_at DESC");
+
+        List<RefundDetails> list = new ArrayList<>();
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query.toString())) {
+
+            int i = 1;
+
+            if (year != null) ps.setInt(i++, year);
+            if (paymentId != null) ps.setInt(i++, paymentId);
+            if (status != null && !status.isBlank()) ps.setString(i++, status);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(RefundMapper.mapRowToRefundDetails(rs));
+            }
+        }
+
+        return list;
+    }
+
 
     public List<RefundDetails> getRefundsByTransactionId(int transactionId) throws SQLException {
 

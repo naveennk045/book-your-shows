@@ -10,6 +10,7 @@ import org.bookyourshows.repository.PaymentRepository;
 import org.bookyourshows.utils.PaymentUtils;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 public class PaymentService {
@@ -84,5 +85,14 @@ public class PaymentService {
         Integer transactionId = paymentDetailsOptional.get().getTransactionId();
 
         bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, transactionId);
+    }
+
+    public List<PaymentDetails> getPayments(
+            Integer year,
+            Integer month,
+            Integer bookingId,
+            String status) throws SQLException {
+
+        return paymentRepository.getPayments(year, month, bookingId, status);
     }
 }

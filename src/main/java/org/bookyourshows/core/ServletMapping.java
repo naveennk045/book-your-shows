@@ -68,6 +68,10 @@ public class ServletMapping {
 
         SERVLET_REGISTRY.put("^/refunds/[^/]+", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/refunds/[^/]+/", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/refunds/$", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/refunds$", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/payments/$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
 
         SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));

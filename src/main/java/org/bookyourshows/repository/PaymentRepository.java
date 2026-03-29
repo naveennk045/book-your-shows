@@ -7,6 +7,8 @@ import org.bookyourshows.dto.payment.PaymentWebhookPayload;
 import org.bookyourshows.mapper.PaymentMapper;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class PaymentRepository {
@@ -42,6 +44,57 @@ public class PaymentRepository {
             }
         }
         return Optional.empty();
+    }
+
+    public List<PaymentDetails> getPayments(
+            Integer year,
+            Integer month,
+            Integer bookingId,
+            String status) throws SQLException {
+
+        StringBuilder query = new StringBuilder("""
+        SELECT * FROM payments
+        WHERE 1=1
+    """);
+
+        if (year != null) {
+            query.append(" AND YEAR(created_at) = ?");
+        }
+
+        if (month != null) {
+            query.append(" AND MONTH(created_at) = ?");
+        }
+
+        if (bookingId != null) {
+            query.append(" AND booking_id = ?");
+        }
+
+        if (status != null && !status.isBlank()) {
+            query.append(" AND status = ?");
+        }
+
+        query.append(" ORDER BY created_at DESC");
+
+        List<PaymentDetails> list = new ArrayList<>();
+
+        try (Connection con = DatabaseManager.getConnection();
+             PreparedStatement ps = con.prepareStatement(query.toString())) {
+
+            int i = 1;
+
+            if (year != null) ps.setInt(i++, year);
+            if (month != null) ps.setInt(i++, month);
+            if (bookingId != null) ps.setInt(i++, bookingId);
+            if (status != null && !status.isBlank()) ps.setString(i++, status);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(PaymentMapper.mapRowToPayementDetails(rs));
+            }
+        }
+
+        return list;
     }
 
 
