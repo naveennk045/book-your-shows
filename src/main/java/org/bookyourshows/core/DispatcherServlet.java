@@ -70,12 +70,15 @@ public class DispatcherServlet extends HttpServlet {
 
             servletExecution.forwardRequest(servletDetails.getServlet(), request, response);
 
+        } catch (SecurityException e) {
+            sendError(response, HttpServletResponse.SC_FORBIDDEN, "Access Denied");
         } catch (NumberFormatException e) {
             sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Bad Request");
         } catch (RuntimeException e) {
             sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
 
     private void sendError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);

@@ -4,6 +4,7 @@ import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
@@ -13,6 +14,7 @@ import org.bookyourshows.utils.ScreenUtils;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ScreenService {
@@ -43,7 +45,18 @@ public class ScreenService {
         return screenRepository.getScreenById(screenId, theatreId);
     }
 
-    public int createScreen(ScreenCreateRequest screenCreateRequest) throws SQLException {
+    public int createScreen(ScreenCreateRequest screenCreateRequest, UserContext userContext) throws SQLException {
+
+        Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(screenCreateRequest.getTheatreId());
+        if (theatreDetails.isEmpty()) {
+            throw new RuntimeException("No theatre found");
+        }
+
+
+        if (!userContext.getUserRole().equals("ADMIN") && !Objects.equals(theatreDetails.get().getTheatre().getOwnerId(), userContext.getUserId())) {
+//            throw new SecurityException("Jwt User Id : " + userContext.getUserId() + " ownerId : " + theatreDetails.get().getTheatre().getOwnerId());
+            throw new SecurityException("Access denied");
+        }
 
         ScreenUtils.validateScreenName(screenCreateRequest.getScreenName());
 
@@ -71,8 +84,9 @@ public class ScreenService {
         return screenRepository.addScreen(screenCreateRequest);
     }
 
-    public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest, int screenId, int theatreId) throws SQLException {
+    public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest, int screenId, int theatreId, UserContext userContext) throws SQLException {
 
+        hasAccessToResources(screenId, theatreId, userContext);
 
         if (!screenRepository.getScreenById(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
             throw new IllegalArgumentException("Screen not found");
@@ -94,7 +108,9 @@ public class ScreenService {
         return screenRepository.updateScreen(screenUpdateRequest, screenId);
     }
 
-    public boolean deleteScreen(Integer screenId, Integer theatreId) throws SQLException {
+    public boolean deleteScreen(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException {
+
+        hasAccessToResources(screenId, theatreId, userContext);
 
         List<ShowDetails> showDetails = this.showRepository.getShowsByScreenId(screenId);
         if (!showDetails.isEmpty()) {
@@ -105,6 +121,11 @@ public class ScreenService {
     }
 
     private void hasAccessToResources(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException {
-
+        if (!userContext.getUserRole().equals("ADMIN")) {
+            Optional<ScreenDetails> screenDetails = screenRepository.getScreenById(screenId, theatreId);
+            if (screenDetails.isEmpty()) {
+                throw new IllegalArgumentException("Screen not found");
+            }
+        }
     }
 }

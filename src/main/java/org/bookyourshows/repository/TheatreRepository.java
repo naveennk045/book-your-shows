@@ -25,6 +25,7 @@ public class TheatreRepository {
         String query = """
                 SELECT t.theatre_id,
                        t.theatre_name,
+                       t.owner_id,
                        t.email,
                        t.contact_number,
                        t.total_screens,

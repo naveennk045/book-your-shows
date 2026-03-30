@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.service.ScreenService;
 
 import java.io.IOException;
@@ -124,6 +125,7 @@ public class ScreenServlet extends HttpServlet {
 
         String path = request.getPathInfo();
         String[] part = path.split("/");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
 
         int theatreId;
@@ -148,7 +150,7 @@ public class ScreenServlet extends HttpServlet {
         }
 
         try {
-            int screenId = screenService.createScreen(screenCreateRequest);
+            int screenId = screenService.createScreen(screenCreateRequest, userContext);
             response.setStatus(HttpServletResponse.SC_CREATED);
 
             Map<String, Object> body = Map.of(
@@ -175,6 +177,8 @@ public class ScreenServlet extends HttpServlet {
             ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         // /screens/{screen_id}
         if (request.getContentType() == null ||
@@ -228,7 +232,7 @@ public class ScreenServlet extends HttpServlet {
         }
 
         try {
-            boolean screenDeleted = screenService.updateScreen(screenUpdateRequest, screenId, theatreId);
+            boolean screenDeleted = screenService.updateScreen(screenUpdateRequest, screenId, theatreId, userContext);
             if (!screenDeleted) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "failed to update the screen"));
@@ -265,6 +269,8 @@ public class ScreenServlet extends HttpServlet {
         String path = request.getPathInfo();
         String[] part = path.split("/");
 
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+
         // /screens/{screen_id}
         int theatreId;
 
@@ -296,7 +302,7 @@ public class ScreenServlet extends HttpServlet {
         }
 
         try {
-            boolean screenDeleted = screenService.deleteScreen(screenId, theatreId);
+            boolean screenDeleted = screenService.deleteScreen(screenId, theatreId, userContext);
 
             if (!screenDeleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

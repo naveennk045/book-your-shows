@@ -110,7 +110,9 @@ public class TheatreService {
             throw new RuntimeException("There is already an existing theatre,One user can able to create one theatre");
         }
 //        request.setState("APPROVED");
+        request.setState("PENDING");
         int theatreId = theatreRepository.addTheatre(request);
+
         boolean isTheatreAddressAdded = theatreRepository.addTheatreAddress(request, theatreId);
         if (!isTheatreAddressAdded) {
             throw new RuntimeException("Theatre created successfully, but address creation failed. Please update the address.");

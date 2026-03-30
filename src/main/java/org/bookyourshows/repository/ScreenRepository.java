@@ -28,7 +28,7 @@ public class ScreenRepository {
                        s.total_rows,
                        s.no_of_seats,
                        s.theatre_id
-
+                
                        FROM screens AS s
                        JOIN screen_types st on s.screen_type_id = st.screen_type_id
                        WHERE s.theatre_id = ?
@@ -37,6 +37,45 @@ public class ScreenRepository {
         try (Connection Connection = DatabaseManager.getConnection()) {
             PreparedStatement preparedStatement = Connection.prepareStatement(query);
             preparedStatement.setInt(1, theatreId);
+
+            List<ScreenDetails> screenDetails = new ArrayList<>();
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                ScreenDetails screenDetail = ScreenMapper.mapRowToScreenDetail(resultSet);
+                screenDetails.add(screenDetail);
+            }
+
+            return screenDetails;
+
+        } catch (SQLException e) {
+            throw new SQLException(e);
+        }
+
+    }
+
+    public List<ScreenDetails> getScreenByTheatreIdUserId(Integer theatreId, Integer ownerId) throws SQLException {
+        String query = """
+                
+                       SELECT s.screen_id,
+                       s.screen_name,
+                       s.screen_type_id,
+                       st.name AS screen_type_name,
+                       st.price_multiplier,
+                       s.total_rows,
+                       s.no_of_seats,
+                       s.theatre_id
+                
+                       FROM screens AS s
+                       JOIN screen_types st on s.screen_type_id = st.screen_type_id
+                       JOIN theatres AS t ON s.theatre_id = t.theatre_id
+                       WHERE s.theatre_id = ? AND t.owner_id = ?
+                """;
+
+        try (Connection Connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
+            preparedStatement.setInt(1, theatreId);
+            preparedStatement.setInt(2, ownerId);
 
             List<ScreenDetails> screenDetails = new ArrayList<>();
 
@@ -197,7 +236,6 @@ public class ScreenRepository {
             return screenRows != 0;
         }
     }
-
 
 
 }

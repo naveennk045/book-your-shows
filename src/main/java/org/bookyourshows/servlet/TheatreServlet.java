@@ -13,6 +13,7 @@ import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.service.TheatreService;
 
 import java.io.IOException;
@@ -43,7 +44,6 @@ public class TheatreServlet extends HttpServlet {
 
         String fullPath = request.getPathInfo();
         String[] parts = fullPath.split("/");
-
 
 
         try {
@@ -142,6 +142,7 @@ public class TheatreServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
         // POST : /theatres
 
         if (request.getContentType() == null ||
@@ -155,7 +156,7 @@ public class TheatreServlet extends HttpServlet {
         TheatreCreateRequest createReq;
         try {
             createReq = objectMapper.readValue(request.getReader(), TheatreCreateRequest.class);
-            int user_id = request.getIntHeader("user_id");
+            int user_id = userContext.getUserId();
 
             if (user_id == -1) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -190,7 +191,7 @@ public class TheatreServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+                    Map.of("message", e.getMessage()));
         }
 
     }

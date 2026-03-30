@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.bookyourshows.dto.analytics.*;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.service.AnalyticsService;
 
 import jakarta.servlet.http.HttpServlet;
@@ -45,6 +46,9 @@ public class AnalyticsServlet extends HttpServlet {
 
         String path = req.getPathInfo();
 
+        UserContext userContext = (UserContext) req.getAttribute("userContext");
+
+
         if (path == null) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(resp.getWriter(), Map.of("message", "Not found"));
@@ -62,8 +66,7 @@ public class AnalyticsServlet extends HttpServlet {
             }
 
             // 2. ADMIN CHECK
-            String role = String.valueOf(req.getHeader("user_role"));
-            if (!"ADMIN".equals(role)) {
+            if (!"ADMIN".equals(userContext.getUserRole())) {
                 resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 objectMapper.writeValue(resp.getWriter(),
                         Map.of("message", "Unauthorized"));
@@ -145,6 +148,8 @@ public class AnalyticsServlet extends HttpServlet {
 
 
     private void handleMoviePerformance(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+        UserContext userContext = (UserContext) req.getAttribute("userContext");
         try {
             MoviePerformanceRequest requestDto = new MoviePerformanceRequest();
 
@@ -172,8 +177,9 @@ public class AnalyticsServlet extends HttpServlet {
             List<MoviePerformanceResponse> topMovies =
                     analyticsService.getMoviePerformance(requestDto);
 
-            boolean isAdmin = "ADMIN".equals(req.getHeader("user_role"));
-            Integer userId = req.getIntHeader("user_id");
+            boolean isAdmin = "ADMIN".equals(userContext.getUserRole());
+            Integer userId = userContext.getUserId();
+
             System.out.println("User id: " + userId);
 
             resp.setStatus(HttpServletResponse.SC_OK);
