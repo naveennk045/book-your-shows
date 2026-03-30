@@ -13,23 +13,23 @@ public class TaskScheduler {
             Executors.newSingleThreadScheduledExecutor();
 
     public static void start() {
-        System.out.println("Starting Seat Release Scheduler...");
+        System.out.println("Starting Seat Release");
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                System.out.println("Running cleanup job...");
+                System.out.println("Running cleanup job");
                 ShowRepository.releaseExpiredSeats();
                 ShowRepository.updateCompletedShows();
 
             } catch (Exception e) {
-                System.out.println("Error while releasing seats: " + e.getMessage());
+                System.out.println(e.getMessage());
 
             }
         }, 0, 1, TimeUnit.MINUTES);
     }
 
     public static void stop() {
-        System.out.println("Stopping Seat Release Scheduler...");
+        System.out.println("Stopping Seat Release Scheduler");
         scheduler.shutdown();
     }
 }
