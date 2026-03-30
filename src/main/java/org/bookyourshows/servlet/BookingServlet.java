@@ -96,7 +96,7 @@ public class BookingServlet extends HttpServlet {
                 if (loggedInUser != null && !loggedInUser.equals(userId)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "Unauthorized"));
+                            Map.of("message", "Access denied"));
                     return;
                 }
 

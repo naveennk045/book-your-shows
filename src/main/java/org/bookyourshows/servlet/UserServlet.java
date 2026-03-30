@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 
 import org.bookyourshows.dto.address.AddressDTO;
-import org.bookyourshows.dto.user.address.AddressResponse;
-import org.bookyourshows.dto.user.address.AddressUpdateRequest;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
 import org.bookyourshows.dto.user.UserDetails;
@@ -42,19 +40,24 @@ public class UserServlet extends HttpServlet {
         String path = request.getPathInfo();
         String[] parts = path.split("/");
 
+        Integer userIdFromJwt = (Integer) request.getAttribute("user_id");
+        String userRoleFromJwt = (String) request.getAttribute("user_role");
+
+
         try {
             // /users/{user_id}
-            if (parts.length == 2) {
+            if (parts.length == 3) {
                 int userId;
                 try {
-                    userId = (int) request.getAttribute("user_id");
+                    userId = Integer.parseInt(parts[2]);
+
                 } catch (NumberFormatException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     writeMessage(response, "Invalid user id");
                     return;
                 }
 
-                Optional<UserDetails> user = userService.getUserById(userId);
+                Optional<UserDetails> user = userService.getUserById(userId, userIdFromJwt, userRoleFromJwt);
 
                 if (user.isPresent()) {
                     response.setStatus(HttpServletResponse.SC_OK);
@@ -69,7 +72,7 @@ public class UserServlet extends HttpServlet {
 
                 int userId = Integer.parseInt(parts[2]);
 
-                Optional<AddressDTO> address = userService.getUserAddress(userId);
+                Optional<AddressDTO> address = userService.getUserAddress(userId, userIdFromJwt, userRoleFromJwt);
 
                 if (address.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -112,6 +115,9 @@ public class UserServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(), users);
 
+        } catch (SecurityException e) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            writeMessage(response, e.getMessage());
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             writeMessage(response, e.getMessage());
@@ -121,45 +127,6 @@ public class UserServlet extends HttpServlet {
             writeMessage(response, "Database error");
         }
     }
-/*
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        if(request.getPathInfo().equals("/users")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        }
-
-        if (request.getContentType() == null ||
-                !request.getContentType().contains("application/json")) {
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            writeMessage(response, "Content-Type must be application/json");
-            return;
-        }
-
-        try {
-            UserCreateRequest req = objectMapper.readValue(request.getReader(), UserCreateRequest.class);
-
-            UserDetails created = userService.createUser(req);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "User created successfully",
-                            "user_id", created.getUserId()));
-
-        } catch (IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            writeMessage(response, e.getMessage());
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            writeMessage(response, e.getMessage());
-        }
-    }
-*/
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
@@ -175,6 +142,9 @@ public class UserServlet extends HttpServlet {
             writeMessage(response, "Invalid path");
             return;
         }
+
+        Integer userIdFromJwt = (Integer) request.getAttribute("user_id");
+        String userRoleFromJwt = (String) request.getAttribute("user_role");
 
         String[] parts = path.split("/");
 
@@ -200,7 +170,7 @@ public class UserServlet extends HttpServlet {
             }
 
             try {
-                userService.updateUserAddress(userId, req);
+                userService.updateUserAddress(userId, req, userIdFromJwt, userRoleFromJwt);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
@@ -243,7 +213,7 @@ public class UserServlet extends HttpServlet {
         }
 
         try {
-            userService.updateUser(userId, req);
+            userService.updateUser(userId, req, userIdFromJwt, userRoleFromJwt);
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(),
@@ -264,6 +234,9 @@ public class UserServlet extends HttpServlet {
 
         response.setContentType("application/json");
 
+        Integer userIdFromJwt = (Integer) request.getAttribute("user_id");
+        String userRoleFromJwt = (String) request.getAttribute("user_role");
+
         // DELETE :  /users/{user_id}
 
 
@@ -279,7 +252,7 @@ public class UserServlet extends HttpServlet {
         try {
             int userId = Integer.parseInt(parts[2]);
 
-            boolean deleted = userService.deleteUser(userId);
+            boolean deleted = userService.deleteUser(userId, userIdFromJwt, userRoleFromJwt);
 
             if (!deleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
