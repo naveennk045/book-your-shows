@@ -201,6 +201,7 @@ public class BookingServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+
         UserContext userContext = (UserContext) request.getAttribute("userContext");
 
 
@@ -275,8 +276,8 @@ public class BookingServlet extends HttpServlet {
                     Map.of("message", "Invalid JSON body"));
             return;
         }
-
-        int userId = request.getIntHeader("user_id");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+        int userId = userContext.getUserId();
         if (userId == -1) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),

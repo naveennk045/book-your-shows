@@ -44,6 +44,8 @@ public class TheatreServlet extends HttpServlet {
         String fullPath = request.getPathInfo();
         String[] parts = fullPath.split("/");
 
+
+
         try {
 
             // 1. GET /theatres/{id}/address

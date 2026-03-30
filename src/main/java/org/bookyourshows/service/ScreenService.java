@@ -4,6 +4,7 @@ import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
 import org.bookyourshows.repository.ShowRepository;
@@ -71,6 +72,8 @@ public class ScreenService {
     }
 
     public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest, int screenId, int theatreId) throws SQLException {
+
+
         if (!screenRepository.getScreenById(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
             throw new IllegalArgumentException("Screen not found");
         }
@@ -87,19 +90,6 @@ public class ScreenService {
         if (screenTypeRepository.getScreenTypeById(screenUpdateRequest.getScreenTypeId()).isEmpty()) {
             throw new IllegalArgumentException("Screen Type is not found");
         }
-        /*
-        if (screenCreateRequest.getNoOfSeats() == null) {
-            throw new IllegalArgumentException("No of Seats is required");
-        }
-        if (screenCreateRequest.getTotalRows() == null) {
-            throw new IllegalArgumentException("Total Rows is required");
-        }
-        if (screenCreateRequest.getNoOfSeats() < 1){
-            throw new IllegalArgumentException("Minimum 1 seat is required");
-        }
-        if (screenCreateRequest.getTotalRows() < 1){
-            throw new IllegalArgumentException("Minimum 1 row is required");
-        }*/
 
         return screenRepository.updateScreen(screenUpdateRequest, screenId);
     }
@@ -112,5 +102,9 @@ public class ScreenService {
         }
 
         return screenRepository.deleteScreen(screenId);
+    }
+
+    private void hasAccessToResources(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException {
+
     }
 }

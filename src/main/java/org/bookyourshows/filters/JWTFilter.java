@@ -54,6 +54,8 @@ public class JWTFilter implements Filter {
         request.setAttribute("user_id", userId);
         request.setAttribute("user_role", userRole);
 
+
+
         UserContext context = new UserContext();
         context.setUserRole(userRole);
         context.setUserId(userId);
