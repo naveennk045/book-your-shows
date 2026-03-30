@@ -4,12 +4,12 @@ import org.bookyourshows.dto.booking.*;
 import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.refund.RefundCreateRequest;
 import org.bookyourshows.dto.show.ShowSeating;
-import org.bookyourshows.repository.BookingRepository;
-import org.bookyourshows.repository.PaymentRepository;
-import org.bookyourshows.repository.RefundRepository;
-import org.bookyourshows.repository.ShowRepository;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.repository.*;
 import org.bookyourshows.utils.PaymentUtils;
 
+import java.nio.file.AccessDeniedException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,15 +22,18 @@ public class BookingService {
     private final ShowRepository showRepository;
     private final PaymentRepository paymentRepository;
     private final RefundRepository refundRepository;
+    private final TheatreRepository theatreRepository;
 
     public BookingService() {
         this.bookingRepository = new BookingRepository();
         this.showRepository = new ShowRepository();
         this.paymentRepository = new PaymentRepository();
         this.refundRepository = new RefundRepository();
+        this.theatreRepository = new TheatreRepository();
     }
 
-    public Optional<BookingDetails> getBookingById(int bookingId) throws SQLException {
+    public Optional<BookingDetails> getBookingById(int bookingId, UserContext userContext) throws SQLException {
+        hasAccessToResource(bookingId, userContext);
         return bookingRepository.getBookingById(bookingId);
     }
 
@@ -38,11 +41,23 @@ public class BookingService {
         return bookingRepository.getAllBookings();
     }
 
-    public List<BookingSummary> getBookingsByUserId(int userId) throws SQLException {
+    public List<BookingSummary> getBookingsByUserId(Integer userId, UserContext userContext) throws SQLException {
+        if (!Objects.equals(userId, userContext.getUserId())) {
+            throw new SecurityException("Access denied");
+        }
         return bookingRepository.getBookingsByUserId(userId);
     }
 
-    public List<BookingSummary> getBookingsByTheatreId(int theatreId) throws SQLException {
+    public List<BookingSummary> getBookingsByTheatreId(int theatreId, UserContext userContext) throws SQLException {
+        Optional<TheatreDetails> theatre = theatreRepository.getTheatreById(theatreId);
+
+        if (theatre.isEmpty()) {
+            throw new RuntimeException("No theatre found");
+        }
+        if (theatre.get().getTheatre().getOwnerId() != userContext.getUserId()) {
+            throw new SecurityException("Access denied");
+
+        }
         return bookingRepository.getBookingsByTheatreId(theatreId);
     }
 
@@ -77,8 +92,9 @@ public class BookingService {
         return bookingRepository.createBookingWithSeats(userId, request, totalAmount);
     }
 
-    public Integer cancelBooking(Integer bookingId) throws SQLException {
+    public Integer cancelBooking(Integer bookingId, UserContext userContext) throws SQLException {
 
+        hasAccessToResource(bookingId, userContext);
 
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
 
@@ -128,4 +144,15 @@ public class BookingService {
 
         return refundRepository.createRefund(refundCreateRequest);
     }
+
+    private void hasAccessToResource(Integer bookingId, UserContext userContext) throws SQLException {
+
+        if (!userContext.getUserRole().equals("ADMIN")) {
+            Optional<BookingSummary> bookings = bookingRepository.getBookingsByUserIdBookingId(userContext.getUserId(), bookingId);
+            if (bookings.isEmpty()) {
+                throw new RuntimeException("Booking not found");
+            }
+        }
+    }
 }
+

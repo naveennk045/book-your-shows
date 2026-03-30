@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.utils.JwtUtil;
 
 import java.io.IOException;
@@ -52,6 +53,12 @@ public class JWTFilter implements Filter {
 
         request.setAttribute("user_id", userId);
         request.setAttribute("user_role", userRole);
+
+        UserContext context = new UserContext();
+        context.setUserRole(userRole);
+        context.setUserId(userId);
+
+        request.setAttribute("userContext", context);
 
         chain.doFilter(servletRequest, servletResponse);
 

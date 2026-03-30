@@ -135,7 +135,7 @@ public class BookingRepository {
         return list;
     }
 
-    public List<BookingSummary> getBookingsByUserId(int userId) throws SQLException {
+    public List<BookingSummary> getBookingsByUserId(Integer userId) throws SQLException {
 
         String query = """
                     SELECT * FROM bookings
@@ -158,6 +158,31 @@ public class BookingRepository {
         }
 
         return list;
+    }
+
+    public Optional<BookingSummary> getBookingsByUserIdBookingId(Integer userId, Integer bookingId) throws SQLException {
+
+        String query = """
+                    SELECT * FROM bookings
+                    WHERE user_id = ? AND booking_id = ?
+                    ORDER BY booked_at DESC
+                """;
+
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setInt(1, userId);
+            preparedStatement.setInt(2, bookingId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(BookingMapper.mapRowToBookingSummary(resultSet));
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     public Optional<BookingInfo> findBookingWithTheatreAndUser(int bookingId) throws SQLException {

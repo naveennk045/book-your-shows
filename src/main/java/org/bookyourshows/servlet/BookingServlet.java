@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.booking.*;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.service.BookingService;
 
 import java.io.IOException;
@@ -39,6 +40,9 @@ public class BookingServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+
+
         String path = request.getPathInfo();
 
         try {
@@ -59,7 +63,7 @@ public class BookingServlet extends HttpServlet {
                 if (!"ADMIN".equals(userRole)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "Unauthorized"));
+                            Map.of("message", "Access denied"));
                     return;
                 }
 
@@ -102,7 +106,7 @@ public class BookingServlet extends HttpServlet {
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
-                        bookingService.getBookingsByUserId(userId));
+                        bookingService.getBookingsByUserId(userId, userContext));
                 return;
             }
 
@@ -130,7 +134,7 @@ public class BookingServlet extends HttpServlet {
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
-                        bookingService.getBookingsByTheatreId(theatreId));
+                        bookingService.getBookingsByTheatreId(theatreId, userContext));
                 return;
             }
 
@@ -157,7 +161,7 @@ public class BookingServlet extends HttpServlet {
                     return;
                 }
 
-                Optional<BookingDetails> details = bookingService.getBookingById(bookingId);
+                Optional<BookingDetails> details = bookingService.getBookingById(bookingId, userContext);
 
                 if (details.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -197,6 +201,8 @@ public class BookingServlet extends HttpServlet {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+
 
         String path = request.getPathInfo();
         String[] parts = path.split("/");
@@ -234,9 +240,11 @@ public class BookingServlet extends HttpServlet {
 
     private void handleBookingCancellation(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            UserContext userContext = (UserContext) request.getAttribute("userContext");
+
             String[] parts = request.getPathInfo().split("/");
             Integer bookingId = Integer.parseInt(parts[2]);
-            Integer refundId = bookingService.cancelBooking(bookingId);
+            Integer refundId = bookingService.cancelBooking(bookingId, userContext);
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(),
@@ -247,11 +255,7 @@ public class BookingServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid booking id"));
             return;
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
+        } catch (RuntimeException | SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
@@ -297,39 +301,6 @@ public class BookingServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
-    }
-
-    private void handleAdminBookings(HttpServletRequest request,
-                                     HttpServletResponse response) throws Exception {
-
-        List<BookingSummary> bookings = bookingService.getAllBookings();
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), bookings);
-    }
-
-    private void handleUserBookings(HttpServletRequest request,
-                                    HttpServletResponse response) throws Exception {
-
-        String[] parts = request.getPathInfo().split("/");
-        int userId = Integer.parseInt(parts[2]);
-
-        List<BookingSummary> bookings = bookingService.getBookingsByUserId(userId);
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), bookings);
-    }
-
-    private void handleTheatreBookings(HttpServletRequest request,
-                                       HttpServletResponse response) throws Exception {
-
-        String[] parts = request.getPathInfo().split("/");
-        int theatreId = Integer.parseInt(parts[2]);
-
-        List<BookingSummary> bookings = bookingService.getBookingsByTheatreId(theatreId);
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), bookings);
     }
 }
 
