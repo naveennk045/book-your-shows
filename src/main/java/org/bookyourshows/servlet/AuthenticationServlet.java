@@ -3,12 +3,14 @@ package org.bookyourshows.servlet;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.user.UserCreateRequest;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.service.AuthenticationService;
+import org.bookyourshows.utils.JwtUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -64,19 +66,28 @@ public class AuthenticationServlet extends HttpServlet {
 
                 objectMapper.writeValue(response.getWriter(), Map.of("token", token));
             }
-
-            // LOGIN
+            // LOGOUT
             else if (path.equals("/logout")) {
 
+                String header = request.getHeader("Authorization");
 
-                Map<String, String> body = objectMapper.readValue(request.getReader(), Map.class);
+                if (header == null || !header.startsWith("Bearer ")) {
+                    response.setStatus(401);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Missing token"));
+                    return;
+                }
 
-                String token = authenticationService.login(
-                        body.get("email"),
-                        body.get("password")
-                );
+                String token = header.substring(7);
 
-                objectMapper.writeValue(response.getWriter(), Map.of("token", token));
+                // Extract JTI
+                Claims claims = JwtUtil.validateToken(token);
+                String jti = claims.getId();
+
+                // Call logout
+                authenticationService.logout(jti);
+
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Logged out successfully"));
             }
 
             //  REFRESH

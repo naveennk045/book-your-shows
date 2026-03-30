@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 public class JwtUtil {
 
@@ -16,7 +17,10 @@ public class JwtUtil {
 
     public static String generateToken(Integer userId, String role) {
 
+        String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
+                .setId(jti)
                 .setSubject(String.valueOf(userId))
                 .claim("role", role)
                 .setIssuedAt(new Date())

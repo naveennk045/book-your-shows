@@ -2,11 +2,14 @@ package org.bookyourshows.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import io.jsonwebtoken.Claims;
+import org.bookyourshows.config.RedisManager;
+import org.bookyourshows.core.AccessLevel;
 import org.bookyourshows.dto.user.UserAuth;
 import org.bookyourshows.dto.user.UserCreateRequest;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.repository.UserRepository;
 import org.bookyourshows.utils.JwtUtil;
+import redis.clients.jedis.RedisClient;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -26,7 +29,7 @@ public class AuthenticationService {
 
     public UserDetails registerUser(UserCreateRequest request) throws SQLException {
 
-        if(request.getUserRole().equals("ADMIN")){
+        if (request.getUserRole().equals("ADMIN")) {
             throw new RuntimeException("You can't register an administrator");
         }
 
@@ -62,6 +65,7 @@ public class AuthenticationService {
 
         throw new RuntimeException("User created but not found");
     }
+
     public String login(String email, String password) throws SQLException {
 
         Optional<UserAuth> userOptional = userRepository.getUserAuthByEmail(email);
@@ -80,8 +84,31 @@ public class AuthenticationService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        return JwtUtil.generateToken(user.getUserId(), user.getRole());
+        String token = JwtUtil.generateToken(user.getUserId(), user.getRole());
+
+        Claims claims = JwtUtil.validateToken(token);
+        String jti = claims.getId();
+
+        RedisClient redisClient = RedisManager.getClient();
+
+        String key = "auth:token:" + jti;
+        System.out.println("Key : " + key);
+
+        redisClient.setex(
+                key.getBytes(),
+                3600,
+                "valid".getBytes()
+        );
+
+        return token;
     }
+
+    public void logout(String jti) {
+        RedisClient redisClient = RedisManager.getClient();
+        String key = "auth:token:" + jti;
+        redisClient.del(key);
+    }
+
 
     public String refreshToken(String token) {
         Claims claims = JwtUtil.validateToken(token);
@@ -90,5 +117,29 @@ public class AuthenticationService {
         String role = claims.get("role", String.class);
 
         return JwtUtil.generateToken(userId, role);
+    }
+
+    public static boolean isAuthorized(AccessLevel accessLevel, String userRole) {
+
+        if (accessLevel == AccessLevel.PUBLIC) {
+            return true;
+        }
+
+        if (accessLevel == AccessLevel.CUSTOMER) {
+            return userRole.equals("CUSTOMER") ||
+                    userRole.equals("ADMIN") ||
+                    userRole.equals("THEATRE_OWNER");
+        }
+
+        if (accessLevel == AccessLevel.THEATRE_OWNER) {
+            return userRole.equals("THEATRE_OWNER") ||
+                    userRole.equals("ADMIN");
+        }
+
+        if (accessLevel == AccessLevel.ADMIN) {
+            return userRole.equals("ADMIN");
+        }
+
+        return false;
     }
 }

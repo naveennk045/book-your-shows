@@ -271,7 +271,11 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/auth/register$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/auth/register/$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/auth/login$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/auth/refresh$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/auth/login/$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/auth/refresh$", new ServletDetails(new AuthenticationServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/auth/refresh/$", new ServletDetails(new AuthenticationServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/auth/logout$", new ServletDetails(new AuthenticationServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/auth/logout/$", new ServletDetails(new AuthenticationServlet(), AccessLevel.CUSTOMER));
 
         // Admin routes
 

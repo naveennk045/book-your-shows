@@ -5,15 +5,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import org.bookyourshows.service.AuthenticationService;
 import org.bookyourshows.utils.JwtUtil;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
-import java.util.Optional;
 
 public class DispatcherServlet extends HttpServlet {
 
@@ -54,64 +52,30 @@ public class DispatcherServlet extends HttpServlet {
                 return;
             }
 
-            // From here on, token is mandatory
-            String header = request.getHeader("Authorization");
+            Integer userId = (Integer) request.getAttribute("user_id");
+            String userRole = (String) request.getAttribute("user_role");
+            if (userRole == null || userRole.isEmpty() || userRole.equals("null")) {
 
-            if (header == null || !header.startsWith("Bearer ")) {
-                sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Missing token");
-                return;
+                sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Authorization required");
             }
 
-            String token = header.substring(7);
-            Claims claims;
-
-            try {
-                claims = JwtUtil.validateToken(token);
-            } catch (Exception e) {
-                sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
-                return;
-            }
-
-            Integer userId = Integer.parseInt(claims.getSubject());
-            String userRole = claims.get("role", String.class);
-
-            if (!isAuthorized(accessLevel, userRole)) {
+            if (!AuthenticationService.isAuthorized(accessLevel, userRole)) {
                 sendError(response, HttpServletResponse.SC_FORBIDDEN, "Access Denied");
                 return;
             }
+
 
             request.setAttribute("user_id", userId);
             request.setAttribute("user_role", userRole);
 
             servletExecution.forwardRequest(servletDetails.getServlet(), request, response);
 
+        } catch (NumberFormatException e) {
+            System.out.println("Thambi");
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Bad Request");
         } catch (RuntimeException e) {
             sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
-    }
-
-    private boolean isAuthorized(AccessLevel accessLevel, String userRole) {
-
-        if (accessLevel == AccessLevel.PUBLIC) {
-            return true;
-        }
-
-        if (accessLevel == AccessLevel.CUSTOMER) {
-            return userRole.equals("CUSTOMER") ||
-                    userRole.equals("ADMIN") ||
-                    userRole.equals("THEATRE_OWNER");
-        }
-
-        if (accessLevel == AccessLevel.THEATRE_OWNER) {
-            return userRole.equals("THEATRE_OWNER") ||
-                    userRole.equals("ADMIN");
-        }
-
-        if (accessLevel == AccessLevel.ADMIN) {
-            return userRole.equals("ADMIN");
-        }
-
-        return false;
     }
 
     private void sendError(HttpServletResponse response, int status, String message) throws IOException {
