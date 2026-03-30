@@ -5,9 +5,7 @@ import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
-import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.repository.ScreenRepository;
-import org.bookyourshows.repository.ScreenTypeRepository;
 import org.bookyourshows.repository.TheatreRepository;
 
 import java.sql.SQLException;
@@ -48,15 +46,10 @@ public class TheatreService {
         return theatreRepository.getTheatreAddress(theatreId);
     }
 
-    public boolean updateTheatreAddress(int theatreId, int ownerId, String role, AddressDTO req) throws SQLException {
+    public void updateTheatreAddress(int theatreId, int ownerId, String role, AddressDTO req) throws SQLException {
 
 
-        TheatreDetails theatreDetails = theatreRepository.getTheatreById(theatreId).get();
-
-        if (!role.equals("ADMIN") && theatreDetails.getTheatre().getOwnerId() != ownerId) {
-            throw new RuntimeException("The theatre does not belong to the user");
-        }
-
+        hasAccessToResource(theatreId, ownerId, role);
 
         if (req.getAddressLine1() == null || req.getAddressLine1().isBlank()) {
             throw new IllegalArgumentException("address_line1 is required");
@@ -76,7 +69,18 @@ public class TheatreService {
             throw new IllegalArgumentException("Theatre address not found");
         }
 
-        return true;
+    }
+
+    private void hasAccessToResource(int theatreId, int ownerId, String role) throws SQLException {
+
+        Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);
+        if (theatreDetails.isEmpty()) {
+            throw new RuntimeException("The theatre does not exist");
+        }
+
+        if (!role.equals("ADMIN") && (theatreDetails.get().getTheatre().getOwnerId() != ownerId)) {
+            throw new RuntimeException("The theatre does not belong to the user");
+        }
     }
 
 
@@ -122,11 +126,7 @@ public class TheatreService {
     public boolean updateTheatre(int theatreId, int ownerId, String role,
                                  TheatreUpdateRequest request) throws SQLException {
 
-        TheatreDetails theatreDetails = theatreRepository.getTheatreById(theatreId).get();
-
-        if (!role.equals("ADMIN") && theatreDetails.getTheatre().getOwnerId() != ownerId) {
-            throw new RuntimeException("The theatre does not belong to the user");
-        }
+        hasAccessToResource(theatreId, ownerId, role);
 
         validateTheatreName(request.getTheatreName());
         validateEmail(request.getEmail());
@@ -162,11 +162,7 @@ public class TheatreService {
 
     public boolean deleteTheatre(int theatreId, int ownerId, String role) throws SQLException {
 
-        TheatreDetails theatreDetails = theatreRepository.getTheatreById(theatreId).get();
-
-        if (!role.equals("ADMIN") && theatreDetails.getTheatre().getOwnerId() != ownerId) {
-            throw new RuntimeException("The theatre does not belong to the user");
-        }
+        hasAccessToResource(theatreId, ownerId, role);
 
         if (!screenRepository.getScreensByTheatreId(theatreId).isEmpty()) {
             throw new RuntimeException("First delete the screens or shows, those are active under this theatre.");
