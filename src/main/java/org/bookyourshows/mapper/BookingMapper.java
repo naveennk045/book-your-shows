@@ -2,74 +2,77 @@ package org.bookyourshows.mapper;
 
 
 import org.bookyourshows.dto.booking.*;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class BookingMapper {
-    private static boolean hasColumn(ResultSet rs, String column) {
+    private static boolean hasColumn(ResultSet resultSet, String column) {
         try {
-            rs.findColumn(column);
+            resultSet.findColumn(column);
             return true;
         } catch (SQLException e) {
             return false;
         }
     }
 
-    public static BookingSummary mapRowToBookingSummary(ResultSet rs) throws SQLException {
-        BookingSummary b = new BookingSummary();
-        b.setBookingId(rs.getInt("booking_id"));
-        b.setUserId(rs.getInt("user_id"));
-        b.setShowId(rs.getInt("show_id"));
-        b.setTotalAmount(rs.getDouble("total_amount"));
-        b.setBookingStatus(rs.getString("booking_status"));
-        b.setPaymentStatus(rs.getString("payment_status"));
-        b.setBookedAt(rs.getTimestamp("booked_at"));
-        return b;
+    public static BookingSummary mapRowToBookingSummary(ResultSet resultSet) throws SQLException {
+        BookingSummary bookingSummary = new BookingSummary();
+        bookingSummary.setBookingId(resultSet.getInt("booking_id"));
+        bookingSummary.setUserId(resultSet.getInt("user_id"));
+        bookingSummary.setShowId(resultSet.getInt("show_id"));
+        bookingSummary.setTotalAmount(resultSet.getDouble("total_amount"));
+        bookingSummary.setBookingStatus(resultSet.getString("booking_status"));
+        bookingSummary.setPaymentStatus(resultSet.getString("payment_status"));
+        bookingSummary.setBookedAt(resultSet.getTimestamp("booked_at"));
+        return bookingSummary;
     }
 
-    public static BookingShowInfo mapRowToBookingShowInfo(ResultSet rs) throws SQLException {
-        BookingShowInfo s = new BookingShowInfo();
-        s.setShowId(rs.getInt("show_id"));
-        s.setShowDate(rs.getDate("show_date").toString());
-        s.setStartTime(rs.getTime("start_time").toString());
-        s.setEndTime(rs.getTime("end_time").toString());
-        s.setBasePrice(rs.getDouble("base_price"));
+    public static BookingShowInfo mapRowToBookingShowInfo(ResultSet resultSet) throws SQLException {
 
-        s.setTheatreId(rs.getInt("theatre_id"));
-        s.setTheatreName(rs.getString("theatre_name"));
-        s.setCity(rs.getString("city"));
+        BookingShowInfo bookingShowInfo = new BookingShowInfo();
+        bookingShowInfo.setShowId(resultSet.getInt("show_id"));
+        bookingShowInfo.setShowDate(resultSet.getDate("show_date").toString());
+        bookingShowInfo.setStartTime(resultSet.getTime("start_time").toString());
+        bookingShowInfo.setEndTime(resultSet.getTime("end_time").toString());
+        bookingShowInfo.setBasePrice(resultSet.getDouble("base_price"));
 
-        s.setScreenId(rs.getInt("screen_id"));
-        s.setScreenName(rs.getString("screen_name"));
-        s.setScreenType(rs.getString("screen_type_name"));
+        bookingShowInfo.setTheatreId(resultSet.getInt("theatre_id"));
+        bookingShowInfo.setTheatreName(resultSet.getString("theatre_name"));
+        bookingShowInfo.setCity(resultSet.getString("city"));
 
-        s.setMovieId(rs.getInt("movie_id"));
-        s.setMovieTitle(rs.getString("movie_title"));
-        s.setLanguage(rs.getString("language"));
-        s.setCensorRating(rs.getString("censor_rating"));
-        return s;
+        bookingShowInfo.setScreenId(resultSet.getInt("screen_id"));
+        bookingShowInfo.setScreenName(resultSet.getString("screen_name"));
+        bookingShowInfo.setScreenType(resultSet.getString("screen_type_name"));
+
+        bookingShowInfo.setMovieId(resultSet.getInt("movie_id"));
+        bookingShowInfo.setMovieTitle(resultSet.getString("movie_title"));
+        bookingShowInfo.setLanguage(resultSet.getString("language"));
+        bookingShowInfo.setCensorRating(resultSet.getString("censor_rating"));
+        return bookingShowInfo;
     }
 
-    public static BookingSeatInfo mapRowToBookingSeatInfo(ResultSet rs) throws SQLException {
-        BookingSeatInfo s = new BookingSeatInfo();
-        s.setBookingSeatId(rs.getInt("booking_seat_id"));
-        s.setShowSeatId(rs.getInt("show_seat_id"));
-        s.setPricePaid(rs.getDouble("price_paid"));
-        s.setRowLabel(rs.getString("row_no"));
-        s.setSeatNumber(rs.getString("seat_number"));
-        s.setSeatCategory(rs.getString("seat_category_name"));
-        return s;
+    public static BookingSeatInfo mapRowToBookingSeatInfo(ResultSet resultSet) throws SQLException {
+
+        BookingSeatInfo bookingSeatInfo = new BookingSeatInfo();
+        bookingSeatInfo.setBookingSeatId(resultSet.getInt("booking_seat_id"));
+        bookingSeatInfo.setShowSeatId(resultSet.getInt("show_seat_id"));
+        bookingSeatInfo.setPricePaid(resultSet.getDouble("price_paid"));
+        bookingSeatInfo.setRowLabel(resultSet.getString("row_no"));
+        bookingSeatInfo.setSeatNumber(resultSet.getString("seat_number"));
+        bookingSeatInfo.setSeatCategory(resultSet.getString("seat_category_name"));
+        return bookingSeatInfo;
     }
 
-    public static BookingPaymentInfo mapRowToBookingPaymentInfo(ResultSet rs) throws SQLException {
-        BookingPaymentInfo p = new BookingPaymentInfo();
-        p.setTransactionId(rs.getInt("transaction_id"));
-        p.setAmount(rs.getDouble("amount"));
-        p.setPaymentGateway(rs.getString("payment_gateway"));
-        p.setGatewayTransactionId(rs.getString("gateway_transaction_id"));
-        p.setStatus(rs.getString("status"));
-        p.setCreatedAt(rs.getTimestamp("created_at"));
-        p.setUpdatedAt(rs.getTimestamp("updated_at"));
-        return p;
+    public static BookingPaymentInfo mapRowToBookingPaymentInfo(ResultSet resultSet) throws SQLException {
+        BookingPaymentInfo bookingPaymentInfo = new BookingPaymentInfo();
+        bookingPaymentInfo.setTransactionId(resultSet.getInt("transaction_id"));
+        bookingPaymentInfo.setAmount(resultSet.getDouble("amount"));
+        bookingPaymentInfo.setPaymentGateway(resultSet.getString("payment_gateway"));
+        bookingPaymentInfo.setGatewayTransactionId(resultSet.getString("gateway_transaction_id"));
+        bookingPaymentInfo.setStatus(resultSet.getString("status"));
+        bookingPaymentInfo.setCreatedAt(resultSet.getTimestamp("created_at"));
+        bookingPaymentInfo.setUpdatedAt(resultSet.getTimestamp("updated_at"));
+        return bookingPaymentInfo;
     }
 }

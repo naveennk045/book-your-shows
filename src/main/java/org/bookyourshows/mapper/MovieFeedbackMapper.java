@@ -7,18 +7,18 @@ import java.sql.SQLException;
 
 public class MovieFeedbackMapper {
 
-    public static MovieFeedbackResponse mapRowToMovieFeedback(ResultSet rs) throws SQLException {
-        MovieFeedbackResponse response = new MovieFeedbackResponse();
+    public static MovieFeedbackResponse mapRowToMovieFeedback(ResultSet resultSet) throws SQLException {
+        MovieFeedbackResponse movieFeedbackResponse = new MovieFeedbackResponse();
 
-        response.setRatingId(rs.getInt("rating_id"));
-        response.setMovieId(rs.getInt("movie_id"));
-        response.setBookingId(rs.getInt("booking_id"));
-        response.setUserId(rs.getInt("user_id"));
-        response.setRatings(rs.getInt("ratings"));
-        response.setComment(rs.getString("comment"));
-        response.setCreatedAt(rs.getTimestamp("created_at"));
-        response.setUpdatedAt(rs.getTimestamp("updated_at"));
+        movieFeedbackResponse.setRatingId(resultSet.getInt("rating_id"));
+        movieFeedbackResponse.setMovieId(resultSet.getInt("movie_id"));
+        movieFeedbackResponse.setBookingId(resultSet.getInt("booking_id"));
+        movieFeedbackResponse.setUserId(resultSet.getInt("user_id"));
+        movieFeedbackResponse.setRatings(resultSet.getInt("ratings"));
+        movieFeedbackResponse.setComment(resultSet.getString("comment"));
+        movieFeedbackResponse.setCreatedAt(resultSet.getTimestamp("created_at"));
+        movieFeedbackResponse.setUpdatedAt(resultSet.getTimestamp("updated_at"));
 
-        return response;
+        return movieFeedbackResponse;
     }
 }

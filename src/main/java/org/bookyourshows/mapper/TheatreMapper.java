@@ -11,9 +11,9 @@ import java.sql.SQLException;
 public class TheatreMapper {
 
 
-    private static boolean hasColumn(ResultSet rs, String column) {
+    private static boolean hasColumn(ResultSet resultSet, String column) {
         try {
-            rs.findColumn(column);
+            resultSet.findColumn(column);
             return true;
         } catch (SQLException e) {
             return false;

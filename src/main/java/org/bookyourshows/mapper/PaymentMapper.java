@@ -20,7 +20,7 @@ public class PaymentMapper {
         return paymentInitiateResponse;
     }
 
-    public static PaymentDetails mapRowToPayementDetails(ResultSet resultSet) throws SQLException {
+    public static PaymentDetails mapRowToPaymentDetails(ResultSet resultSet) throws SQLException {
 
         PaymentDetails paymentDetails = new PaymentDetails();
 

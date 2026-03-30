@@ -3,7 +3,6 @@ package org.bookyourshows.repository;
 import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.payment.PaymentInitiateRequest;
-import org.bookyourshows.dto.payment.PaymentWebhookPayload;
 import org.bookyourshows.mapper.PaymentMapper;
 
 import java.sql.*;
@@ -26,7 +25,7 @@ public class PaymentRepository {
             preparedStatement.setString(1, gatewayTransactionId);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(PaymentMapper.mapRowToPayementDetails(resultSet));
+                return Optional.of(PaymentMapper.mapRowToPaymentDetails(resultSet));
             }
         }
         return Optional.empty();
@@ -40,7 +39,7 @@ public class PaymentRepository {
             preparedStatement.setInt(1, bookingId);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(PaymentMapper.mapRowToPayementDetails(resultSet));
+                return Optional.of(PaymentMapper.mapRowToPaymentDetails(resultSet));
             }
         }
         return Optional.empty();
@@ -90,7 +89,7 @@ public class PaymentRepository {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                list.add(PaymentMapper.mapRowToPayementDetails(rs));
+                list.add(PaymentMapper.mapRowToPaymentDetails(rs));
             }
         }
 

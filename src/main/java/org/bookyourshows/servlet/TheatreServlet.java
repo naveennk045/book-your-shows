@@ -211,6 +211,9 @@ public class TheatreServlet extends HttpServlet {
         String fullPath = request.getPathInfo();
         String[] parts = fullPath.split("/");
 
+        int ownerId = (int) request.getAttribute("user_id");
+
+
         // 1. PUT /theatres/{id}/address
         if (parts.length == 4 && "address".equals(parts[3])) {
 
@@ -235,7 +238,7 @@ public class TheatreServlet extends HttpServlet {
             }
 
             try {
-                theatreService.updateTheatreAddress(theatreId, req);
+                theatreService.updateTheatreAddress(theatreId, ownerId,req);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
@@ -251,7 +254,7 @@ public class TheatreServlet extends HttpServlet {
                         Map.of("message", "Database error"));
             }
 
-            return; // IMPORTANT
+            return;
         }
 
 
@@ -286,7 +289,7 @@ public class TheatreServlet extends HttpServlet {
         }
 
         try {
-            boolean updated = theatreService.updateTheatre(theatreId, updateReq);
+            boolean updated = theatreService.updateTheatre(theatreId,ownerId, updateReq);
 
             if (!updated) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -327,9 +330,11 @@ public class TheatreServlet extends HttpServlet {
             return;
         }
 
+        int ownerId = (int) request.getAttribute("user_id");
         int theatreId;
         try {
             theatreId = Integer.parseInt(path.substring(1));
+
         } catch (NumberFormatException ex) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
@@ -338,7 +343,7 @@ public class TheatreServlet extends HttpServlet {
         }
 
         try {
-            boolean deleted = theatreService.deleteTheatre(theatreId);
+            boolean deleted = theatreService.deleteTheatre(theatreId,ownerId);
 
             if (!deleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

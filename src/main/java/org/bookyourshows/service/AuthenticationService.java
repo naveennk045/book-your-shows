@@ -26,6 +26,10 @@ public class AuthenticationService {
 
     public UserDetails registerUser(UserCreateRequest request) throws SQLException {
 
+        if(request.getUserRole().equals("ADMIN")){
+            throw new RuntimeException("You can't register an administrator");
+        }
+
         validateEmail(request.getEmail());
         validateMobile(request.getMobileNumber());
         validatePassword(request.getPassword());

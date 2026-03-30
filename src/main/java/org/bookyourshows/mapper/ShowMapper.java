@@ -21,37 +21,37 @@ public class ShowMapper {
 
     }
 
-    private static boolean hasColumn(ResultSet rs, String column) {
+    private static boolean hasColumn(ResultSet resultSet, String column) {
         try {
-            rs.findColumn(column);
+            resultSet.findColumn(column);
             return true;
         } catch (SQLException e) {
             return false;
         }
     }
 
-    public static ShowDetails mapRowShowDetails(ResultSet rs) throws SQLException {
+    public static ShowDetails mapRowShowDetails(ResultSet resultSet) throws SQLException {
 
-        ShowDetails show = new ShowDetails();
+        ShowDetails showDetails = new ShowDetails();
 
-        if (hasColumn(rs, "show_id")) show.setShowId(rs.getInt("show_id"));
-        if (hasColumn(rs, "theatre_id")) show.setTheatreId(rs.getInt("theatre_id"));
-        if (hasColumn(rs, "theatre_name")) show.setTheatreName(rs.getString("theatre_name"));
-        if (hasColumn(rs, "city")) show.setTheatreLocation(rs.getString("city"));
+        if (hasColumn(resultSet, "show_id")) showDetails.setShowId(resultSet.getInt("show_id"));
+        if (hasColumn(resultSet, "theatre_id")) showDetails.setTheatreId(resultSet.getInt("theatre_id"));
+        if (hasColumn(resultSet, "theatre_name")) showDetails.setTheatreName(resultSet.getString("theatre_name"));
+        if (hasColumn(resultSet, "city")) showDetails.setTheatreLocation(resultSet.getString("city"));
 
-        if (hasColumn(rs, "screen_id")) show.setScreenId(rs.getInt("screen_id"));
-        if (hasColumn(rs, "screen_name")) show.setScreenName(rs.getString("screen_name"));
+        if (hasColumn(resultSet, "screen_id")) showDetails.setScreenId(resultSet.getInt("screen_id"));
+        if (hasColumn(resultSet, "screen_name")) showDetails.setScreenName(resultSet.getString("screen_name"));
 
-        if (hasColumn(rs, "movie_id")) show.setMovieId(rs.getInt("movie_id"));
-        if (hasColumn(rs, "movie_name")) show.setMovieName(rs.getString("movie_name"));
+        if (hasColumn(resultSet, "movie_id")) showDetails.setMovieId(resultSet.getInt("movie_id"));
+        if (hasColumn(resultSet, "movie_name")) showDetails.setMovieName(resultSet.getString("movie_name"));
 
-        if (hasColumn(rs, "show_date")) show.setShowDate(rs.getDate("show_date"));
-        if (hasColumn(rs, "start_time")) show.setStartTime(rs.getTime("start_time"));
-        if (hasColumn(rs, "end_time")) show.setEndTime(rs.getTime("end_time"));
+        if (hasColumn(resultSet, "show_date")) showDetails.setShowDate(resultSet.getDate("show_date"));
+        if (hasColumn(resultSet, "start_time")) showDetails.setStartTime(resultSet.getTime("start_time"));
+        if (hasColumn(resultSet, "end_time")) showDetails.setEndTime(resultSet.getTime("end_time"));
 
-        if (hasColumn(rs, "base_price")) show.setBasePrice(rs.getDouble("base_price"));
-        if (hasColumn(rs, "status")) show.setStatus(rs.getString("status"));
+        if (hasColumn(resultSet, "base_price")) showDetails.setBasePrice(resultSet.getDouble("base_price"));
+        if (hasColumn(resultSet, "status")) showDetails.setStatus(resultSet.getString("status"));
 
-        return show;
+        return showDetails;
     }
 }
