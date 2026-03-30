@@ -26685,3 +26685,306 @@ Shows marked completed: 0
 Running cleanup job...
 Released seats count: 0
 Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Incoming request : /api/shows/6/seats
+Matched request URI: ^/shows/[^/]+/seats$
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Incoming request : /api/bookings
+Matched request URI: ^/bookings$
+Incoming request : /api/bookings
+Matched request URI: ^/bookings$
+Incoming request : /api/bookings/17/payments
+Matched request URI: ^/bookings/[^/]+/payments$
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Incoming request : /api/bookings
+Matched request URI: ^/bookings$
+Incoming request : /api/auth/login
+Matched request URI: ^/auth/login$
+efscjvnkef
+User: 4 naveen@gmail.com naveen@12345 ADMIN
+Incoming request : /api/auth/login
+Matched request URI: ^/auth/login$
+efscjvnkef
+User: 12 nkv@gmail.com $2a$12$g/yZl5712Bcxby0s08BR2OFC3fqt/du1dQp2rRut3HYCqOg1VNRMS CUSTOMER
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Incoming request : /api/bookings
+Matched request URI: ^/bookings$
+Incoming request : /api/bookings/18/payments
+Matched request URI: ^/bookings/[^/]+/payments$
+Incoming request : /api/bookings/18/payments
+Matched request URI: ^/bookings/[^/]+/payments$
+Payment _ url :  http://localhost:8080/api/fluxpay/a2147fa6-5d15-4cb2-aa9b-567620d99a8d
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Incoming request : /api/fluxpay/a2147fa6-5d15-4cb2-aa9b-567620d99a8d
+Matched request URI: ^/fluxpay/[^/]+
+flux :- [, fluxpay, a2147fa6-5d15-4cb2-aa9b-567620d99a8d]
+Incoming request : /api/fluxpay/a2147fa6-5d15-4cb2-aa9b-567620d99a8d
+Matched request URI: ^/fluxpay/[^/]+
+flux :- [, fluxpay, a2147fa6-5d15-4cb2-aa9b-567620d99a8d]
+Incoming request : /api/bookings/19/status
+Matched request URI: ^/bookings/[^/]+/status$
+Incoming request : /api/bookings/19/status
+Matched request URI: ^/bookings/[^/]+/status$
+Incoming request : /api/bookings/18/status
+Matched request URI: ^/bookings/[^/]+/status$
+Incoming request : /api/bookings/18
+Matched request URI: ^/bookings/[^/]+$
+Incoming request : /api/bookings/18
+Matched request URI: ^/bookings/[^/]+$
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Incoming request : /api/shows/6/seats
+Matched request URI: ^/shows/[^/]+/seats$
+Incoming request : /api/shows/6/seats
+Matched request URI: ^/shows/[^/]+/seats$
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0
+Running cleanup job...
+Released seats count: 0
+Shows marked completed: 0

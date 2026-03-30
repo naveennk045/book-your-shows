@@ -212,6 +212,7 @@ public class TheatreServlet extends HttpServlet {
         String[] parts = fullPath.split("/");
 
         int ownerId = (int) request.getAttribute("user_id");
+        String userRole = (String) request.getAttribute("user_role");
 
 
         // 1. PUT /theatres/{id}/address
@@ -238,7 +239,7 @@ public class TheatreServlet extends HttpServlet {
             }
 
             try {
-                theatreService.updateTheatreAddress(theatreId, ownerId,req);
+                theatreService.updateTheatreAddress(theatreId, ownerId, userRole, req);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
@@ -289,7 +290,7 @@ public class TheatreServlet extends HttpServlet {
         }
 
         try {
-            boolean updated = theatreService.updateTheatre(theatreId,ownerId, updateReq);
+            boolean updated = theatreService.updateTheatre(theatreId, ownerId, userRole, updateReq);
 
             if (!updated) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -330,7 +331,8 @@ public class TheatreServlet extends HttpServlet {
             return;
         }
 
-        int ownerId = (int) request.getAttribute("user_id");
+        int userId = (int) request.getAttribute("user_id");
+        String userRole = (String) request.getAttribute("user_role");
         int theatreId;
         try {
             theatreId = Integer.parseInt(path.substring(1));
@@ -343,7 +345,7 @@ public class TheatreServlet extends HttpServlet {
         }
 
         try {
-            boolean deleted = theatreService.deleteTheatre(theatreId,ownerId);
+            boolean deleted = theatreService.deleteTheatre(theatreId, userId, userRole);
 
             if (!deleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

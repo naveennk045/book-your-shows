@@ -5,6 +5,7 @@ import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
+import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
 import org.bookyourshows.repository.TheatreRepository;
@@ -47,12 +48,12 @@ public class TheatreService {
         return theatreRepository.getTheatreAddress(theatreId);
     }
 
-    public boolean updateTheatreAddress(int theatreId, int ownerId, AddressDTO req) throws SQLException {
+    public boolean updateTheatreAddress(int theatreId, int ownerId, String role, AddressDTO req) throws SQLException {
 
 
         TheatreDetails theatreDetails = theatreRepository.getTheatreById(theatreId).get();
 
-        if (theatreDetails.getTheatre().getOwnerId() != ownerId) {
+        if (!role.equals("ADMIN") && theatreDetails.getTheatre().getOwnerId() != ownerId) {
             throw new RuntimeException("The theatre does not belong to the user");
         }
 
@@ -118,12 +119,12 @@ public class TheatreService {
     }
 
 
-    public boolean updateTheatre(int theatreId, int ownerId,
+    public boolean updateTheatre(int theatreId, int ownerId, String role,
                                  TheatreUpdateRequest request) throws SQLException {
 
         TheatreDetails theatreDetails = theatreRepository.getTheatreById(theatreId).get();
 
-        if (theatreDetails.getTheatre().getOwnerId() != ownerId) {
+        if (!role.equals("ADMIN") && theatreDetails.getTheatre().getOwnerId() != ownerId) {
             throw new RuntimeException("The theatre does not belong to the user");
         }
 
@@ -159,11 +160,11 @@ public class TheatreService {
         return true;
     }
 
-    public boolean deleteTheatre(int theatreId, int ownerId) throws SQLException {
+    public boolean deleteTheatre(int theatreId, int ownerId, String role) throws SQLException {
 
         TheatreDetails theatreDetails = theatreRepository.getTheatreById(theatreId).get();
 
-        if (theatreDetails.getTheatre().getOwnerId() != ownerId) {
+        if (!role.equals("ADMIN") && theatreDetails.getTheatre().getOwnerId() != ownerId) {
             throw new RuntimeException("The theatre does not belong to the user");
         }
 

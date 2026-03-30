@@ -69,10 +69,10 @@ public class AnalyticsRepository {
                 preparedStatement.setObject(i + 1, params.get(i));
             }
 
-            try (ResultSet rs = preparedStatement.executeQuery()) {
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 List<MoviePerformanceResponse> results = new ArrayList<>();
-                while (rs.next()) {
-                    results.add(AnalyticsMapper.mapRowToMoviePerformanceResponse(rs));
+                while (resultSet.next()) {
+                    results.add(AnalyticsMapper.mapRowToMoviePerformanceResponse(resultSet));
                 }
                 return results;
             }
@@ -103,21 +103,21 @@ public class AnalyticsRepository {
 
         List<PeakShowTimeResponse> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, theatreId);
-            ps.setInt(2, year);
-            ps.setInt(3, month);
+            preparedStatement.setInt(1, theatreId);
+            preparedStatement.setInt(2, year);
+            preparedStatement.setInt(3, month);
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                PeakShowTimeResponse r = new PeakShowTimeResponse();
-                r.setShowCategory(rs.getString("show_category"));
-                r.setSeatsBooked(rs.getInt("seats_booked"));
-                r.setSeatsNotBooked(rs.getInt("seats_not_booked"));
-                list.add(r);
+            while (resultSet.next()) {
+                PeakShowTimeResponse peakShowTimeResponse = new PeakShowTimeResponse();
+                peakShowTimeResponse.setShowCategory(resultSet.getString("show_category"));
+                peakShowTimeResponse.setSeatsBooked(resultSet.getInt("seats_booked"));
+                peakShowTimeResponse.setSeatsNotBooked(resultSet.getInt("seats_not_booked"));
+                list.add(peakShowTimeResponse);
             }
         }
 
@@ -145,18 +145,18 @@ public class AnalyticsRepository {
     private static List<UserBookingAnalytics> getUserBookingAnalytics(String query) throws SQLException {
         List<UserBookingAnalytics> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                UserBookingAnalytics u = new UserBookingAnalytics();
-                u.setUserId(rs.getInt("user_id"));
-                u.setFirstName(rs.getString("first_name"));
-                u.setNoOfBookings(rs.getInt("no_of_bookings"));
-                u.setNoOfSeats(rs.getInt("no_of_seats"));
-                list.add(u);
+            while (resultSet.next()) {
+                UserBookingAnalytics userBookingAnalytics = new UserBookingAnalytics();
+                userBookingAnalytics.setUserId(resultSet.getInt("user_id"));
+                userBookingAnalytics.setFirstName(resultSet.getString("first_name"));
+                userBookingAnalytics.setNoOfBookings(resultSet.getInt("no_of_bookings"));
+                userBookingAnalytics.setNoOfSeats(resultSet.getInt("no_of_seats"));
+                list.add(userBookingAnalytics);
             }
         }
         return list;
@@ -179,18 +179,18 @@ public class AnalyticsRepository {
 
         List<TheatreBookingAnalytics> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                TheatreBookingAnalytics t = new TheatreBookingAnalytics();
-                t.setTheatreId(rs.getInt("theatre_id"));
-                t.setTheatreName(rs.getString("theatre_name"));
-                t.setNoOfBookings(rs.getInt("no_of_bookings"));
-                t.setNoOfSeatsBooked(rs.getInt("no_of_seats_booked"));
-                list.add(t);
+            while (resultSet.next()) {
+                TheatreBookingAnalytics theatreBookingAnalytics = new TheatreBookingAnalytics();
+                theatreBookingAnalytics.setTheatreId(resultSet.getInt("theatre_id"));
+                theatreBookingAnalytics.setTheatreName(resultSet.getString("theatre_name"));
+                theatreBookingAnalytics.setNoOfBookings(resultSet.getInt("no_of_bookings"));
+                theatreBookingAnalytics.setNoOfSeatsBooked(resultSet.getInt("no_of_seats_booked"));
+                list.add(theatreBookingAnalytics);
             }
         }
 
@@ -210,17 +210,17 @@ public class AnalyticsRepository {
 
         List<TopSpentUser> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                TopSpentUser u = new TopSpentUser();
-                u.setUserId(rs.getInt("user_id"));
-                u.setFirstName(rs.getString("first_name"));
-                u.setAmountSpent(rs.getDouble("amount_spent"));
-                list.add(u);
+            while (resultSet.next()) {
+                TopSpentUser topSpentUser = new TopSpentUser();
+                topSpentUser.setUserId(resultSet.getInt("user_id"));
+                topSpentUser.setFirstName(resultSet.getString("first_name"));
+                topSpentUser.setAmountSpent(resultSet.getDouble("amount_spent"));
+                list.add(topSpentUser);
             }
         }
 

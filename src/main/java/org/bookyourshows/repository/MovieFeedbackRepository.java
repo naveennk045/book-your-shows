@@ -46,13 +46,13 @@ public class MovieFeedbackRepository {
         }
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query.toString())) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
+                preparedStatement.setObject(i + 1, params.get(i));
             }
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = preparedStatement.executeQuery();
             List<MovieFeedbackResponse> list = new ArrayList<>();
 
             while (rs.next()) {
@@ -79,12 +79,12 @@ public class MovieFeedbackRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, movieId);
-            ps.setInt(2, ratingId);
+            preparedStatement.setInt(1, movieId);
+            preparedStatement.setInt(2, ratingId);
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
                 return Optional.of(MovieFeedbackMapper.mapRowToMovieFeedback(rs));
             }
@@ -101,20 +101,20 @@ public class MovieFeedbackRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setInt(1, movieId);
-            ps.setInt(2, request.getBookingId());
-            ps.setInt(3, request.getUserId());
-            ps.setInt(4, request.getRatings());
-            ps.setString(5, request.getComment());
+            preparedStatement.setInt(1, movieId);
+            preparedStatement.setInt(2, request.getBookingId());
+            preparedStatement.setInt(3, request.getUserId());
+            preparedStatement.setInt(4, request.getRatings());
+            preparedStatement.setString(5, request.getComment());
 
-            int affected = ps.executeUpdate();
+            int affected = preparedStatement.executeUpdate();
             if (affected == 0) {
                 throw new RuntimeException("Failed to create movie feedback");
             }
 
-            try (ResultSet keys = ps.getGeneratedKeys()) {
+            try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                 if (keys.next()) {
                     return keys.getInt(1);
                 }
@@ -135,14 +135,14 @@ public class MovieFeedbackRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, request.getRatings());
-            ps.setString(2, request.getComment());
-            ps.setInt(3, movieId);
-            ps.setInt(4, ratingId);
+            preparedStatement.setInt(1, request.getRatings());
+            preparedStatement.setString(2, request.getComment());
+            preparedStatement.setInt(3, movieId);
+            preparedStatement.setInt(4, ratingId);
 
-            return ps.executeUpdate() > 0;
+            return preparedStatement.executeUpdate() > 0;
         }
     }
 
@@ -153,12 +153,12 @@ public class MovieFeedbackRepository {
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, movieId);
-            ps.setInt(2, ratingId);
+            preparedStatement.setInt(1, movieId);
+            preparedStatement.setInt(2, ratingId);
 
-            return ps.executeUpdate() > 0;
+            return preparedStatement.executeUpdate() > 0;
         }
     }
 }

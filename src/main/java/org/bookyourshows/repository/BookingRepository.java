@@ -44,12 +44,12 @@ public class BookingRepository {
 
         List<BookingSummary> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
 
-            while (rs.next()) {
-                list.add(BookingMapper.mapRowToBookingSummary(rs));
+            while (resultSet.next()) {
+                list.add(BookingMapper.mapRowToBookingSummary(resultSet));
             }
         }
 
@@ -65,13 +65,13 @@ public class BookingRepository {
 
         List<BookingSummary> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();) {
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, showId);
-            ResultSet rs = ps.executeQuery();
+        try (Connection connection = DatabaseManager.getConnection();) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, showId);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (rs.next()) {
-                list.add(BookingMapper.mapRowToBookingSummary(rs));
+            while (resultSet.next()) {
+                list.add(BookingMapper.mapRowToBookingSummary(resultSet));
             }
 
         }
@@ -91,10 +91,10 @@ public class BookingRepository {
                 """;
 
         try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = con.prepareStatement(sql)) {
 
-            ps.setInt(1, bookingId);
-            ResultSet rs = ps.executeQuery();
+            preparedStatement.setInt(1, bookingId);
+            ResultSet rs = preparedStatement.executeQuery();
 
             if (rs.next()) {
                 return Optional.of(new BookingMovieInfo(
@@ -120,12 +120,12 @@ public class BookingRepository {
 
         List<BookingSummary> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, theatreId);
+            preparedStatement.setInt(1, theatreId);
 
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs = preparedStatement.executeQuery()) {
                 while (rs.next()) {
                     list.add(BookingMapper.mapRowToBookingSummary(rs));
                 }
@@ -145,14 +145,14 @@ public class BookingRepository {
 
         List<BookingSummary> list = new ArrayList<>();
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, userId);
+            preparedStatement.setInt(1, userId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(BookingMapper.mapRowToBookingSummary(rs));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    list.add(BookingMapper.mapRowToBookingSummary(resultSet));
                 }
             }
         }
@@ -171,17 +171,17 @@ public class BookingRepository {
                 WHERE b.booking_id = ?
                 """;
 
-        try (Connection con = DatabaseManager.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            ps.setInt(1, bookingId);
-            ResultSet rs = ps.executeQuery();
+            preparedStatement.setInt(1, bookingId);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-            if (rs.next()) {
+            if (resultSet.next()) {
                 return Optional.of(new BookingInfo(
-                        rs.getInt("booking_id"),
-                        rs.getInt("user_id"),
-                        rs.getInt("theatre_id")
+                        resultSet.getInt("booking_id"),
+                        resultSet.getInt("user_id"),
+                        resultSet.getInt("theatre_id")
                 ));
             }
         }
@@ -226,15 +226,15 @@ public class BookingRepository {
                     WHERE b.booking_id = ?
                 """;
 
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, bookingId);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, bookingId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) return null;
 
                 BookingDetails details = new BookingDetails();
-                details.setBooking(BookingMapper.mapRowToBookingSummary(rs));
-                details.setShow(BookingMapper.mapRowToBookingShowInfo(rs));
+                details.setBooking(BookingMapper.mapRowToBookingSummary(resultSet));
+                details.setShow(BookingMapper.mapRowToBookingShowInfo(resultSet));
 
                 return details;
             }
@@ -261,12 +261,12 @@ public class BookingRepository {
 
         List<BookingSeatInfo> seats = new ArrayList<>();
 
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, bookingId);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, bookingId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    seats.add(BookingMapper.mapRowToBookingSeatInfo(rs));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    seats.add(BookingMapper.mapRowToBookingSeatInfo(resultSet));
                 }
             }
         }
@@ -294,12 +294,12 @@ public class BookingRepository {
 
         List<BookingPaymentInfo> payments = new ArrayList<>();
 
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, bookingId);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, bookingId);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    payments.add(BookingMapper.mapRowToBookingPaymentInfo(rs));
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    payments.add(BookingMapper.mapRowToBookingPaymentInfo(resultSet));
                 }
             }
         }
@@ -341,17 +341,17 @@ public class BookingRepository {
             int bookingId;
 
             //  Create booking
-            try (PreparedStatement ps = connection.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setInt(1, userId);
-                ps.setInt(2, request.getShowId());
-                ps.setDouble(3, totalAmount);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertBookingSql, Statement.RETURN_GENERATED_KEYS)) {
+                preparedStatement.setInt(1, userId);
+                preparedStatement.setInt(2, request.getShowId());
+                preparedStatement.setDouble(3, totalAmount);
 
-                if (ps.executeUpdate() == 0) {
+                if (preparedStatement.executeUpdate() == 0) {
                     connection.rollback();
                     throw new RuntimeException("Failed to create booking");
                 }
 
-                try (ResultSet keys = ps.getGeneratedKeys()) {
+                try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                     if (!keys.next()) {
                         connection.rollback();
                         throw new RuntimeException("Failed to get booking id");

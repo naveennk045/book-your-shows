@@ -54,7 +54,20 @@ public class AuthenticationServlet extends HttpServlet {
             // LOGIN
             else if (path.equals("/login")) {
 
-                System.out.println("efscjvnkef");
+
+                Map<String, String> body = objectMapper.readValue(request.getReader(), Map.class);
+
+                String token = authenticationService.login(
+                        body.get("email"),
+                        body.get("password")
+                );
+
+                objectMapper.writeValue(response.getWriter(), Map.of("token", token));
+            }
+
+            // LOGIN
+            else if (path.equals("/logout")) {
+
 
                 Map<String, String> body = objectMapper.readValue(request.getReader(), Map.class);
 
