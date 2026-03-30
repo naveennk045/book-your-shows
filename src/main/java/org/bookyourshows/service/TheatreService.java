@@ -5,6 +5,8 @@ import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
+import org.bookyourshows.repository.ScreenRepository;
+import org.bookyourshows.repository.ScreenTypeRepository;
 import org.bookyourshows.repository.TheatreRepository;
 
 import java.sql.SQLException;
@@ -16,14 +18,18 @@ import static org.bookyourshows.utils.TheatreUtils.*;
 public class TheatreService {
 
     private final TheatreRepository theatreRepository;
+    private final ScreenRepository screenRepository;
 
     public TheatreService() {
+
         this.theatreRepository = new TheatreRepository();
+        this.screenRepository = new ScreenRepository();
     }
 
     public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
         return theatreRepository.getTheatreById(theatreId);
     }
+
     public Optional<TheatreDetails> getTheatreByOwnerId(Integer ownerId) throws SQLException {
         return theatreRepository.getTheatreByOwnerId(ownerId);
     }
@@ -146,10 +152,10 @@ public class TheatreService {
     }
 
     public boolean deleteTheatre(int theatreId) throws SQLException {
-        /*
-         * TODO :
-         *   Is there any existing show under this theatre.
-         * */
+
+        if (!screenRepository.getScreensByTheatreId(theatreId).isEmpty()) {
+            throw new RuntimeException("First delete the screens or shows, those are active under this theatre.");
+        }
         return theatreRepository.deleteTheatre(theatreId);
     }
 }

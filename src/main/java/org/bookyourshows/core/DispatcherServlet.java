@@ -38,7 +38,6 @@ public class DispatcherServlet extends HttpServlet {
 
         try {
             System.out.println("Incoming request : " + request.getRequestURI());
-            System.out.println("Incoming path : " + request.getPathInfo());
 
             ServletDetails servletDetails = servletMapping.getServlet(request.getPathInfo());
 

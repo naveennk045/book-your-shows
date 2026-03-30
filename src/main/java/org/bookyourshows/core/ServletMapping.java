@@ -155,7 +155,7 @@ public class ServletMapping {
                 )
         ));
 
-// /theatres/{id}/screens/{screenId}/seats/{seatId}
+        // /theatres/{id}/screens/{screenId}/seats/{seatId}
         SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/[^/]+$", new ServletDetails(
                 new SeatServlet(),
                 AccessLevel.CUSTOMER,
@@ -166,7 +166,7 @@ public class ServletMapping {
                 )
         ));
 
-// /seats and /seats/{id}
+        // /seats and /seats/{id}
         SERVLET_REGISTRY.put("^/seats$", new ServletDetails(
                 new SeatServlet(),
                 AccessLevel.CUSTOMER,
@@ -243,18 +243,12 @@ public class ServletMapping {
 
         SERVLET_REGISTRY.put("^/users/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
         SERVLET_REGISTRY.put("^/users/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.THEATRE_OWNER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.THEATRE_OWNER));
 
         SERVLET_REGISTRY.put("^/fluxpay/[^/]+", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
         SERVLET_REGISTRY.put("^/fluxpay/[^/]+/", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
 
-        SERVLET_REGISTRY.put("^/refunds/[^/]+", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/refunds/[^/]+/", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/refunds/$", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/refunds$", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/payments/$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
-        SERVLET_REGISTRY.put("^/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
 
         SERVLET_REGISTRY.put("^/users/[^/]+/address$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
         SERVLET_REGISTRY.put("^/users/[^/]+/address/$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
@@ -280,6 +274,20 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/auth/refresh$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
 
         // Admin routes
+
+        SERVLET_REGISTRY.put("^/refunds/[^/]+$", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/refunds/[^/]+$/", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/payments/[^/]+$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/payments/[^/]+/$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/refunds/$", new ServletDetails(new RefundServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/refunds$", new ServletDetails(new RefundServlet(), AccessLevel.ADMIN));
+
+        SERVLET_REGISTRY.put("^/payments/$", new ServletDetails(new PaymentServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.ADMIN));
+
+
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.ADMIN));
         SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new ServletDetails(new AdminServlet(), AccessLevel.ADMIN));
 

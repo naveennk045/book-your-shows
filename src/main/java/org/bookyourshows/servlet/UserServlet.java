@@ -44,10 +44,10 @@ public class UserServlet extends HttpServlet {
 
         try {
             // /users/{user_id}
-            if (parts.length == 3) {
+            if (parts.length == 2) {
                 int userId;
                 try {
-                    userId = Integer.parseInt(parts[2]);
+                    userId = (int) request.getAttribute("user_id");
                 } catch (NumberFormatException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     writeMessage(response, "Invalid user id");
@@ -80,6 +80,10 @@ public class UserServlet extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), address.get());
                 return;
+            }
+
+            if (!request.getAttribute("user_role").equals("ADMIN")) {
+                throw new RuntimeException("Access denied");
             }
 
             // /users?email=&mobile=&role=&

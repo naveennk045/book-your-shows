@@ -56,6 +56,29 @@ public class BookingRepository {
         return list;
     }
 
+    public List<BookingSummary> getAllBookingsByShowId(Integer showId) throws SQLException {
+        String query = """
+                    SELECT * FROM bookings
+                    WHERE show_id = ?
+                    ORDER BY booked_at DESC
+                """;
+
+        List<BookingSummary> list = new ArrayList<>();
+
+        try (Connection con = DatabaseManager.getConnection();) {
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setInt(1, showId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(BookingMapper.mapRowToBookingSummary(rs));
+            }
+
+        }
+
+        return list;
+    }
+
     public Optional<BookingMovieInfo> findBookingWithMovieAndUser(int bookingId) throws SQLException {
         String sql = """
                 SELECT 

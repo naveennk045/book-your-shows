@@ -2,10 +2,7 @@ package org.bookyourshows.service;
 
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.show.*;
-import org.bookyourshows.repository.MovieRepository;
-import org.bookyourshows.repository.ScreenRepository;
-import org.bookyourshows.repository.ShowRepository;
-import org.bookyourshows.repository.TheatreRepository;
+import org.bookyourshows.repository.*;
 
 import java.sql.*;
 import java.sql.Date;
@@ -18,13 +15,13 @@ public class ShowService {
     private final ShowRepository showRepository;
     private final ScreenRepository screenRepository;
     private final MovieRepository movieRepository;
-    private final TheatreRepository theatreRepository;
+    private final BookingRepository bookingRepository;
 
     public ShowService() {
         this.showRepository = new ShowRepository();
         this.screenRepository = new ScreenRepository();
         this.movieRepository = new MovieRepository();
-        this.theatreRepository = new TheatreRepository();
+        this.bookingRepository = new BookingRepository();
     }
 
     public Optional<ShowDetails> getShowById(int showId) throws SQLException {
@@ -151,7 +148,13 @@ public class ShowService {
         ShowDetails show = showRepository.getShowById(showId)
                 .orElseThrow(() -> new IllegalArgumentException("Show not found"));
 
+
         validateModificationAllowed(show);
+        if(Objects.equals(show.getStatus(), "SCHEDULED") || Objects.equals(show.getStatus(), "RESCHEDULED")) {
+            if(!bookingRepository.getAllBookingsByShowId(showId).isEmpty()) {
+                throw new IllegalArgumentException("Show have bookings.");
+            };
+        }
 
         return showRepository.deleteShow(showId);
     }

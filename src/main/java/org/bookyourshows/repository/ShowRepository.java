@@ -24,6 +24,7 @@ public class ShowRepository {
                     show_date,
                     start_time,
                     end_time,
+                    status,
                     base_price
                 FROM shows
                 WHERE show_id = ?
@@ -111,6 +112,45 @@ public class ShowRepository {
             query.append(" AND movie_id = ?");
             params.add(movieId);
         }
+
+        query.append(" ORDER BY start_time");
+
+        List<ShowDetails> shows = new java.util.ArrayList<>();
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = conn.prepareStatement(query.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                preparedStatement.setObject(i + 1, params.get(i));
+            }
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                shows.add(ShowMapper.mapRowShowDetails(resultSet));
+            }
+        }
+
+        return shows;
+    }
+
+    public List<ShowDetails> getShowsByScreenId(int screenId) throws SQLException {
+
+        StringBuilder query = new StringBuilder("""
+                SELECT
+                    show_id,
+                    screen_id,
+                    movie_id,
+                    show_date,
+                    start_time,
+                    end_time,
+                    base_price
+                FROM shows
+                WHERE screen_id = ?
+                AND ( status = "SCHEDULED" OR status = "RESCHEDULED" )
+                
+                """);
+
+        List<Object> params = new java.util.ArrayList<>();
+        params.add(screenId);
 
         query.append(" ORDER BY start_time");
 

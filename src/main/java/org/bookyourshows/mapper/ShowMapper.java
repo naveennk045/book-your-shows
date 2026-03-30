@@ -50,6 +50,7 @@ public class ShowMapper {
         if (hasColumn(rs, "end_time")) show.setEndTime(rs.getTime("end_time"));
 
         if (hasColumn(rs, "base_price")) show.setBasePrice(rs.getDouble("base_price"));
+        if (hasColumn(rs, "status")) show.setStatus(rs.getString("status"));
 
         return show;
     }

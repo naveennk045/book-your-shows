@@ -3,8 +3,10 @@ package org.bookyourshows.service;
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
+import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
+import org.bookyourshows.repository.ShowRepository;
 import org.bookyourshows.repository.TheatreRepository;
 import org.bookyourshows.utils.ScreenUtils;
 
@@ -17,11 +19,13 @@ public class ScreenService {
     private final ScreenRepository screenRepository;
     private final TheatreRepository theatreRepository;
     private final ScreenTypeRepository screenTypeRepository;
+    private final ShowRepository showRepository;
 
     public ScreenService() {
         this.screenRepository = new ScreenRepository();
         this.theatreRepository = new TheatreRepository();
         this.screenTypeRepository = new ScreenTypeRepository();
+        this.showRepository = new ShowRepository();
     }
 
     public List<ScreenDetails> getScreensByTheatreId(Integer theatreId) throws SQLException {
@@ -67,11 +71,11 @@ public class ScreenService {
     }
 
     public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest, int screenId, int theatreId) throws SQLException {
-        if (!screenRepository.getScreenById(screenId,theatreId).get().getTheatreId().equals(theatreId)) {
+        if (!screenRepository.getScreenById(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
             throw new IllegalArgumentException("Screen not found");
         }
 
-        if (screenRepository.getScreenById(screenId,theatreId).isEmpty()) {
+        if (screenRepository.getScreenById(screenId, theatreId).isEmpty()) {
             throw new IllegalArgumentException("Screen is not found");
         }
         ScreenUtils.validateScreenName(screenUpdateRequest.getScreenName());
@@ -102,7 +106,10 @@ public class ScreenService {
 
     public boolean deleteScreen(Integer screenId, Integer theatreId) throws SQLException {
 
-
+        List<ShowDetails> showDetails = this.showRepository.getShowsByScreenId(screenId);
+        if (!showDetails.isEmpty()) {
+            throw new IllegalArgumentException("There are active shows found in this screen");
+        }
 
         return screenRepository.deleteScreen(screenId);
     }
