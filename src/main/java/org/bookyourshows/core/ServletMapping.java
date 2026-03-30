@@ -12,105 +12,291 @@ public class ServletMapping {
 
     static {
 
-        SERVLET_REGISTRY.put("^/theatres$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
+        // /theatres
+        SERVLET_REGISTRY.put("^/theatres$", new ServletDetails(
+                new TheatreServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens$", new ServletDetails(new ScreenServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/$", new ServletDetails(new ScreenServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+$", new ServletDetails(new ScreenServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/$", new ServletDetails(
+                new TheatreServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows/$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
+// /theatres/{id}
+        SERVLET_REGISTRY.put("^/theatres/[^/]+$", new ServletDetails(
+                new TheatreServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "PUT", AccessLevel.THEATRE_OWNER,    // update theatre
+                        "DELETE", AccessLevel.THEATRE_OWNER  // delete theatre
+                )
+        ));
 
-        SERVLET_REGISTRY.put("^/shows$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/shows/$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/shows/[^/]+$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
 
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/[^/]+$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC));
+        // /theatres/{id}/screens
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens$", new ServletDetails(
+                new ScreenServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )));
 
-        SERVLET_REGISTRY.put("^/seats/$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/seats/[^/]+$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/seats$", new ServletDetails(new SeatServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/$", new ServletDetails(
+                new ScreenServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
 
-        SERVLET_REGISTRY.put("^/movies$", new ServletDetails(new MovieServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/movies/$", new ServletDetails(new MovieServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/movies/[^/]+$", new ServletDetails(new MovieServlet(), AccessLevel.PUBLIC));
+// /theatres/{id}/screens/{screenId}
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+$", new ServletDetails(
+                new ScreenServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "PUT", AccessLevel.THEATRE_OWNER,
+                        "DELETE", AccessLevel.THEATRE_OWNER
+                )
+        ));
 
-        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new ServletDetails(new ShowServlet(), AccessLevel.PUBLIC));
+        // /theatres/{id}/screens/{screenId}/shows
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER     // create show
+                )
+        ));
 
-        SERVLET_REGISTRY.put("^/users/$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/users$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/users/[^/]+$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/shows/$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+// /shows
+        SERVLET_REGISTRY.put("^/shows$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER
+                )
+        ));
+
+        SERVLET_REGISTRY.put("^/shows/$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER
+                )
+        ));
+
+// /shows/{id}
+        SERVLET_REGISTRY.put("^/shows/[^/]+$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "PUT", AccessLevel.THEATRE_OWNER,
+                        "DELETE", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+// /shows/{id}/seats
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER
+                )
+        ));
+
+        SERVLET_REGISTRY.put("^/shows/[^/]+/seats/$", new ServletDetails(
+                new ShowServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER
+                )
+        ));
+
+        // /theatres/{id}/screens/{screenId}/seats
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats$", new ServletDetails(
+                new SeatServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/$", new ServletDetails(
+                new SeatServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+// /theatres/{id}/screens/{screenId}/seats/{seatId}
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/screens/[^/]+/seats/[^/]+$", new ServletDetails(
+                new SeatServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "PUT", AccessLevel.THEATRE_OWNER,      // update seat
+                        "DELETE", AccessLevel.THEATRE_OWNER    // delete seat
+                )
+        ));
+
+// /seats and /seats/{id}
+        SERVLET_REGISTRY.put("^/seats$", new ServletDetails(
+                new SeatServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+        SERVLET_REGISTRY.put("^/seats/$", new ServletDetails(
+                new SeatServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "POST", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+        SERVLET_REGISTRY.put("^/seats/[^/]+$", new ServletDetails(
+                new SeatServlet(),
+                AccessLevel.CUSTOMER,
+                Map.of(
+                        "GET", AccessLevel.CUSTOMER,
+                        "PUT", AccessLevel.THEATRE_OWNER,
+                        "DELETE", AccessLevel.THEATRE_OWNER
+                )
+        ));
+
+
+        SERVLET_REGISTRY.put("^/movies$", new ServletDetails(
+                new MovieServlet(),
+                AccessLevel.PUBLIC,
+                Map.of(
+                        "GET", AccessLevel.PUBLIC,
+                        "POST", AccessLevel.ADMIN
+                )
+        ));
+
+        SERVLET_REGISTRY.put("^/movies/$", new ServletDetails(
+                new MovieServlet(),
+                AccessLevel.PUBLIC,
+                Map.of(
+                        "GET", AccessLevel.PUBLIC,
+                        "POST", AccessLevel.ADMIN
+                )
+        ));
+
+        // /movies/{id}
+        SERVLET_REGISTRY.put("^/movies/[^/]+$", new ServletDetails(
+                new MovieServlet(),
+                AccessLevel.PUBLIC,
+                Map.of(
+                        "GET", AccessLevel.PUBLIC,
+                        "PUT", AccessLevel.ADMIN,
+                        "DELETE", AccessLevel.ADMIN
+                )
+        ));
+
+
+        SERVLET_REGISTRY.put("^/users/$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/users$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/users/[^/]+$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
+
+
+        SERVLET_REGISTRY.put("^/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/payments$/", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/status$/", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/status$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$/", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/users/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/users/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/fluxpay/[^/]+", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/fluxpay/[^/]+/", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/refunds/[^/]+", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/refunds/[^/]+/", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/refunds/$", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/refunds$", new ServletDetails(new RefundServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/payments/$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/users/[^/]+/address$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/users/[^/]+/address/$", new ServletDetails(new UserServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/address$", new ServletDetails(new TheatreServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/address/$", new ServletDetails(new TheatreServlet(), AccessLevel.CUSTOMER));
+
+
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/[^/]+$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.CUSTOMER));
+
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.CUSTOMER));
+        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.CUSTOMER));
+
 
         SERVLET_REGISTRY.put("^/auth/register$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/auth/register/$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+/payments$/", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+/status$/", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+/status$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$/", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/bookings/[^/]+/cancel$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/users/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/users/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/bookings/$", new ServletDetails(new BookingServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/fluxpay/[^/]+", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/fluxpay/[^/]+/", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/refunds/[^/]+", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/refunds/[^/]+/", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/refunds/$", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/refunds$", new ServletDetails(new RefundServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/payments/$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/payments$", new ServletDetails(new PaymentServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/users/[^/]+/address$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/users/[^/]+/address/$", new ServletDetails(new UserServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/address$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/address/$", new ServletDetails(new TheatreServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/analytics/peak-show-times$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/analytics/peak-show-times/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/analytics/users-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/analytics/users-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/analytics/theatres-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/analytics/theatres-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/analytics/top-spent$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/analytics/top-spent/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/[^/]+$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/theatres/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new TheatreFeedbackServlet(), AccessLevel.PUBLIC));
-
-        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/movies/[^/]+/feedbacks/[^/]+/$", new ServletDetails(new MovieFeedbackServlet(), AccessLevel.PUBLIC));
-
         SERVLET_REGISTRY.put("^/auth/login$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
         SERVLET_REGISTRY.put("^/auth/refresh$", new ServletDetails(new AuthenticationServlet(), AccessLevel.PUBLIC));
 
         // Admin routes
-        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));
-        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new ServletDetails(new AdminServlet(), AccessLevel.PUBLIC));
+        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/approve$", new ServletDetails(new AdminServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/admin/theatres/[^/]+/reject$", new ServletDetails(new AdminServlet(), AccessLevel.ADMIN));
+
+        SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+
+        SERVLET_REGISTRY.put("^/analytics/peak-show-times$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/peak-show-times/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+
+        SERVLET_REGISTRY.put("^/analytics/users-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/users-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+
+        SERVLET_REGISTRY.put("^/analytics/theatres-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/theatres-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+
+        SERVLET_REGISTRY.put("^/analytics/top-spent$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/top-spent/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
 
     }
 

@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class ServletExecution {
 
-    public  ServletExecution() {
+    public ServletExecution() {
     }
 
     public void forwardRequest(HttpServlet servlet, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

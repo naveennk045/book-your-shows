@@ -36,12 +36,9 @@ public class DispatcherServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-
         try {
-
             System.out.println("Incoming request : " + request.getRequestURI());
             System.out.println("Incoming path : " + request.getPathInfo());
-
 
             ServletDetails servletDetails = servletMapping.getServlet(request.getPathInfo());
 
@@ -50,11 +47,15 @@ public class DispatcherServlet extends HttpServlet {
                 return;
             }
 
-            if (servletDetails.getAccessLevel() == AccessLevel.PUBLIC) {
+            //  derive access level from method
+            AccessLevel accessLevel = servletDetails.getAccessLevel(request.getMethod());
+
+            if (accessLevel == AccessLevel.PUBLIC) {
                 servletExecution.forwardRequest(servletDetails.getServlet(), request, response);
                 return;
             }
 
+            // From here on, token is mandatory
             String header = request.getHeader("Authorization");
 
             if (header == null || !header.startsWith("Bearer ")) {
@@ -63,7 +64,6 @@ public class DispatcherServlet extends HttpServlet {
             }
 
             String token = header.substring(7);
-
             Claims claims;
 
             try {
@@ -76,8 +76,7 @@ public class DispatcherServlet extends HttpServlet {
             Integer userId = Integer.parseInt(claims.getSubject());
             String userRole = claims.get("role", String.class);
 
-
-            if (!isAuthorized(servletDetails.getAccessLevel(), userRole)) {
+            if (!isAuthorized(accessLevel, userRole)) {
                 sendError(response, HttpServletResponse.SC_FORBIDDEN, "Access Denied");
                 return;
             }
@@ -91,7 +90,6 @@ public class DispatcherServlet extends HttpServlet {
             sendError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
-
 
     private boolean isAuthorized(AccessLevel accessLevel, String userRole) {
 
