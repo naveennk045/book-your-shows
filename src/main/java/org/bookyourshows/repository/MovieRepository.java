@@ -42,6 +42,37 @@ public class MovieRepository {
         return Optional.empty();
     }
 
+    public List<MovieDetails> getAllMovies() throws SQLException {
+
+        String query = """
+                   SELECT
+                    movie_id,
+                    title,
+                    language,
+                    genre,
+                    duration,
+                    release_date,
+                    poster_url,
+                    trailer_url,
+                    description,
+                    censor_rating
+                FROM movies
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<MovieDetails> movies = new ArrayList<>();
+
+            while (resultSet.next()) {
+                movies.add(MovieMapper.mapRowToMovieDetail(resultSet));
+            }
+
+            return movies;
+        }
+    }
+
     public List<MovieSummary> getAllMovies(MovieQueryParameter queryParameter) throws SQLException {
 
         StringBuilder query = new StringBuilder("""

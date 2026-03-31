@@ -5,6 +5,8 @@ import org.bookyourshows.dto.movie.MovieSummary;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MovieMapper {
 
@@ -35,4 +37,58 @@ public class MovieMapper {
 
         return movieSummary;
     }
+
+
+    public static Map<String, String> mapToHashData(MovieDetails movie) {
+        Map<String, String> map = new HashMap<>();
+        map.put("movie_id", String.valueOf(movie.getMovieId()));
+        map.put("title", nullSafe(movie.getTitle()));
+        map.put("language", nullSafe(movie.getLanguage()));
+        map.put("genre", nullSafe(movie.getGenre()));
+        map.put("duration", String.valueOf(movie.getDuration()));
+        map.put("censor_rating", nullSafe(movie.getCensorRating()));
+        map.put("poster_url", nullSafe(movie.getPosterUrl()));
+        map.put("trailer_url", nullSafe(movie.getTrailerUrl()));
+        map.put("description", nullSafe(movie.getDescription()));
+
+        if (movie.getReleaseDate() != null) {
+            map.put("release_date", movie.getReleaseDate().toString());
+            map.put("release_year", String.valueOf(
+                    movie.getReleaseDate().toLocalDate().getYear()));
+        }
+        return map;
+    }
+
+    public static MovieDetails maptoMovieDetails(Map<String, String> fields) {
+        MovieDetails movieDetails = new MovieDetails();
+        movieDetails.setMovieId(parseIntSafe(fields.get("movie_id")));
+        movieDetails.setTitle(fields.get("title"));
+        movieDetails.setLanguage(fields.get("language"));
+        movieDetails.setGenre(fields.get("genre"));
+        movieDetails.setDuration(parseIntSafe(fields.get("duration")));
+        movieDetails.setCensorRating(fields.get("censor_rating"));
+        movieDetails.setPosterUrl(fields.get("poster_url"));
+        movieDetails.setTrailerUrl(fields.get("trailer_url"));
+        movieDetails.setDescription(fields.get("description"));
+
+        String releaseDateStr = fields.get("release_date");
+        if (releaseDateStr != null && !releaseDateStr.isEmpty()) {
+            movieDetails.setReleaseDate(java.sql.Date.valueOf(releaseDateStr));
+        }
+        return movieDetails;
+    }
+
+    private static String nullSafe(String value) {
+        return value != null ? value : "";
+    }
+
+    private static int parseIntSafe(String value) {
+        if (value == null || value.isEmpty()) return 0;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
 }
