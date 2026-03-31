@@ -1,9 +1,8 @@
 package org.bookyourshows.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bookyourshows.dto.movie.*;
 import org.bookyourshows.repository.MovieRepository;
-import org.bookyourshows.repository.cache.MovieCacheRepository;
+import org.bookyourshows.repository.cache.movie.MovieCacheRepository;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,14 +17,11 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final MovieCacheRepository cache;
-    private final ObjectMapper objectMapper;
-
-    private static final int LIST_CACHE_TTL_SECONDS = 7200; // 2 hours
 
     public MovieService() {
         this.movieRepository = new MovieRepository();
         this.cache = new MovieCacheRepository();
-        this.objectMapper = new ObjectMapper();
+
     }
 
     public Optional<MovieDetails> getMovieById(int movieId) throws SQLException {

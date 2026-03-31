@@ -28,7 +28,7 @@ public class TheatreRepository {
                        t.owner_id,
                        t.email,
                        t.contact_number,
-                       t.total_screens,
+                       (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
                        a.address_id,
                        a.address_line1,
                        a.city,
@@ -36,9 +36,8 @@ public class TheatreRepository {
                        a.pincode,
                        a.latitude,
                        a.longitude
-                
-                FROM theatres AS t
-                JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
+                FROM theatres t
+                JOIN theatre_addresses a ON a.theatre_id = t.theatre_id
                 WHERE t.theatre_id = ?
                 """;
 
@@ -62,7 +61,7 @@ public class TheatreRepository {
         StringBuilder query = new StringBuilder("""
                 SELECT t.theatre_id,
                        t.theatre_name,
-                       t.total_screens,
+                       (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
                        a.city
                 FROM theatres AS t
                 JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
@@ -124,7 +123,7 @@ public class TheatreRepository {
                        t.theatre_name,
                        t.email,
                        t.contact_number,
-                       t.total_screens,
+                       (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
                        a.address_id,
                        a.address_line1,
                        a.city,
@@ -156,10 +155,10 @@ public class TheatreRepository {
     public Optional<AddressDTO> getTheatreAddress(int theatreId) throws SQLException {
 
         String query = """
-        SELECT address_line1, address_line2, city, state, country, pincode, latitude, longitude
-        FROM theatre_addresses
-        WHERE theatre_id = ?
-    """;
+                    SELECT address_line1, address_line2, city, state, country, pincode, latitude, longitude
+                    FROM theatre_addresses
+                    WHERE theatre_id = ?
+                """;
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
@@ -174,20 +173,21 @@ public class TheatreRepository {
 
         return Optional.empty();
     }
+
     public boolean updateTheatreAddress(int theatreId, AddressDTO req) throws SQLException {
 
         String query = """
-        UPDATE theatre_addresses
-        SET address_line1 = ?,
-            address_line2 = ?,
-            city = ?,
-            state = ?,
-            country = ?,
-            pincode = ?,
-            latitude = ?,
-            longitude = ?
-        WHERE theatre_id = ?
-    """;
+                    UPDATE theatre_addresses
+                    SET address_line1 = ?,
+                        address_line2 = ?,
+                        city = ?,
+                        state = ?,
+                        country = ?,
+                        pincode = ?,
+                        latitude = ?,
+                        longitude = ?
+                    WHERE theatre_id = ?
+                """;
 
         try (Connection con = DatabaseManager.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
@@ -354,4 +354,35 @@ public class TheatreRepository {
     }
 
 
+    public List<TheatreDetails> getAllTheatre() throws SQLException {
+        String query = """
+                SELECT t.theatre_id,
+                       t.owner_id,
+                       t.theatre_name,
+                       t.email,
+                       t.contact_number,
+                       (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
+                       a.address_id,
+                       a.address_line1,
+                       a.city,
+                       a.state,
+                       a.pincode,
+                       a.latitude,
+                       a.longitude
+                
+                FROM theatres AS t
+                JOIN theatre_addresses AS a ON a.theatre_id = t.theatre_id
+                """;
+
+        try (Connection Connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = Connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<TheatreDetails> theatreDetails = new ArrayList<>();
+            while (resultSet.next()) {
+                TheatreDetails theatreDetail = TheatreMapper.mapRowToTheatreDetails(resultSet);
+                theatreDetails.add(theatreDetail);
+            }
+            return theatreDetails;
+        }
+    }
 }

@@ -106,6 +106,7 @@ public class TheatreServlet extends HttpServlet {
                     Map.of("message", "Database error"));
             return;
         }
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         // 3. LIST THEATRES
         String theatreName = request.getParameter("theatre_name");
@@ -123,7 +124,7 @@ public class TheatreServlet extends HttpServlet {
 
         try {
             List<TheatreSummary> theatres =
-                    theatreService.getAllTheatre(limit, offset, theatreName, city, status);
+                    theatreService.getAllTheatre(limit, offset, theatreName, city, status, userContext);
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(), theatres);
