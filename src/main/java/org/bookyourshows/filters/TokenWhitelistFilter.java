@@ -48,6 +48,7 @@ public class TokenWhitelistFilter implements Filter {
             byte[] val = redisClient.get(key.getBytes());
 
             if (val == null) {
+                System.out.println("token expired");
                 sendError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
@@ -56,6 +57,7 @@ public class TokenWhitelistFilter implements Filter {
             chain.doFilter(servletRequest, servletResponse);
 
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             sendError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
         }
     }

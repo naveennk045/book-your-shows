@@ -42,6 +42,7 @@ public class JWTFilter implements Filter {
         try {
             claims = JwtUtil.validateToken(token);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
             return;
         }
