@@ -7,9 +7,9 @@ import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.repository.*;
+import org.bookyourshows.repository.cache.show.ShowSeatCacheRepository;
 import org.bookyourshows.utils.PaymentUtils;
 
-import java.nio.file.AccessDeniedException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +23,7 @@ public class BookingService {
     private final PaymentRepository paymentRepository;
     private final RefundRepository refundRepository;
     private final TheatreRepository theatreRepository;
+    private final ShowSeatCacheRepository showSeatCacheRepository;
 
     public BookingService() {
         this.bookingRepository = new BookingRepository();
@@ -30,6 +31,7 @@ public class BookingService {
         this.paymentRepository = new PaymentRepository();
         this.refundRepository = new RefundRepository();
         this.theatreRepository = new TheatreRepository();
+        this.showSeatCacheRepository = new ShowSeatCacheRepository();
     }
 
     public Optional<BookingDetails> getBookingById(int bookingId, UserContext userContext) throws SQLException {
@@ -89,7 +91,11 @@ public class BookingService {
             throw new IllegalArgumentException("calculated total amount is not equal to the requested total amount");
         }
 
-        return bookingRepository.createBookingWithSeats(userId, request, totalAmount);
+        int bookingId =  bookingRepository.createBookingWithSeats(userId, request, totalAmount);
+        List<Integer> showSeatIdToBeBooked = request.getShowSeatIds();
+        this.showSeatCacheRepository.lockShowSeats(showSeatIdToBeBooked, request.getShowId(),userId);
+
+        return bookingId;
     }
 
     public Integer cancelBooking(Integer bookingId, UserContext userContext) throws SQLException {

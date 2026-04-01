@@ -42,15 +42,17 @@ public class ShowCacheRepository {
         }
     }
 
-    public static void bulkLoadShows(List<ShowDetails> showDetails) {
-        for (ShowDetails showDetail : showDetails) {
-            saveShowStatic(showDetail);
+    public static void bulkLoadShows(List<ShowDetails> showDetailsList) {
+        for (ShowDetails showDetails : showDetailsList) {
+            saveShowStatic(showDetails);
         }
     }
 
     public void save(ShowDetails showDetails) {
         try {
-            saveShowStatic(showDetails);
+            RedisClient redisClient = RedisManager.getClient();
+            String key = "show:" + showDetails.getShowId();
+            redisClient.hset(key, mapShowToHashData(showDetails));
         } catch (Exception e) {
             System.err.println("[Cache] save failed for shows " + showDetails.getShowId() + ": " + e.getMessage());
         }
@@ -60,7 +62,7 @@ public class ShowCacheRepository {
         save(showDetails);
     }
 
-    public void delete(int showId) {
+    public void delete(Integer showId) {
         try {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("show:" + showId);
@@ -70,7 +72,7 @@ public class ShowCacheRepository {
     }
 
 
-    public Optional<ShowDetails> getById(int showId) {
+    public Optional<ShowDetails> getById(Integer showId) {
         try {
             RedisClient redisClient = RedisManager.getClient();
             Map<String, String> fields = redisClient.hgetAll("show:" + showId);
@@ -86,7 +88,7 @@ public class ShowCacheRepository {
 
     public List<ShowDetails> search(Integer theatreId, String location, Date showDate, int movieId) {
 
-        List<ShowDetails> showList = new ArrayList<>();
+        List<ShowDetails> showDetailsList = new ArrayList<>();
         try {
             RedisClient redisClient = RedisManager.getClient();
             Query query = ShowSearchQueryBuilder.buildQuery(theatreId, location, showDate, movieId);
@@ -99,20 +101,20 @@ public class ShowCacheRepository {
                     fields.put(entry.getKey(), String.valueOf(entry.getValue()));
                 }
                 ShowDetails showDetails = mapHashToShowDetails(fields);
-                showList.add(showDetails);
+                showDetailsList.add(showDetails);
             }
 
         } catch (Exception e) {
 
             System.err.println("[Cache] Search failed: " + e.getMessage());
         }
-        return showList;
+        return showDetailsList;
     }
 
 
-    private static void saveShowStatic(ShowDetails showDetail) {
+    private static void saveShowStatic(ShowDetails showDetails) {
         RedisClient redisClient = RedisManager.getClient();
-        String key = "show:" + showDetail.getShowId();
-        redisClient.hset(key, mapShowToHashData(showDetail));
+        String key = "show:" + showDetails.getShowId();
+        redisClient.hset(key, mapShowToHashData(showDetails));
     }
 }

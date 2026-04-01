@@ -3,11 +3,20 @@ package org.bookyourshows.dto.show;
 public class ShowSeating {
 
     private Integer showSeatId;
+    private Integer rowNo;
     private Integer seatId;
     private String seatNumber;
     private String category;
     private String status;
     private Double finalPrice;
+
+    public Integer getRowNo() {
+        return rowNo;
+    }
+
+    public void setRowNo(Integer rowNo) {
+        this.rowNo = rowNo;
+    }
 
     public Integer getShowSeatId() {
         return showSeatId;

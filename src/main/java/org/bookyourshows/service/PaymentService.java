@@ -1,15 +1,19 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.booking.BookingDetails;
+import org.bookyourshows.dto.booking.BookingSeatInfo;
 import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.payment.PaymentInitiateRequest;
 import org.bookyourshows.dto.payment.PaymentInitiateResponse;
 import org.bookyourshows.dto.payment.PaymentWebhookPayload;
+import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.repository.BookingRepository;
 import org.bookyourshows.repository.PaymentRepository;
+import org.bookyourshows.repository.cache.show.ShowSeatCacheRepository;
 import org.bookyourshows.utils.PaymentUtils;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,10 +21,12 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final ShowSeatCacheRepository showSeatCacheRepository;
 
     public PaymentService() {
         this.paymentRepository = new PaymentRepository();
         this.bookingRepository = new BookingRepository();
+        this.showSeatCacheRepository = new ShowSeatCacheRepository();
     }
 
     public PaymentInitiateResponse initiatePayment(Integer bookingId, PaymentInitiateRequest request) throws SQLException {
@@ -61,11 +67,12 @@ public class PaymentService {
         }
 
         if (paymentDetailsOptional.get().getStatus().equals("COMPLETED")) {
-            throw new RuntimeException("Payment already completed failed");
+            throw new RuntimeException("Payment already completed.");
         }
 
         Integer bookingId = paymentDetailsOptional.get().getBookingId();
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
+
 
         if (bookingDetails.isEmpty()) {
             throw new RuntimeException("Booking not found");
@@ -83,8 +90,20 @@ public class PaymentService {
             bookingStatus = "CONFIRMED";
         }
         Integer transactionId = paymentDetailsOptional.get().getTransactionId();
+        Integer showId = bookingDetails.get().getShow().getShowId();
+        Integer userId = bookingDetails.get().getBooking().getUserId();
+        List<Integer> showSeatIdToBeBooked = new ArrayList<>();
 
-        bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, transactionId);
+        for (BookingSeatInfo bookingSeatInfo : bookingDetails.get().getSeats())
+            showSeatIdToBeBooked.add(bookingSeatInfo.getShowSeatId());
+
+
+        if (paymentStatus.equals("SUCCESS")) {
+            bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, transactionId);
+            this.showSeatCacheRepository.updateBookingStatus(showId, showSeatIdToBeBooked, "BOOKED", userId);
+        }
+
+
     }
 
     public List<PaymentDetails> getPayments(

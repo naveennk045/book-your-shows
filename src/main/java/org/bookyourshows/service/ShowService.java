@@ -4,12 +4,14 @@ import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.show.*;
 import org.bookyourshows.repository.*;
 import org.bookyourshows.repository.cache.show.ShowCacheRepository;
+import org.bookyourshows.repository.cache.show.ShowSeatCacheRepository;
 
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
 
 import static org.bookyourshows.utils.ShowUtils.validateModificationAllowed;
+import static org.bookyourshows.utils.ShowUtils.validateShowCreationAllowed;
 
 public class ShowService {
 
@@ -18,6 +20,7 @@ public class ShowService {
     private final MovieRepository movieRepository;
     private final BookingRepository bookingRepository;
     private final ShowCacheRepository showCacheRepository;
+    private final ShowSeatCacheRepository showSeatCacheRepository;
 
     public ShowService() {
         this.showRepository = new ShowRepository();
@@ -25,6 +28,7 @@ public class ShowService {
         this.movieRepository = new MovieRepository();
         this.bookingRepository = new BookingRepository();
         this.showCacheRepository = new ShowCacheRepository();
+        this.showSeatCacheRepository = new ShowSeatCacheRepository();
     }
 
     public Optional<ShowDetails> getShowById(int showId) throws SQLException {
@@ -76,6 +80,8 @@ public class ShowService {
 
     public int createShow(ShowCreateRequest request) throws SQLException {
 
+        validateShowCreationAllowed(request);
+
         Optional<ScreenDetails> screenDetails = screenRepository.getScreenByScreenId(request.getScreenId());
         if (screenDetails.isEmpty()) {
             throw new IllegalArgumentException("Screen not found");
@@ -83,7 +89,6 @@ public class ShowService {
         if (!Objects.equals(request.getTheatreId(), screenDetails.get().getTheatreId())) {
             throw new RuntimeException("Theatre id mismatch");
         }
-        ;
 
         if (movieRepository.getMovieById(request.getMovieId()).isEmpty()) {
             throw new IllegalArgumentException("Movie not found");
@@ -92,6 +97,7 @@ public class ShowService {
         if (request.getStartTime().after(request.getEndTime())) {
             throw new IllegalArgumentException("Invalid timing");
         }
+
 
         if (showRepository.isShowConflict(
                 request.getScreenId(),
@@ -127,9 +133,17 @@ public class ShowService {
         }
 
 
+        Map<Integer, ShowSeating> showSeatingLayout = this.showRepository.getShowSeatsByShowId(showId);
+
+        List<ShowSeating> showSeatingList = new ArrayList<>(showSeatingLayout.values());
+
+        if (showSeatingList.isEmpty()) {
+            throw new RuntimeException("Show seating list is empty, Update failed in redis");
+        }
+
+        this.showSeatCacheRepository.saveAll(showSeatingList, showId);
         return showId;
     }
-
 
     public List<ShowSeatingResponse> getShowSeats(Integer showId) throws SQLException {
 
@@ -137,7 +151,32 @@ public class ShowService {
             throw new IllegalArgumentException("Show seats not found");
         }
 
-        Map<Integer, List<ShowSeating>> map = showRepository.getShowSeats(showId);
+
+        Map<Integer, List<ShowSeating>> map = null;
+
+        try {
+            map = this.showSeatCacheRepository.getShowSeats(showId);
+
+            if (map.isEmpty()) {
+                System.out.println("Show seats not found in cache");
+            }
+        } catch (Exception e) {
+            System.out.println("Show seats not taken in cache");
+            System.out.println("[ShowService] " + e.getMessage());
+        }
+
+        if (map == null || map.isEmpty()) {
+            map = showRepository.getShowSeats(showId);
+        }
+
+        List<ShowSeating> showSeatingList = new ArrayList<>();
+
+        for (List<ShowSeating> seatingList : map.values()) {
+            showSeatingList.addAll(seatingList);
+        }
+
+        this.showSeatCacheRepository.saveAll(showSeatingList, showId);
+
 
         List<ShowSeatingResponse> response = new ArrayList<>();
 
@@ -188,6 +227,21 @@ public class ShowService {
             }
         }
 
+        if (isShowUpdated) {
+            this.showSeatCacheRepository.deleteAllSeatsByShowId(showId);
+        }
+
+        Map<Integer, ShowSeating> showSeatingLayout = this.showRepository.getShowSeatsByShowId(showId);
+
+        List<ShowSeating> showSeatingList = new ArrayList<>(showSeatingLayout.values());
+
+        if (showSeatingList.isEmpty()) {
+            throw new RuntimeException("Show seating list is empty, Update failed in redis");
+        }
+
+        this.showSeatCacheRepository.saveAll(showSeatingList, showId);
+
+
         return true;
     }
 
@@ -214,6 +268,10 @@ public class ShowService {
             } catch (Exception e) {
                 System.err.println("[Service] Redis sync after delete failed: " + e.getMessage());
             }
+        }
+
+        if (isDeleted) {
+            this.showSeatCacheRepository.deleteAllSeatsByShowId(showId);
         }
         return true;
     }

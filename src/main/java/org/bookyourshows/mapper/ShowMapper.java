@@ -19,6 +19,7 @@ public class ShowMapper {
         showSeating.setCategory(resultSet.getString("category"));
         showSeating.setStatus(resultSet.getString("status"));
         showSeating.setFinalPrice(resultSet.getDouble("final_price"));
+        showSeating.setRowNo(resultSet.getInt("row_no"));
         return showSeating;
     }
 
@@ -81,6 +82,35 @@ public class ShowMapper {
 
         return showDetails;
     }
+
+    public static Map<String, String> mapShowSeatingToHashData(ShowSeating showSeating) {
+
+        HashMap<String, String> hashMap = new HashMap<>();
+
+        hashMap.put("show_seat_id", showSeating.getShowSeatId() != null ? String.valueOf(showSeating.getShowSeatId()) : "0");
+        hashMap.put("seat_id", showSeating.getSeatId() != null ? String.valueOf(showSeating.getSeatId()) : "0");
+        hashMap.put("seat_number", nullSafe(showSeating.getSeatNumber()));
+        hashMap.put("category", nullSafe(showSeating.getCategory()));
+        hashMap.put("status", nullSafe(showSeating.getStatus()));
+        hashMap.put("final_price", showSeating.getFinalPrice() != null ? String.valueOf(showSeating.getFinalPrice()) : "0.0");
+        hashMap.put("row_no", String.valueOf(showSeating.getRowNo()));
+        return hashMap;
+    }
+
+    public static ShowSeating mapHashToShowSeating(Map<String, String> hashMap) {
+
+        ShowSeating showSeating = new ShowSeating();
+        showSeating.setShowSeatId(parseIntSafe(hashMap.get("show_seat_id")));
+        showSeating.setSeatId(parseIntSafe(hashMap.get("seat_id")));
+        showSeating.setSeatNumber(nullSafe(hashMap.get("seat_number")));
+        showSeating.setCategory(nullSafe(hashMap.get("category")));
+        showSeating.setStatus(nullSafe(hashMap.get("status")));
+        showSeating.setFinalPrice(parseDoubleSafe(hashMap.get("final_price")));
+        showSeating.setRowNo(parseIntSafe(hashMap.get("row_no")));
+
+        return showSeating;
+    }
+
 
     private static boolean hasColumn(ResultSet resultSet, String column) {
         try {

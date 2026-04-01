@@ -40,22 +40,24 @@ public class MovieCacheRepository {
         }
     }
 
-    public static void bulkLoadMovies(List<MovieDetails> movies) {
-        for (MovieDetails movie : movies) {
-            saveMovieStatic(movie);
+    public static void bulkLoadMovies(List<MovieDetails> movieDetailsList) {
+        for (MovieDetails movieDetails : movieDetailsList) {
+            saveMovieStatic(movieDetails);
         }
     }
 
-    public void save(MovieDetails movie) {
+    public void save(MovieDetails movieDetails) {
         try {
-            saveMovieStatic(movie);
+            RedisClient redisClient = RedisManager.getClient();
+            String key = "movie:" + movieDetails.getMovieId();
+            redisClient.hset(key, mapToHashData(movieDetails));
         } catch (Exception e) {
-            System.err.println("[Cache] save failed for movie " + movie.getMovieId() + ": " + e.getMessage());
+            System.err.println("[Cache] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
         }
     }
 
-    public void update(MovieDetails movie) {
-        save(movie);
+    public void update(MovieDetails movieDetails) {
+        save(movieDetails);
     }
 
     public void delete(int movieId) {
@@ -105,10 +107,10 @@ public class MovieCacheRepository {
         return movieDetailsList;
     }
 
-    private static void saveMovieStatic(MovieDetails movie) {
+    private static void saveMovieStatic(MovieDetails movieDetails) {
         RedisClient redisClient = RedisManager.getClient();
-        String key = "movie:" + movie.getMovieId();
-        redisClient.hset(key, mapToHashData(movie));
+        String key = "movie:" + movieDetails.getMovieId();
+        redisClient.hset(key, mapToHashData(movieDetails));
     }
 
 

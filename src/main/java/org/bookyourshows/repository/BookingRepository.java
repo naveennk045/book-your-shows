@@ -351,14 +351,6 @@ public class BookingRepository {
                     JOIN screen_types scrt on scr.screen_type_id = scrt.screen_type_id
                     WHERE shs.show_id = ? AND shs.show_seat_id = ?
                 """;
-        String updateShowSeatSql = """
-                    UPDATE show_seating
-                    SET status = 'LOCKED',
-                        locked_by = ?,
-                        locked_at = NOW(),
-                        lock_expiry = NOW() + INTERVAL 5 MINUTE
-                    WHERE show_seat_id = ? AND status = 'AVAILABLE'
-                """;
 
         try (Connection connection = DatabaseManager.getConnection()) {
             connection.setAutoCommit(false);
@@ -387,20 +379,9 @@ public class BookingRepository {
 
             try (
                     PreparedStatement seatInsert = connection.prepareStatement(insertSeatSql);
-                    PreparedStatement seatUpdate = connection.prepareStatement(updateShowSeatSql)
             ) {
 
                 for (Integer showSeatId : request.getShowSeatIds()) {
-
-                    //  Lock seat
-                    seatUpdate.setInt(1, userId);
-                    seatUpdate.setInt(2, showSeatId);
-
-                    int updated = seatUpdate.executeUpdate();
-                    if (updated == 0) {
-                        connection.rollback();
-                        throw new RuntimeException("Seat already booked/locked: " + showSeatId);
-                    }
 
                     // Insert seat booking
                     seatInsert.setInt(1, bookingId);

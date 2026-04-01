@@ -371,7 +371,10 @@ public class ShowRepository {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             int rows = ps.executeUpdate();
-            System.out.println("Released seats count: " + rows);
+            if (rows > 0) {
+                System.out.println("Released seats count: " + rows);
+            }
+
 
         } catch (Exception e) {
             System.out.println("Error while releasing seats: " + e.getMessage());
@@ -392,7 +395,9 @@ public class ShowRepository {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             int rows = ps.executeUpdate();
-            System.out.println("Shows marked completed: " + rows);
+            if (rows > 0) {
+                System.out.println("Shows marked completed: " + rows);
+            }
 
         } catch (Exception e) {
             System.out.println("Error updating show status: " + e.getMessage());

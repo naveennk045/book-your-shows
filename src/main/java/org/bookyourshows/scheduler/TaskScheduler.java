@@ -13,11 +13,9 @@ public class TaskScheduler {
             Executors.newSingleThreadScheduledExecutor();
 
     public static void start() {
-        System.out.println("Starting Seat Release");
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                System.out.println("Running cleanup job");
                 ShowRepository.releaseExpiredSeats();
                 ShowRepository.updateCompletedShows();
 

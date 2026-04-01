@@ -37,7 +37,9 @@ public class TheatreCacheRepository {
 
     public void save(TheatreDetails theatreDetails) {
         try {
-            saveTheatreStatic(theatreDetails);
+            RedisClient redisClient = RedisManager.getClient();
+            String key = "theatre:" + theatreDetails.getTheatre().getTheatreId();
+            redisClient.hset(key, TheatreMapper.mapTheatreToHash(theatreDetails));
         } catch (Exception e) {
             System.err.println("[Cache] save failed for movie " + theatreDetails.getTheatre().getTheatreId() + ": " + e.getMessage());
         }
@@ -96,16 +98,16 @@ public class TheatreCacheRepository {
     }
 
 
-    public static void bulkLoadTheatres(List<TheatreDetails> theatres) {
-        for (TheatreDetails theatre : theatres) {
-            saveTheatreStatic(theatre);
+    public static void bulkLoadTheatres(List<TheatreDetails> theatreDetailsList) {
+        for (TheatreDetails theatreDetails : theatreDetailsList) {
+            saveTheatreStatic(theatreDetails);
         }
     }
 
-    private static void saveTheatreStatic(TheatreDetails theatre) {
+    private static void saveTheatreStatic(TheatreDetails theatreDetails) {
         RedisClient redisClient = RedisManager.getClient();
-        String key = "theatre:" + theatre.getTheatre().getTheatreId();
-        redisClient.hset(key, TheatreMapper.mapTheatreToHash(theatre));
+        String key = "theatreDetails:" + theatreDetails.getTheatre().getTheatreId();
+        redisClient.hset(key, TheatreMapper.mapTheatreToHash(theatreDetails));
     }
 
 }
