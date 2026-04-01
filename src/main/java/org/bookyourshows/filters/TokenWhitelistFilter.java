@@ -39,26 +39,21 @@ public class TokenWhitelistFilter implements Filter {
         try {
             Claims claims = JwtUtil.validateToken(token);
 
-            String jti = claims.getId();
-
+            String jti = claims.getId();  // unique uuid for jwt token.
             RedisClient redisClient = RedisManager.getClient();
-
             String key = "auth:token:" + jti;
-
             byte[] val = redisClient.get(key.getBytes());
 
             if (val == null) {
-                System.out.println("token expired");
                 sendError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
 
-
             chain.doFilter(servletRequest, servletResponse);
 
         } catch (Exception e) {
-            System.err.println(e.getMessage());
-            sendError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+            System.err.println("[TokenWhitelistFilter]" + e.getMessage());
+            sendError(httpServletResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error: Error in authentication");
         }
     }
 
