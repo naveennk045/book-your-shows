@@ -4,11 +4,14 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 import org.bookyourshows.dto.movie.MovieDetails;
+import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.theatre.TheatreAddress;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.repository.MovieRepository;
+import org.bookyourshows.repository.ShowRepository;
 import org.bookyourshows.repository.TheatreRepository;
 import org.bookyourshows.repository.cache.movie.MovieCacheRepository;
+import org.bookyourshows.repository.cache.show.ShowCacheRepository;
 import org.bookyourshows.repository.cache.theatre.TheatreCacheRepository;
 import org.bookyourshows.scheduler.TaskScheduler;
 
@@ -19,11 +22,13 @@ public class AppInitializer implements ServletContextListener {
 
     private final MovieRepository mysqlMovieRepository;
     private final TheatreRepository mysqlTheatreRepository;
+    private final ShowRepository mysqlShowRepository;
 
 
     public AppInitializer() {
         this.mysqlMovieRepository = new MovieRepository();
         this.mysqlTheatreRepository = new TheatreRepository();
+        this.mysqlShowRepository = new ShowRepository();
     }
 
     @Override
@@ -32,6 +37,8 @@ public class AppInitializer implements ServletContextListener {
         TaskScheduler.start();
         initializeMovieRedisCache();
         initializeTheatreRedisCache();
+        initializeShowRedisCache();
+
     }
 
     @Override
@@ -46,12 +53,11 @@ public class AppInitializer implements ServletContextListener {
             MovieCacheRepository.ensureIndex();
             System.out.println("Redis: index 'idx:movieDetails' ensured");
 
-            MovieRepository mysqlMovieRepository = new MovieRepository();
             List<MovieDetails> movieDetails = mysqlMovieRepository.getAllMovies();
             System.out.println("MySQL: loaded " + movieDetails.size() + " movieDetails");
 
             MovieCacheRepository.bulkLoadMovies(movieDetails);
-            System.out.println("Redis: bulk loaded " + movieDetails.size() + " movieDetails (up sert-only)");
+            System.out.println("Redis: bulk loaded " + movieDetails.size() + " movieDetails (upsert-only)");
 
         } catch (Exception e) {
             System.err.println("Failed to initialize Redis cache : " + e.getMessage());
@@ -69,6 +75,23 @@ public class AppInitializer implements ServletContextListener {
 
             TheatreCacheRepository.bulkLoadTheatres(theatreDetails);
             System.out.println("Redis: bulk loaded " + theatreDetails.size() + " theatres (upsert-only)");
+
+        } catch (Exception e) {
+            System.err.println("Failed to initialize Redis cache : " + e.getMessage());
+        }
+    }
+
+    private void initializeShowRedisCache() {
+        try {
+
+            ShowCacheRepository.ensureIndex();
+            System.out.println("Redis: index 'idx:shows' ensured");
+
+            List<ShowDetails> showDetails = mysqlShowRepository.getAllShows();
+            System.out.println("MySQL: loaded " + showDetails.size() + " shows");
+
+            ShowCacheRepository.bulkLoadShows(showDetails);
+            System.out.println("Redis: bulk loaded " + showDetails.size() + " shows (upsert-only)");
 
         } catch (Exception e) {
             System.err.println("Failed to initialize Redis cache : " + e.getMessage());

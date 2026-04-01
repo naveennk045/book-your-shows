@@ -125,7 +125,7 @@ public class ShowServlet extends HttpServlet {
             String movieIdParam = request.getParameter("movie_id");
             String locationParam = request.getParameter("location");
 
-            if (dateParam == null || movieIdParam == null || locationParam == null) {
+            if (dateParam == null || movieIdParam == null) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(response.getWriter(),
                         Map.of("message", "Required parameters are missing"));

@@ -3,6 +3,7 @@ package org.bookyourshows.service;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.show.*;
 import org.bookyourshows.repository.*;
+import org.bookyourshows.repository.cache.show.ShowCacheRepository;
 
 import java.sql.*;
 import java.sql.Date;
@@ -16,21 +17,44 @@ public class ShowService {
     private final ScreenRepository screenRepository;
     private final MovieRepository movieRepository;
     private final BookingRepository bookingRepository;
+    private final ShowCacheRepository showCacheRepository;
 
     public ShowService() {
         this.showRepository = new ShowRepository();
         this.screenRepository = new ScreenRepository();
         this.movieRepository = new MovieRepository();
         this.bookingRepository = new BookingRepository();
+        this.showCacheRepository = new ShowCacheRepository();
     }
 
     public Optional<ShowDetails> getShowById(int showId) throws SQLException {
-        return this.showRepository.getShowById(showId);
+
+        Optional<ShowDetails> showDetails = showCacheRepository.getById(showId);
+
+        if (showDetails.isPresent()) {
+            System.out.println("-- Get Show by ID : " + showId + " from cache -- ");
+            return showDetails;
+        }
+
+        showDetails = showRepository.getShowById(showId);
+        if (showDetails.isPresent()) {
+            try {
+                showCacheRepository.save(showDetails.get());
+                System.out.println("-- Saved Show Details  in redis-- ");
+            } catch (Exception e) {
+                System.out.println("[ShowService] " + e.getMessage());
+            }
+        }
+        return showDetails;
     }
 
     public List<TheatreShowsResponse> getShows(Integer theatreId, String location, Date showDate, int movieId) throws SQLException {
 
-        List<ShowDetails> shows = showRepository.getShows(theatreId, location, showDate, movieId);
+        List<ShowDetails> shows = showCacheRepository.search(theatreId, location, showDate, movieId);
+
+        if (shows.isEmpty()) {
+            shows = showRepository.getShows(theatreId, location, showDate, movieId);
+        }
 
         Map<Integer, List<ShowDetails>> grouped = new LinkedHashMap<>();
 
@@ -90,6 +114,18 @@ public class ShowService {
             this.showRepository.deleteShow(showId);
             throw new IllegalArgumentException("Create show failed.");
         }
+        Optional<ShowDetails> showDetails = showRepository.getShowById(showId);
+
+        if (showDetails.isPresent()) {
+            try {
+                showCacheRepository.save(showDetails.get());
+            } catch (Exception e) {
+                System.out.println("[ShowService] " + e.getMessage());
+            }
+        } else {
+            throw new IllegalArgumentException("Saving show is failed in redis");
+        }
+
 
         return showId;
     }
@@ -140,7 +176,19 @@ public class ShowService {
             throw new IllegalArgumentException("Timing conflict");
         }
 
-        return showRepository.updateShowTiming(showId, request.getStartTime(), request.getEndTime());
+
+        boolean isShowUpdated = showRepository.updateShowTiming(showId, request.getStartTime(), request.getEndTime());
+
+        if (isShowUpdated) {
+            showDetails = this.showRepository.getShowById(showId);
+            if (showDetails.isPresent()) {
+                showCacheRepository.save(showDetails.get());
+            } else {
+                throw new IllegalArgumentException("Update show failed,Show Not found");
+            }
+        }
+
+        return true;
     }
 
     public boolean deleteShow(int showId) throws SQLException {
@@ -150,12 +198,23 @@ public class ShowService {
 
 
         validateModificationAllowed(show);
-        if(Objects.equals(show.getStatus(), "SCHEDULED") || Objects.equals(show.getStatus(), "RESCHEDULED")) {
-            if(!bookingRepository.getAllBookingsByShowId(showId).isEmpty()) {
+        if (Objects.equals(show.getStatus(), "SCHEDULED") || Objects.equals(show.getStatus(), "RESCHEDULED")) {
+            if (!bookingRepository.getAllBookingsByShowId(showId).isEmpty()) {
                 throw new IllegalArgumentException("Show have bookings.");
-            };
+            }
+            ;
         }
 
-        return showRepository.deleteShow(showId);
+        boolean isDeleted = showRepository.deleteShow(showId);
+
+        if (isDeleted) {
+            try {
+                showCacheRepository.delete(showId);
+                System.out.println("-- Created Movie by ID : " + showId + " to cache -- ");
+            } catch (Exception e) {
+                System.err.println("[Service] Redis sync after delete failed: " + e.getMessage());
+            }
+        }
+        return true;
     }
 }

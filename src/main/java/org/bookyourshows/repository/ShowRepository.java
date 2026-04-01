@@ -85,44 +85,35 @@ public class ShowRepository {
         }
     }
 
-    public List<ShowDetails> getShowsByTheatreId(int theatreId, Date showDate, Integer movieId) throws SQLException {
+    public List<ShowDetails> getAllShows() throws SQLException {
 
-        StringBuilder query = new StringBuilder("""
-                SELECT
-                    show_id,
-                    screen_id,
-                    movie_id,
-                    show_date,
-                    start_time,
-                    end_time,
-                    base_price
-                FROM shows
-                WHERE theatre_id = ?
-                
-                """);
+        String query = """
+                    SELECT
+                    s.show_id,
+                    s.theatre_id,
+                    t.theatre_name,
+                    ta.city,
+                    s.movie_id,
+                    s.screen_id,
+                    scr.screen_name,
+                    s.show_date,
+                    s.start_time,
+                    s.end_time,
+                    s.base_price
+                FROM shows AS s
+                         JOIN theatres AS t ON s.theatre_id = t.theatre_id
+                         JOIN theatre_addresses AS ta ON t.theatre_id = ta.theatre_id
+                         JOIN screens  AS scr ON s.screen_id = scr.screen_id
+                         JOIN screen_types AS scrt ON scrt.screen_type_id = scr.screen_type_id
+                    AND ( s.status = 'SCHEDULED'  OR s.status = 'RESCHEDULED')
+                """;
 
-        List<Object> params = new java.util.ArrayList<>();
-        params.add(theatreId);
-
-        if (showDate != null) {
-            query.append(" AND show_date = ?");
-            params.add(showDate);
-        }
-        if (movieId != null) {
-            query.append(" AND movie_id = ?");
-            params.add(movieId);
-        }
-
-        query.append(" ORDER BY start_time");
 
         List<ShowDetails> shows = new java.util.ArrayList<>();
 
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = conn.prepareStatement(query.toString())) {
+             PreparedStatement preparedStatement = conn.prepareStatement(query)) {
 
-            for (int i = 0; i < params.size(); i++) {
-                preparedStatement.setObject(i + 1, params.get(i));
-            }
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 shows.add(ShowMapper.mapRowShowDetails(resultSet));
@@ -146,7 +137,6 @@ public class ShowRepository {
                 FROM shows
                 WHERE screen_id = ?
                 AND ( status = "SCHEDULED" OR status = "RESCHEDULED" )
-                
                 """);
 
         List<Object> params = new java.util.ArrayList<>();
@@ -273,18 +263,14 @@ public class ShowRepository {
 
     }
 
-
     public boolean isShowConflict(int screenId, Date date, Time start, Time end) throws SQLException {
 
         String query = """
                 SELECT 1 FROM shows
                 WHERE screen_id = ?
                 AND show_date = ?
-                AND (
-                    (start_time < ? AND end_time > ?) OR
-                    (start_time < ? AND end_time > ?) OR
-                    (start_time >= ? AND end_time <= ?)
-                )
+                AND start_time < ?
+                AND end_time > ?
                 """;
 
         try (Connection connection = DatabaseManager.getConnection();
@@ -293,20 +279,13 @@ public class ShowRepository {
             preparedStatement.setInt(1, screenId);
             preparedStatement.setDate(2, date);
 
-            preparedStatement.setTime(3, end);
-            preparedStatement.setTime(4, end);
-
-            preparedStatement.setTime(5, start);
-            preparedStatement.setTime(6, start);
-
-            preparedStatement.setTime(7, start);
-            preparedStatement.setTime(8, end);
+            preparedStatement.setTime(3, end);   // new_end
+            preparedStatement.setTime(4, start); // new_start
 
             ResultSet resultSet = preparedStatement.executeQuery();
             return resultSet.next();
         }
     }
-
 
     public boolean updateShowTiming(int showId, Time start, Time end) throws SQLException {
 
@@ -419,6 +398,8 @@ public class ShowRepository {
             System.out.println("Error updating show status: " + e.getMessage());
         }
     }
+
+
 }
 
 
