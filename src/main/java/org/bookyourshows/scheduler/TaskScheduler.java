@@ -16,7 +16,7 @@ public class TaskScheduler {
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                ShowRepository.releaseExpiredSeats();
+//                ShowRepository.releaseExpiredSeats();
                 ShowRepository.updateCompletedShows();
 
             } catch (Exception e) {
