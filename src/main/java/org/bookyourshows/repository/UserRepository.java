@@ -1,7 +1,7 @@
 package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.user.*;
 import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.UserMapper;
@@ -55,7 +55,7 @@ public class UserRepository {
         return Optional.empty();
     }
 
-    public Optional<AddressDTO> getUserAddress(int userId) throws SQLException {
+    public Optional<Address> getUserAddress(int userId) throws SQLException {
 
         String query = """
                     SELECT address_line1, address_line2, city, state, country, pincode
@@ -77,7 +77,7 @@ public class UserRepository {
         return Optional.empty();
     }
 
-    public boolean updateUserAddress(AddressDTO req, int userId) throws SQLException {
+    public boolean updateUserAddress(Address req, int userId) throws SQLException {
 
         String query = """
                     UPDATE user_addresses

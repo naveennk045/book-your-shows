@@ -1,6 +1,6 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.theatre.*;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.repository.ScreenRepository;
@@ -76,11 +76,11 @@ public class TheatreService {
         return theatreRepository.getAllTheatres(limit, offset, theatreName, city, status);
     }
 
-    public Optional<AddressDTO> getTheatreAddress(int theatreId) throws SQLException {
+    public Optional<Address> getTheatreAddress(int theatreId) throws SQLException {
         return theatreRepository.getTheatreAddress(theatreId);
     }
 
-    public void updateTheatreAddress(int theatreId, int ownerId, String role, AddressDTO req) throws SQLException {
+    public void updateTheatreAddress(int theatreId, int ownerId, String role, Address req) throws SQLException {
         hasAccessToResource(theatreId, ownerId, role);
 
         if (req.getAddressLine1() == null || req.getAddressLine1().isBlank())

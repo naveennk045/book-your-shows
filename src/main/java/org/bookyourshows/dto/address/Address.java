@@ -3,7 +3,7 @@ package org.bookyourshows.dto.address;
 
 import java.math.BigDecimal;
 
-public class AddressDTO {
+public class Address {
 
     private String addressLine1;
     private String addressLine2;

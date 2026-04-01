@@ -2,7 +2,7 @@ package org.bookyourshows.repository;
 
 
 import org.bookyourshows.config.DatabaseManager;
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
@@ -152,7 +152,7 @@ public class TheatreRepository {
 
     }
 
-    public Optional<AddressDTO> getTheatreAddress(int theatreId) throws SQLException {
+    public Optional<Address> getTheatreAddress(int theatreId) throws SQLException {
 
         String query = """
                     SELECT address_line1, address_line2, city, state, country, pincode, latitude, longitude
@@ -174,7 +174,7 @@ public class TheatreRepository {
         return Optional.empty();
     }
 
-    public boolean updateTheatreAddress(int theatreId, AddressDTO req) throws SQLException {
+    public boolean updateTheatreAddress(int theatreId, Address req) throws SQLException {
 
         String query = """
                     UPDATE theatre_addresses

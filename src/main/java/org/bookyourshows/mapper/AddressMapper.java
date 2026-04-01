@@ -1,7 +1,7 @@
 package org.bookyourshows.mapper;
 
 
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,8 +17,8 @@ public class AddressMapper {
         }
     }
 
-    public static AddressDTO mapRowToAddress(ResultSet resultSet) throws SQLException {
-        AddressDTO address = new AddressDTO();
+    public static Address mapRowToAddress(ResultSet resultSet) throws SQLException {
+        Address address = new Address();
 
         address.setAddressLine1(resultSet.getString("address_line1"));
         address.setAddressLine2(resultSet.getString("address_line2"));

@@ -1,6 +1,6 @@
 package org.bookyourshows.service;
 
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
@@ -49,12 +49,12 @@ public class UserService {
         return userRepository.getAllUsers(limit, offset, email, role);
     }
 
-    public Optional<AddressDTO> getUserAddress(Integer userId, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
+    public Optional<Address> getUserAddress(Integer userId, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
         hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
         return userRepository.getUserAddress(userId);
     }
 
-    public void updateUserAddress(int userId, AddressDTO request, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
+    public void updateUserAddress(int userId, Address request, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
 
         hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
 

@@ -8,7 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
@@ -61,7 +61,7 @@ public class TheatreServlet extends HttpServlet {
                     return;
                 }
 
-                Optional<AddressDTO> address = theatreService.getTheatreAddress(theatreId);
+                Optional<Address> address = theatreService.getTheatreAddress(theatreId);
 
                 if (address.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -232,9 +232,9 @@ public class TheatreServlet extends HttpServlet {
                 return;
             }
 
-            AddressDTO req;
+            Address req;
             try {
-                req = objectMapper.readValue(request.getReader(), AddressDTO.class);
+                req = objectMapper.readValue(request.getReader(), Address.class);
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 objectMapper.writeValue(response.getWriter(),

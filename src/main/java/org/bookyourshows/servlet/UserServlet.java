@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 
-import org.bookyourshows.dto.address.AddressDTO;
+import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
 import org.bookyourshows.dto.user.UserDetails;
@@ -72,7 +72,7 @@ public class UserServlet extends HttpServlet {
 
                 int userId = Integer.parseInt(parts[2]);
 
-                Optional<AddressDTO> address = userService.getUserAddress(userId, userIdFromJwt, userRoleFromJwt);
+                Optional<Address> address = userService.getUserAddress(userId, userIdFromJwt, userRoleFromJwt);
 
                 if (address.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -160,9 +160,9 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            AddressDTO req;
+            Address req;
             try {
-                req = objectMapper.readValue(request.getReader(), AddressDTO.class);
+                req = objectMapper.readValue(request.getReader(), Address.class);
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 writeMessage(response, "Invalid JSON body");
