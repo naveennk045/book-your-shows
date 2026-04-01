@@ -3,6 +3,9 @@ package org.bookyourshows.repository.cache.show;
 import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.dto.show.ShowSeating;
 import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.resps.ScanResult;
 
 
 import java.util.*;
@@ -37,10 +40,15 @@ public class ShowSeatCacheRepository {
     public Map<Integer, List<ShowSeating>> getShowSeats(Integer showId) {
         RedisClient redisClient = RedisManager.getClient();
         String keyPattern = "show:" + showId + ":seating:*";
-        Set<String> keys = redisClient.keys(keyPattern);
-        if (keys == null || keys.isEmpty()) {
-            throw new RuntimeException("There are no seats in the cache with this show id: " + showId);
-        }
+
+        Set<String> keys = new HashSet<>();
+        String cursor = "0";
+        do {
+            ScanResult<String> result = redisClient.scan(cursor,
+                    new ScanParams().match(keyPattern).count(200));
+            keys.addAll(result.getResult());
+            cursor = result.getCursor();
+        } while (!cursor.equals("0"));
 
         Map<Integer, List<ShowSeating>> showSeatLayoutMap = new HashMap<>();
 
@@ -66,7 +74,7 @@ public class ShowSeatCacheRepository {
         String lockedKey = "locked:" + key;
         boolean locked = redisClient.exists(lockedKey);
 
-        if (locked && !Objects.equals(map.get("status"),"BOOKED")) {
+        if (locked && !Objects.equals(map.get("status"), "BOOKED")) {
             map.put("status", "LOCKED");
         }
         return mapHashToShowSeating(map);
@@ -143,8 +151,12 @@ public class ShowSeatCacheRepository {
                 throw new RuntimeException("Seat already locked");
             }
 
-            redisClient.set(key, userId.toString());
-            redisClient.expire(key, 180);
+            String result = redisClient.set(key, userId.toString(),
+                    SetParams.setParams().nx().ex(180));
+
+            if (result == null) {
+                throw new RuntimeException("Seat already locked");
+            }
         }
     }
 }

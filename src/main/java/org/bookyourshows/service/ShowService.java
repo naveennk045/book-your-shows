@@ -151,41 +151,28 @@ public class ShowService {
             throw new IllegalArgumentException("Show seats not found");
         }
 
-
         Map<Integer, List<ShowSeating>> map = null;
 
         try {
             map = this.showSeatCacheRepository.getShowSeats(showId);
-
-            if (map.isEmpty()) {
-                System.out.println("Show seats not found in cache");
-            }
         } catch (Exception e) {
-            System.out.println("Show seats not taken in cache");
-            System.out.println("[ShowService] " + e.getMessage());
+            System.out.println("[ShowService] Cache miss: " + e.getMessage());
         }
 
         if (map == null || map.isEmpty()) {
             map = showRepository.getShowSeats(showId);
+            List<ShowSeating> showSeatingList = new ArrayList<>();
+            for (List<ShowSeating> seatingList : map.values()) {
+                showSeatingList.addAll(seatingList);
+            }
+            this.showSeatCacheRepository.saveAll(showSeatingList, showId);
         }
-
-        List<ShowSeating> showSeatingList = new ArrayList<>();
-
-        for (List<ShowSeating> seatingList : map.values()) {
-            showSeatingList.addAll(seatingList);
-        }
-
-        this.showSeatCacheRepository.saveAll(showSeatingList, showId);
-
 
         List<ShowSeatingResponse> response = new ArrayList<>();
-
         for (Map.Entry<Integer, List<ShowSeating>> entry : map.entrySet()) {
-
             ShowSeatingResponse row = new ShowSeatingResponse();
             row.setRowNo(entry.getKey());
             row.setSeats(entry.getValue());
-
             response.add(row);
         }
         return response;
