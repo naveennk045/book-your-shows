@@ -7,6 +7,7 @@ import org.bookyourshows.core.AccessLevel;
 import org.bookyourshows.dto.user.UserAuth;
 import org.bookyourshows.dto.user.UserCreateRequest;
 import org.bookyourshows.dto.user.UserDetails;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.repository.UserRepository;
 import org.bookyourshows.utils.JwtUtil;
 import redis.clients.jedis.RedisClient;
@@ -27,7 +28,7 @@ public class AuthenticationService {
     }
 
 
-    public UserDetails registerUser(UserCreateRequest request) throws SQLException {
+    public UserDetails registerUser(UserCreateRequest request) throws SQLException, CustomException {
 
         if (request.getUserRole().equals("ADMIN")) {
             throw new RuntimeException("You can't register an administrator");

@@ -23,7 +23,6 @@ public class AnalyticsServlet extends HttpServlet {
 
     private final AnalyticsService analyticsService;
     private final ObjectMapper objectMapper;
-    private final BookingService bookingService;
     private final TheatreService theatreService;
     ;
 
@@ -31,7 +30,6 @@ public class AnalyticsServlet extends HttpServlet {
         this.analyticsService = new AnalyticsService();
         this.objectMapper = new ObjectMapper();
         this.theatreService = new TheatreService();
-        this.bookingService = new BookingService();
 
         this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);

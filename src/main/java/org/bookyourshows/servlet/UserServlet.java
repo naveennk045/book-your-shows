@@ -9,6 +9,7 @@ import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
 import org.bookyourshows.dto.user.UserDetails;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.UserService;
 
 import java.io.IOException;
@@ -125,6 +126,9 @@ public class UserServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writeMessage(response, "Database error");
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 
@@ -225,6 +229,9 @@ public class UserServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writeMessage(response, "Database error");
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 

@@ -4,6 +4,7 @@ import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.repository.UserRepository;
 
 import java.sql.SQLException;
@@ -27,12 +28,12 @@ public class UserService {
         return userRepository.getUserByUserId(userId);
     }
 
-    public Optional<UserDetails> getUserByEmail(String email) throws SQLException {
+    public Optional<UserDetails> getUserByEmail(String email) throws SQLException, CustomException {
         validateEmail(email);
         return userRepository.getUserByEmail(email);
     }
 
-    public Optional<UserDetails> getUserByMobile(String mobile) throws SQLException {
+    public Optional<UserDetails> getUserByMobile(String mobile) throws SQLException, CustomException {
         validateMobile(mobile);
         return userRepository.getUserByMobileNumber(mobile);
     }
@@ -82,7 +83,7 @@ public class UserService {
 
     }
 
-    public void updateUser(int userId, UserUpdateRequest request, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
+    public void updateUser(int userId, UserUpdateRequest request, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException, CustomException {
         hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
         validateName(request.getFirstName(), "First name");
 

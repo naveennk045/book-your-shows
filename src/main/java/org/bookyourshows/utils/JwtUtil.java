@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class JwtUtil {
 
-    private static final String SECRET = "your-super-secret-key-your-super-secret-key-123456";
+    private static final String SECRET = "abcABCDedefEFGHghiIJKLMONPjklmnoQRSWXZYpqrstuwbookmyshowillabookyourshowxyz123456";
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     private static final long EXPIRATION = 1000 * 60 * 60; // 1 hour

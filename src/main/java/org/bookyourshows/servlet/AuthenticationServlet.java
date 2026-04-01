@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.user.UserCreateRequest;
 import org.bookyourshows.dto.user.UserDetails;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AuthenticationService;
 import org.bookyourshows.utils.JwtUtil;
 
@@ -112,6 +113,9 @@ public class AuthenticationServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(500);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }

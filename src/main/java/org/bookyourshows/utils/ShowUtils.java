@@ -2,6 +2,7 @@ package org.bookyourshows.utils;
 
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.exceptions.ShowCreationException;
 
 import java.util.Calendar;
 
@@ -9,7 +10,7 @@ import java.util.Calendar;
 public class ShowUtils {
 
 
-    public static void validateModificationAllowed(ShowDetails show) {
+    public static void validateModificationAllowed(ShowDetails show) throws ShowCreationException {
 
         java.time.LocalDateTime showTime = java.time.LocalDateTime.of(
                 show.getShowDate().toLocalDate(),
@@ -19,16 +20,16 @@ public class ShowUtils {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
 
         if (now.isAfter(showTime)) {
-            throw new RuntimeException("Show already started / completed");
+            throw new ShowCreationException("Show already started / completed");
         }
 
 
         if (java.time.Duration.between(now, showTime).toHours() < 5) {
-            throw new RuntimeException("Cannot modify show within 5 hours of start time");
+            throw new ShowCreationException("Cannot modify show within 5 hours of start time");
         }
     }
 
-    public static void validateShowCreationAllowed(ShowCreateRequest showCreateRequest) {
+    public static void validateShowCreationAllowed(ShowCreateRequest showCreateRequest) throws ShowCreationException {
 
         Calendar today = Calendar.getInstance();
         today.set(Calendar.HOUR_OF_DAY, 0);
@@ -46,8 +47,8 @@ public class ShowUtils {
         long diffInMillis = showDate.getTimeInMillis() - today.getTimeInMillis();
         long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
 
-        if (diffInDays < 2) {
-            throw new IllegalArgumentException("Show must be created at least 2 days before the show date");
+        if (diffInDays < 1 || diffInDays > 2) {
+            throw new ShowCreationException("Show can only be created for the next two days");
         }
     }
 }

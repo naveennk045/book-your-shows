@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 import org.bookyourshows.dto.show.*;
+import org.bookyourshows.exceptions.CustomException;
+import org.bookyourshows.exceptions.ShowCreationException;
 import org.bookyourshows.service.ShowService;
 
 import java.io.IOException;
@@ -68,7 +70,12 @@ public class ShowServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Show created successfully", "show_id", showId));
 
-        } catch (JsonProcessingException e) {
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        }
+        catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid JSON"));
@@ -200,19 +207,24 @@ public class ShowServlet extends HttpServlet {
 
         try {
             boolean updated = showService.updateShow(showId, req);
+            if (updated) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", "Show updated successfully", "show_id", showId));
+            }
 
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Show updated successfully", "show_id", showId));
-
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (RuntimeException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
@@ -258,6 +270,10 @@ public class ShowServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Show deleted successfully"));
 
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),

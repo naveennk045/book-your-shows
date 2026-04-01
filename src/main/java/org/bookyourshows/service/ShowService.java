@@ -2,6 +2,7 @@ package org.bookyourshows.service;
 
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.show.*;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.repository.*;
 import org.bookyourshows.repository.cache.show.ShowCacheRepository;
 import org.bookyourshows.repository.cache.show.ShowSeatCacheRepository;
@@ -78,7 +79,7 @@ public class ShowService {
         return response;
     }
 
-    public int createShow(ShowCreateRequest request) throws SQLException {
+    public int createShow(ShowCreateRequest request) throws SQLException, CustomException {
 
         validateShowCreationAllowed(request);
 
@@ -178,7 +179,7 @@ public class ShowService {
         return response;
     }
 
-    public boolean updateShow(int showId, ShowUpdateRequest request) throws SQLException {
+    public boolean updateShow(int showId, ShowUpdateRequest request) throws SQLException, CustomException {
 
         Optional<ShowDetails> showDetails = showRepository.getShowById(showId);
         if (showDetails.isEmpty()) {
@@ -232,7 +233,7 @@ public class ShowService {
         return true;
     }
 
-    public boolean deleteShow(int showId) throws SQLException {
+    public boolean deleteShow(int showId) throws SQLException, CustomException {
 
         ShowDetails show = showRepository.getShowById(showId)
                 .orElseThrow(() -> new IllegalArgumentException("Show not found"));
