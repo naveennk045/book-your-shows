@@ -61,7 +61,6 @@ public class AdminServlet extends HttpServlet {
 
     }
 
-
     private String[] splitPath(HttpServletRequest request) {
         String pathInfo = request.getPathInfo();
         return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
