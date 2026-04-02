@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 
+import org.bookyourshows.dto.Views;
 import org.bookyourshows.dto.address.Address;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
 import org.bookyourshows.dto.user.UserDetails;
@@ -35,15 +37,10 @@ public class UserServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
         String path = request.getPathInfo();
         String[] parts = path.split("/");
 
-        Integer userIdFromJwt = (Integer) request.getAttribute("user_id");
-        String userRoleFromJwt = (String) request.getAttribute("user_role");
-
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         try {
             // /users/{user_id}
@@ -58,11 +55,11 @@ public class UserServlet extends HttpServlet {
                     return;
                 }
 
-                Optional<UserDetails> user = userService.getUserById(userId, userIdFromJwt, userRoleFromJwt);
+                Optional<UserDetails> user = userService.getUserById(userId, userContext);
 
                 if (user.isPresent()) {
                     response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(), user.get());
+                    writeWithView(response, user.get(), userContext.getUserRole());
                 } else {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     writeMessage(response, "User not found");
@@ -73,7 +70,7 @@ public class UserServlet extends HttpServlet {
 
                 int userId = Integer.parseInt(parts[2]);
 
-                Optional<Address> address = userService.getUserAddress(userId, userIdFromJwt, userRoleFromJwt);
+                Optional<Address> address = userService.getUserAddress(userId, userContext);
 
                 if (address.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -147,8 +144,8 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        Integer userIdFromJwt = (Integer) request.getAttribute("user_id");
-        String userRoleFromJwt = (String) request.getAttribute("user_role");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+
 
         String[] parts = path.split("/");
 
@@ -174,7 +171,7 @@ public class UserServlet extends HttpServlet {
             }
 
             try {
-                userService.updateUserAddress(userId, req, userIdFromJwt, userRoleFromJwt);
+                userService.updateUserAddress(userId, req, userContext);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
@@ -186,6 +183,10 @@ public class UserServlet extends HttpServlet {
             } catch (SQLException e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 writeMessage(response, "Database error");
+            } catch (CustomException e) {
+                response.setStatus(e.getStatusCode());
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", e.getMessage()));
             }
 
             return;
@@ -217,7 +218,7 @@ public class UserServlet extends HttpServlet {
         }
 
         try {
-            userService.updateUser(userId, req, userIdFromJwt, userRoleFromJwt);
+            userService.updateUser(userId, req, userContext);
 
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(),
@@ -241,12 +242,10 @@ public class UserServlet extends HttpServlet {
 
         response.setContentType("application/json");
 
-        Integer userIdFromJwt = (Integer) request.getAttribute("user_id");
-        String userRoleFromJwt = (String) request.getAttribute("user_role");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+
 
         // DELETE :  /users/{user_id}
-
-
         String path = request.getPathInfo();
         String[] parts = path.split("/");
 
@@ -259,7 +258,7 @@ public class UserServlet extends HttpServlet {
         try {
             int userId = Integer.parseInt(parts[2]);
 
-            boolean deleted = userService.deleteUser(userId, userIdFromJwt, userRoleFromJwt);
+            boolean deleted = userService.deleteUser(userId, userContext);
 
             if (!deleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -276,6 +275,10 @@ public class UserServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             writeMessage(response, "Database error");
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
@@ -300,6 +303,13 @@ public class UserServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             writeMessage(response, "User not found");
         }
+    }
+
+    private void writeWithView(HttpServletResponse response, Object data, String role)
+            throws IOException {
+        Class<?> view = Views.resolveView(role);
+        System.out.println("[JsonView] role='" + role + "' view=" + view.getSimpleName()); // add this
+        objectMapper.writerWithView(view).writeValue(response.getWriter(), data);
     }
 
 }

@@ -2,7 +2,6 @@ package org.bookyourshows.servlet;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.ServletException;
@@ -60,7 +59,7 @@ public class TheatreServlet extends HttpServlet {
                 return;
             }
 
-            // GET /theatres  (list)
+            // GET /theaters (list)
             handleListTheatres(request, response, userContext);
 
         } catch (SQLException e) {
@@ -215,7 +214,6 @@ public class TheatreServlet extends HttpServlet {
         }
 
         response.setStatus(HttpServletResponse.SC_OK);
-        writeWithView(response, theatreDetails.get(), userContext.getUserRole());
     }
 
     private void handleListTheatres(HttpServletRequest request, HttpServletResponse response,

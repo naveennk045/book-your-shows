@@ -17,12 +17,10 @@ import static org.bookyourshows.utils.TheatreUtils.*;
 public class TheatreService {
 
     private final TheatreRepository theatreRepository;
-    private final ScreenRepository screenRepository;
     private final TheatreCacheRepository theatreCacheRepository;
 
     public TheatreService() {
         this.theatreRepository = new TheatreRepository();
-        this.screenRepository = new ScreenRepository();
         this.theatreCacheRepository = new TheatreCacheRepository();
     }
 

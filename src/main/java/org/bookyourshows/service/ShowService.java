@@ -1,7 +1,6 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.screen.ScreenDetails;
-import org.bookyourshows.dto.seat.SeatSummary;
 import org.bookyourshows.dto.show.*;
 import org.bookyourshows.dto.theatre.Theatre;
 import org.bookyourshows.dto.theatre.TheatreDetails;
@@ -214,7 +213,7 @@ public class ShowService {
 
         if (isShowUpdated) {
             showDetails = this.showRepository.getShowById(showId);
-            showCacheRepository.save(showDetails.get());
+            showDetails.ifPresent(showCacheRepository::save);
         }
 
         if (isShowUpdated) {

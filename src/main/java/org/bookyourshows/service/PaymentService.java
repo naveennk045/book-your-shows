@@ -7,7 +7,6 @@ import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.payment.PaymentInitiateRequest;
 import org.bookyourshows.dto.payment.PaymentInitiateResponse;
 import org.bookyourshows.dto.payment.PaymentWebhookPayload;
-import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.exceptions.ForbiddenException;

@@ -14,6 +14,8 @@ import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.bookyourshows.utils.UserUtils.*;
@@ -96,6 +98,8 @@ public class AuthenticationService {
         String key = "auth:token:" + jti;
         System.out.println("Key : " + key);
 
+        userRepository.updateLoginTimeStamp(Timestamp.valueOf(LocalDateTime.now()), user.getUserId());
+
         redisClient.setex(
                 key.getBytes(),
                 3600,
@@ -117,11 +121,13 @@ public class AuthenticationService {
     }
 
 
-    public String refreshToken(String token) {
+    public String refreshToken(String token) throws SQLException {
         Claims claims = JwtUtil.validateToken(token);
 
         Integer userId = Integer.parseInt(claims.getSubject());
         String role = claims.get("role", String.class);
+
+        userRepository.updateLoginTimeStamp(Timestamp.valueOf(LocalDateTime.now()), userId);
 
         return JwtUtil.generateToken(userId, role);
     }

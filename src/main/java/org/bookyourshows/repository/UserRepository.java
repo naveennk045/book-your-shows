@@ -393,5 +393,22 @@ public class UserRepository {
         }
     }
 
+    public void updateLoginTimeStamp(Timestamp timestamp, Integer userId) throws SQLException {
+        String query = """
+                UPDATE users
+                SET
+                    last_login= ?
+                WHERE user_id = ?
+                """;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+
+            preparedStatement.setTimestamp(1, timestamp);
+            preparedStatement.setInt(2, userId);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
 
 }

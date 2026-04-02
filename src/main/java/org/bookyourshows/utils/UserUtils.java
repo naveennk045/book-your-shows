@@ -1,6 +1,8 @@
 package org.bookyourshows.utils;
 
 
+import org.bookyourshows.dto.address.Address;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.exceptions.UserCreationException;
 
 public class UserUtils {
@@ -26,6 +28,24 @@ public class UserUtils {
     public static void validatePassword(String password) throws UserCreationException {
         if (password == null || password.length() < 6) {
             throw new UserCreationException("Password must be at least 6 characters");
+        }
+    }
+
+    public static void validateAddress(Address request) throws CustomException {
+        if (request.getAddressLine1() == null || request.getAddressLine1().isBlank()) {
+            throw new UserCreationException("address_line1 is required");
+        }
+
+        if (request.getCity() == null || request.getCity().isBlank()) {
+            throw new UserCreationException("city is required");
+        }
+
+        if (request.getState() == null || request.getState().isBlank()) {
+            throw new UserCreationException("state is required");
+        }
+
+        if (request.getPincode() == null || request.getPincode().isBlank()) {
+            throw new UserCreationException("pincode is required");
         }
     }
 }

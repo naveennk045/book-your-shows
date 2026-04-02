@@ -1,27 +1,49 @@
 package org.bookyourshows.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import org.bookyourshows.dto.Views;
+
 import java.sql.Date;
 import java.sql.Timestamp;
 
 public class UserDetails {
 
+    @JsonView(Views.Public.class)
     private Integer userId;
+    @JsonView(Views.Public.class)
     private String firstName;
+    @JsonView(Views.Public.class)
     private String lastName;
+    @JsonView(Views.Public.class)
     private String mobileNumber;
+    @JsonView(Views.Public.class)
     private String email;
+    @JsonView(Views.Public.class)
     private String userRole;
+    @JsonView(Views.Public.class)
     private Date dateOfBirth;
+    @JsonView(Views.Public.class)
     private String profilePictureUrl;
+    @JsonView(Views.Admin.class)
     private String accountStatus;
+    @JsonView(Views.Public.class)
     private String addressLine1;
+    @JsonView(Views.Public.class)
     private String addressLine2;
+    @JsonView(Views.Public.class)
     private String city;
+    @JsonView(Views.Public.class)
     private String state;
+    @JsonView(Views.Public.class)
     private String country;
+    @JsonView(Views.Public.class)
     private String pincode;
+
+    @JsonView(Views.Admin.class)
     private Timestamp lastLogin;
+    @JsonView(Views.Admin.class)
     private Timestamp createdAt;
+    @JsonView(Views.Admin.class)
     private Timestamp updatedAt;
 
     public String getPincode() {
@@ -71,8 +93,6 @@ public class UserDetails {
     public void setAddressLine1(String addressLine1) {
         this.addressLine1 = addressLine1;
     }
-
-
 
 
     public Integer getUserId() {

@@ -1,10 +1,11 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.address.Address;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
-import org.bookyourshows.exceptions.CustomException;
+import org.bookyourshows.exceptions.*;
 import org.bookyourshows.repository.UserRepository;
 
 import java.sql.SQLException;
@@ -22,9 +23,9 @@ public class UserService {
         this.userRepository = new UserRepository();
     }
 
-    public Optional<UserDetails> getUserById(Integer userId, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
+    public Optional<UserDetails> getUserById(Integer userId, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
+        hasAccessToResource(userContext, userId);
         return userRepository.getUserByUserId(userId);
     }
 
@@ -41,73 +42,59 @@ public class UserService {
     public List<UserSummary> getAllUsers(Integer limit,
                                          Integer offset,
                                          String email,
-                                         String role) throws SQLException {
+                                         String role) throws SQLException, CustomException {
 
         if (limit > 100 || limit < 0 || offset < 0) {
-            throw new IllegalArgumentException("Invalid pagination values");
+            throw new BadRequestException("Invalid pagination values");
         }
 
         return userRepository.getAllUsers(limit, offset, email, role);
     }
 
-    public Optional<Address> getUserAddress(Integer userId, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
-        hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
+    public Optional<Address> getUserAddress(Integer userId, UserContext userContext) throws SQLException, CustomException {
+        hasAccessToResource(userContext, userId);
         return userRepository.getUserAddress(userId);
     }
 
-    public void updateUserAddress(int userId, Address request, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
+    public void updateUserAddress(int userId, Address request, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
+        hasAccessToResource(userContext, userId);
 
-        if (request.getAddressLine1() == null || request.getAddressLine1().isBlank()) {
-            throw new IllegalArgumentException("address_line1 is required");
-        }
-
-        if (request.getCity() == null || request.getCity().isBlank()) {
-            throw new IllegalArgumentException("city is required");
-        }
-
-        if (request.getState() == null || request.getState().isBlank()) {
-            throw new IllegalArgumentException("state is required");
-        }
-
-        if (request.getPincode() == null || request.getPincode().isBlank()) {
-            throw new IllegalArgumentException("pincode is required");
-        }
+        validateAddress(request);
 
         boolean updated = userRepository.updateUserAddress(request, userId);
 
         if (!updated) {
-            throw new IllegalArgumentException("User address not found");
+            throw new ResourceNotFoundException("User address not found");
         }
 
     }
 
-    public void updateUser(int userId, UserUpdateRequest request, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException, CustomException {
-        hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
+    public void updateUser(int userId, UserUpdateRequest request, UserContext userContext) throws SQLException, CustomException {
+        hasAccessToResource(userContext, userId);
         validateName(request.getFirstName(), "First name");
 
         boolean updated = userRepository.updateUser(request, userId);
         if (!updated) {
-            throw new IllegalArgumentException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
 
         boolean addressUpdated = userRepository.updateUserAddress(request, userId);
         if (!addressUpdated) {
-            throw new RuntimeException("User updated but address update failed");
+            throw new PartialUpdateException("User updated but address update failed");
         }
 
     }
 
-    public boolean deleteUser(int userId, Integer userIdFromJwt, String userRoleFromJwt) throws SQLException {
-        hasAccessToResource(userIdFromJwt, userRoleFromJwt, userId);
+    public boolean deleteUser(int userId, UserContext userContext) throws SQLException, CustomException {
+        hasAccessToResource(userContext, userId);
         return userRepository.deleteUser(userId);
     }
 
 
-    public void hasAccessToResource(Integer userIdFromJwt, String userRoleFromJwt, Integer userId) {
-        if (!userRoleFromJwt.equals("ADMIN") && !Objects.equals(userIdFromJwt, userId)) {
-            throw new SecurityException("Access denied");
+    public void hasAccessToResource(UserContext userContext, Integer userId) throws CustomException {
+        if (!userContext.getUserRole().equals("ADMIN") && !Objects.equals(userContext.getUserId(), userId)) {
+            throw new ForbiddenException("Access denied");
         }
     }
 }

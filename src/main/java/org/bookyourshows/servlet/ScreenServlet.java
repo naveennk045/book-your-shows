@@ -12,12 +12,11 @@ import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
 import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.ScreenService;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,6 +75,10 @@ public class ScreenServlet extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
                 return;
+            } catch (CustomException e) {
+                response.setStatus(e.getStatusCode());
+                objectMapper.writeValue(response.getWriter(),
+                        Map.of("message", e.getMessage()));
             }
         }
 
@@ -97,11 +100,9 @@ public class ScreenServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid screen_id"));
-            return;
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
-            return;
         }
 
 
@@ -167,6 +168,10 @@ public class ScreenServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
 
 
@@ -174,7 +179,7 @@ public class ScreenServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
+            IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
@@ -253,10 +258,10 @@ public class ScreenServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
-        } catch (AccessDeniedException e) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Access denied"));
+                    Map.of("message", e.getMessage()));
         }
     }
 /*
@@ -278,7 +283,7 @@ public class ScreenServlet extends HttpServlet {
             theatreId = Integer.parseInt(part[2]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theater_id"));
             return;
         }
 

@@ -18,12 +18,16 @@ public class UserMapper {
         userDetails.setMobileNumber(resultSet.getString("mobile_number"));
         userDetails.setDateOfBirth(resultSet.getDate("date_of_birth"));
         userDetails.setProfilePictureUrl(resultSet.getString("profile_picture"));
+        userDetails.setAccountStatus(resultSet.getString("account_status"));
         userDetails.setAddressLine1(resultSet.getString("address_line1"));
         userDetails.setAddressLine2(resultSet.getString("address_line2"));
         userDetails.setCity(resultSet.getString("city"));
         userDetails.setState(resultSet.getString("state"));
         userDetails.setCountry(resultSet.getString("country"));
         userDetails.setPincode(resultSet.getString("pincode"));
+        userDetails.setCreatedAt(resultSet.getTimestamp("created_at"));
+        userDetails.setUpdatedAt(resultSet.getTimestamp("updated_at"));
+        userDetails.setLastLogin(resultSet.getTimestamp("last_login"));
 
         return userDetails;
     }
