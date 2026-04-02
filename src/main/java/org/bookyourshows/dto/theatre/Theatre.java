@@ -1,18 +1,40 @@
 package org.bookyourshows.dto.theatre;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import org.bookyourshows.dto.Views;
+
 import java.sql.Timestamp;
 
 public class Theatre {
 
+    @JsonView(Views.Public.class)
     private Integer theatreId;
+
+    @JsonView(Views.Public.class)
     private Integer ownerId;
+
+    @JsonView(Views.Public.class)
     private String theatreName;
+
+    @JsonView(Views.Public.class)
     private String email;
+
+    @JsonView(Views.Public.class)
     private String contactNumber;
+
+    @JsonView(Views.Public.class)
     private int totalScreens;
+
+    @JsonView(Views.TheatreOwner.class)
     private String status;
+
+    @JsonView(Views.Admin.class)
     private Timestamp registrationDate;
+
+    @JsonView(Views.Admin.class)
     private Timestamp approvalDate;
+
+    @JsonView(Views.TheatreOwner.class)
     private String licenseDocument;
 
     public Theatre() {

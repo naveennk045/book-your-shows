@@ -7,6 +7,7 @@ import org.bookyourshows.dto.theatre.TheatreSummary;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +51,18 @@ public class TheatreMapper {
         if (hasColumn(resultSet, "owner_id")) {
             theatre.setOwnerId(resultSet.getInt("owner_id"));
         }
-
+        if (hasColumn(resultSet, "status")) {
+            theatre.setStatus(resultSet.getString("status"));
+        }
+        if (hasColumn(resultSet, "registration_date")) {
+            theatre.setRegistrationDate(resultSet.getTimestamp("registration_date"));
+        }
+        if (hasColumn(resultSet, "approval_date")) {
+            theatre.setApprovalDate(resultSet.getTimestamp("approval_date"));
+        }
+        if (hasColumn(resultSet, "license_document")) {
+            theatre.setLicenseDocument(resultSet.getString("license_document"));
+        }
         theatreDetails.setTheatre(theatre);
 
 
@@ -62,6 +74,12 @@ public class TheatreMapper {
         theatreAddress.setLatitude(resultSet.getDouble("latitude"));
         theatreAddress.setLongitude(resultSet.getDouble("longitude"));
         theatreDetails.setAddress(theatreAddress);
+
+        System.out.println("MySQL DB");
+        System.out.println("Status: " + theatre.getStatus());
+        System.out.println("Registration Date: " + theatre.getRegistrationDate());
+        System.out.println("License Document: " + theatre.getLicenseDocument());
+
 
         return theatreDetails;
     }
@@ -77,6 +95,12 @@ public class TheatreMapper {
         flatMap.put("email", nullSafe(theatre.getEmail()));
         flatMap.put("contact_number", nullSafe(theatre.getContactNumber()));
         flatMap.put("total_screens", String.valueOf(theatre.getTotalScreens()));
+        flatMap.put("license_document", nullSafe(theatre.getLicenseDocument()));
+        flatMap.put("status", nullSafe(theatre.getStatus()));
+        flatMap.put("registration_date", theatre.getRegistrationDate() != null
+                ? theatre.getRegistrationDate().toString() : "");
+        flatMap.put("approval_date", theatre.getApprovalDate() != null
+                ? theatre.getApprovalDate().toString() : "");
 
         TheatreAddress theatreAddress = theatreDetails.getAddress();
         flatMap.put("address_id", String.valueOf(theatreAddress.getAddressId()));
@@ -103,6 +127,11 @@ public class TheatreMapper {
         theatre.setEmail(theatreDetailsMap.get("email"));
         theatre.setContactNumber(theatreDetailsMap.get("contact_number"));
         theatre.setTotalScreens(parseIntSafe(theatreDetailsMap.get("total_screens")));
+        theatre.setLicenseDocument(theatreDetailsMap.get("license_document"));
+        theatre.setStatus(theatreDetailsMap.get("status"));
+        // In mapHashToTheatreDetails — parse safely
+        theatre.setRegistrationDate(parseTimestampSafe(theatreDetailsMap.get("registration_date")));
+        theatre.setApprovalDate(parseTimestampSafe(theatreDetailsMap.get("approval_date")));
 
         TheatreAddress theatreAddress = new TheatreAddress();
         theatreAddress.setAddressId(parseIntSafe(theatreDetailsMap.get("address_id")));
@@ -116,6 +145,12 @@ public class TheatreMapper {
         TheatreDetails theatreDetails = new TheatreDetails();
         theatreDetails.setTheatre(theatre);
         theatreDetails.setAddress(theatreAddress);
+
+        System.out.println("REDIS DB");
+        System.out.println("Status: " + theatre.getStatus());
+        System.out.println("Registration Date: " + theatre.getRegistrationDate());
+        System.out.println("License Document: " + theatre.getLicenseDocument());
+
 
         return theatreDetails;
     }
@@ -150,6 +185,15 @@ public class TheatreMapper {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             return 0;
+        }
+    }
+
+    private static Timestamp parseTimestampSafe(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return Timestamp.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 

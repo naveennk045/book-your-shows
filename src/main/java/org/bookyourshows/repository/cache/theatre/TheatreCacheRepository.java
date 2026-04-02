@@ -5,6 +5,7 @@ import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.mapper.TheatreMapper;
 import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.search.*;
 
 import java.util.*;
@@ -17,21 +18,25 @@ public class TheatreCacheRepository {
         try {
             redisClient.ftInfo("idx:theatres");
 
-        } catch (Exception e) {
-            System.out.println("Redis: index 'idx:movies' Updating....");
-            Schema schema = new Schema()
-                    .addTextField("theatre_name", 1.0)
-                    .addTextField("city", 1.0);
+        } catch (JedisException e) {
+            try {
+                System.out.println("Redis: index 'idx:movies' Updating....");
+                Schema schema = new Schema()
+                        .addTextField("theatre_name", 1.0)
+                        .addTextField("city", 1.0);
 
 
-            IndexDefinition def = new IndexDefinition()
-                    .setPrefixes(new String[]{"theatre:"});
+                IndexDefinition def = new IndexDefinition()
+                        .setPrefixes(new String[]{"theatre:"});
 
-            redisClient.ftCreate(
-                    "idx:theatres",
-                    IndexOptions.defaultOptions().setDefinition(def),
-                    schema
-            );
+                redisClient.ftCreate(
+                        "idx:theatres",
+                        IndexOptions.defaultOptions().setDefinition(def),
+                        schema
+                );
+            } catch (JedisException exception) {
+                System.err.println("[Theatre Cache] index creation failed for theatre.z" + e.getMessage());
+            }
         }
     }
 
@@ -40,8 +45,8 @@ public class TheatreCacheRepository {
             RedisClient redisClient = RedisManager.getClient();
             String key = "theatre:" + theatreDetails.getTheatre().getTheatreId();
             redisClient.hset(key, TheatreMapper.mapTheatreToHash(theatreDetails));
-        } catch (Exception e) {
-            System.err.println("[Cache] save failed for movie " + theatreDetails.getTheatre().getTheatreId() + ": " + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[Theatre Cache] save failed for theatre " + theatreDetails.getTheatre().getTheatreId() + ": " + e.getMessage());
         }
     }
 
@@ -53,8 +58,8 @@ public class TheatreCacheRepository {
         try {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("theatre:" + theatreId);
-        } catch (Exception e) {
-            System.err.println("[Cache] delete failed for movie " + theatreId + ": " + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[Theatre Cache] delete failed for theatre " + theatreId + ": " + e.getMessage());
         }
     }
 
@@ -66,8 +71,8 @@ public class TheatreCacheRepository {
                 return Optional.empty();
             }
             return Optional.of((TheatreMapper.mapHashToTheatreDetails(fields)));
-        } catch (Exception e) {
-            System.err.println("[Cache] getById failed for theatre " + theatreId + ": " + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[Theatre Cache] getById failed for theatre " + theatreId + ": " + e.getMessage());
             return Optional.empty();
         }
     }
@@ -78,35 +83,41 @@ public class TheatreCacheRepository {
                                        String city,
                                        String status) {
 
-        RedisClient redisClient = RedisManager.getClient();
+        try {
+            RedisClient redisClient = RedisManager.getClient();
+            Query query = TheatreQueryBuilder.buildQuery(limit, offset, theatreName, city, status);
+            SearchResult result = redisClient.ftSearch("idx:theatres", query);
 
-        Query query = TheatreQueryBuilder.buildQuery(limit, offset, theatreName, city, status);
+            List<TheatreSummary> theatreSummaries = new ArrayList<>();
+            for (Document doc : result.getDocuments()) {
+                Map<String, String> fields = new HashMap<>();
 
-        SearchResult result = redisClient.ftSearch("idx:theatres", query);
-
-        List<TheatreSummary> theatreSummaries = new ArrayList<>();
-
-        for (Document doc : result.getDocuments()) {
-            Map<String, String> fields = new HashMap<>();
-
-            for (Map.Entry<String, Object> entry : doc.getProperties()) {
-                fields.put(entry.getKey(), String.valueOf(entry.getValue()));
+                for (Map.Entry<String, Object> entry : doc.getProperties()) {
+                    fields.put(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+                theatreSummaries.add(TheatreMapper.mapHashToTheatreSummary(fields));
             }
-            theatreSummaries.add(TheatreMapper.mapHashToTheatreSummary(fields));
+            return theatreSummaries;
+        } catch (JedisException e) {
+            System.err.println("[Theatre Cache] search failed " + e.getMessage());
         }
-        return theatreSummaries;
+        return null;
     }
 
 
     public static void bulkLoadTheatres(List<TheatreDetails> theatreDetailsList) {
-        for (TheatreDetails theatreDetails : theatreDetailsList) {
-            saveTheatreStatic(theatreDetails);
+        try {
+            for (TheatreDetails theatreDetails : theatreDetailsList) {
+                saveTheatreStatic(theatreDetails);
+            }
+        } catch (JedisException e) {
+            System.err.println("[Theatre Cache] bulkLoadTheatres failed: " + e.getMessage());
         }
     }
 
     private static void saveTheatreStatic(TheatreDetails theatreDetails) {
         RedisClient redisClient = RedisManager.getClient();
-        String key = "theatreDetails:" + theatreDetails.getTheatre().getTheatreId();
+        String key = "theatre:" + theatreDetails.getTheatre().getTheatreId();
         redisClient.hset(key, TheatreMapper.mapTheatreToHash(theatreDetails));
     }
 

@@ -7,6 +7,8 @@ import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
+import org.bookyourshows.exceptions.CustomException;
+import org.bookyourshows.exceptions.TheatreCreationException;
 import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.TheatreMapper;
 
@@ -29,6 +31,10 @@ public class TheatreRepository {
                        t.email,
                        t.contact_number,
                        (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
+                       t.status,
+                       t.registration_date,
+                       t.approval_date,
+                       t.license_document,
                        a.address_id,
                        a.address_line1,
                        a.city,
@@ -118,11 +124,7 @@ public class TheatreRepository {
 
     public Optional<TheatreDetails> getTheatreByOwnerId(Integer ownerId) throws SQLException {
         String query = """
-                SELECT t.theatre_id,
-                       t.owner_id,
-                       t.theatre_name,
-                       t.email,
-                       t.contact_number,
+                SELECT t.*,
                        (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
                        a.address_id,
                        a.address_line1,
@@ -206,7 +208,7 @@ public class TheatreRepository {
         }
     }
 
-    public int addTheatre(TheatreCreateRequest request) throws SQLException {
+    public int addTheatre(TheatreCreateRequest request) throws SQLException, CustomException {
         String insertTheatreQuery = """
                 INSERT INTO theatres
                     (owner_id, theatre_name, email, contact_number, total_screens, license_document,status)
@@ -227,14 +229,14 @@ public class TheatreRepository {
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    throw new RuntimeException("Failed to create theatre");
+                    throw new TheatreCreationException("Failed to create theatre");
                 }
 
                 try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                     if (keys.next()) {
                         theatreId = keys.getInt(1);
                     } else {
-                        throw new RuntimeException("Failed to create theatre");
+                        throw new TheatreCreationException("Failed to create theatre");
                     }
                 }
             }
@@ -356,11 +358,7 @@ public class TheatreRepository {
 
     public List<TheatreDetails> getAllTheatre() throws SQLException {
         String query = """
-                SELECT t.theatre_id,
-                       t.owner_id,
-                       t.theatre_name,
-                       t.email,
-                       t.contact_number,
+                SELECT t.*,
                        (SELECT COUNT(*) FROM screens s WHERE s.theatre_id = t.theatre_id) AS total_screens,
                        a.address_id,
                        a.address_line1,

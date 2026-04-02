@@ -3,6 +3,7 @@ package org.bookyourshows.service;
 import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.theatre.*;
 import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.*;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.TheatreRepository;
 import org.bookyourshows.repository.cache.theatre.TheatreCacheRepository;
@@ -17,33 +18,26 @@ public class TheatreService {
 
     private final TheatreRepository theatreRepository;
     private final ScreenRepository screenRepository;
-    private final TheatreCacheRepository cache;
+    private final TheatreCacheRepository theatreCacheRepository;
 
     public TheatreService() {
         this.theatreRepository = new TheatreRepository();
         this.screenRepository = new ScreenRepository();
-        this.cache = new TheatreCacheRepository();
+        this.theatreCacheRepository = new TheatreCacheRepository();
     }
 
     public Optional<TheatreDetails> getTheatreById(int theatreId) throws SQLException {
 
-        Optional<TheatreDetails> cached = cache.getById(theatreId);
-        if (cached.isPresent()) {
-            System.out.println("-- Get Theatre by ID : " + theatreId + " from cache --");
-            return cached;
+        Optional<TheatreDetails> theatreDetails = theatreCacheRepository.getById(theatreId);
+        if (theatreDetails.isPresent()) {
+            return theatreDetails;
         }
 
-        Optional<TheatreDetails> fromDb = theatreRepository.getTheatreById(theatreId);
+        theatreDetails = theatreRepository.getTheatreById(theatreId);
 
-        fromDb.ifPresent(theatre -> {
-            try {
-                cache.save(theatre);
-            } catch (Exception e) {
-                System.err.println("[Service] " + e.getMessage());
-            }
-        });
+        theatreDetails.ifPresent(theatreCacheRepository::save);
 
-        return fromDb;
+        return theatreDetails;
     }
 
     public Optional<TheatreDetails> getTheatreByOwnerId(Integer ownerId) throws SQLException {
@@ -56,21 +50,16 @@ public class TheatreService {
                                               String city,
                                               String status,
                                               UserContext userContext
-    ) throws SQLException {
+    ) throws SQLException, CustomException {
 
-        if ("pending".equalsIgnoreCase(status) && !"ADMIN".equalsIgnoreCase(userContext.getUserRole())) {
-            throw new SQLException("You are not allowed to perform this action");
+        if ("PENDING".equals(status) && !"ADMIN".equalsIgnoreCase(userContext.getUserRole())) {
+            throw new ForbiddenException("Access denied");
         }
 
-        try {
-            List<TheatreSummary> redisResults = cache.search(limit, offset, theatreName, city, status);
+        List<TheatreSummary> theatreSummaries = theatreCacheRepository.search(limit, offset, theatreName, city, status);
 
-            if (!redisResults.isEmpty()) {
-                System.out.println("-- Get theatres from cache --");
-                return redisResults;
-            }
-        } catch (Exception e) {
-            System.err.println("[Service] Redis search failed, falling back to DB: " + e.getMessage());
+        if (!theatreSummaries.isEmpty()) {
+            return theatreSummaries;
         }
 
         return theatreRepository.getAllTheatres(limit, offset, theatreName, city, status);
@@ -80,133 +69,86 @@ public class TheatreService {
         return theatreRepository.getTheatreAddress(theatreId);
     }
 
-    public void updateTheatreAddress(int theatreId, int ownerId, String role, Address req) throws SQLException {
+    public void updateTheatreAddress(int theatreId, int ownerId, String role, Address request) throws SQLException, CustomException {
+
         hasAccessToResource(theatreId, ownerId, role);
+        validateTheatreAddress(request);
 
-        if (req.getAddressLine1() == null || req.getAddressLine1().isBlank())
-            throw new IllegalArgumentException("address_line1 is required");
-        if (req.getCity() == null || req.getCity().isBlank()) throw new IllegalArgumentException("city is required");
-        if (req.getLatitude() == null || req.getLongitude() == null)
-            throw new IllegalArgumentException("latitude and longitude are required");
+        boolean updated = theatreRepository.updateTheatreAddress(theatreId, request);
+        if (!updated) throw new ResourceNotFoundException("Theatre address not found");
 
-        boolean updated = theatreRepository.updateTheatreAddress(theatreId, req);
-        if (!updated) throw new IllegalArgumentException("Theatre address not found");
-
-
-        try {
-            theatreRepository.getTheatreById(theatreId).ifPresent(theatre -> {
-                try {
-                    cache.update(theatre);
-                    System.out.println("-- Created Theatre by ID : " + theatre + " to cache -- ");
-                } catch (Exception ex) {
-                    System.err.println("[Service] " + ex.getMessage());
-                }
-            });
-        } catch (Exception e) {
-            System.err.println("[Service] " + e.getMessage());
-        }
+        theatreRepository.getTheatreById(theatreId).ifPresent(theatreCacheRepository::update);
     }
 
-    public TheatreDetails createTheatre(TheatreCreateRequest request) throws SQLException {
+    public TheatreDetails createTheatre(TheatreCreateRequest request) throws CustomException, SQLException {
 
         validateTheatreName(request.getTheatreName());
         validateEmail(request.getEmail());
         validateContactNumber(request.getContactNumber());
-
-        if (request.getTotalScreens() <= 0) throw new IllegalArgumentException("totalScreens must be greater than 0");
-        if (request.getAddressLine1() == null || request.getAddressLine1().isBlank())
-            throw new IllegalArgumentException("addressLine1 is required");
-        if (request.getCity() == null || request.getCity().isBlank())
-            throw new IllegalArgumentException("city is required");
-        if (request.getState() == null || request.getState().isBlank())
-            throw new IllegalArgumentException("state is required");
-        if (request.getPincode() == null || request.getPincode().isBlank())
-            throw new IllegalArgumentException("pincode is required");
+        validateTheatreRequest(request);
 
         if (theatreRepository.getTheatreByOwnerId(request.getOwnerId()).isPresent()) {
-            throw new RuntimeException("User can only create one theatre");
+            throw new ResourceConflictException("You already have an existing theatre, Only one theatre can be created.");
         }
-
         request.setState("PENDING");
         int theatreId = theatreRepository.addTheatre(request);
         boolean isAddressAdded = theatreRepository.addTheatreAddress(request, theatreId);
 
         if (!isAddressAdded) {
-            throw new RuntimeException("Theatre created but address creation failed");
+            throw new PartialUpdateException("Theatre created but address creation failed");
         }
 
         Optional<TheatreDetails> theatreDetails = this.getTheatreById(theatreId);
 
         if (theatreDetails.isPresent()) {
-            cache.save(theatreDetails.get());
+            theatreCacheRepository.save(theatreDetails.get());
         } else {
-            throw new RuntimeException("No theatre found with id: " + theatreId);
+            throw new ResourceNotFoundException("No theatre found with id: " + theatreId);
         }
         return theatreDetails.get();
     }
 
-    // -------------------- UPDATE THEATRE --------------------
-    public boolean updateTheatre(int theatreId, int ownerId, String role, TheatreUpdateRequest request) throws SQLException {
+    public boolean updateTheatre(int theatreId, int ownerId, String role, TheatreUpdateRequest request) throws SQLException, CustomException {
 
         hasAccessToResource(theatreId, ownerId, role);
 
         validateTheatreName(request.getTheatreName());
         validateEmail(request.getEmail());
         validateContactNumber(request.getContactNumber());
-
-        if (request.getTotalScreens() <= 0) throw new IllegalArgumentException("totalScreens must be > 0");
-        if (request.getAddressLine1() == null || request.getAddressLine1().isBlank())
-            throw new IllegalArgumentException("addressLine1 is required");
-        if (request.getCity() == null || request.getCity().isBlank())
-            throw new IllegalArgumentException("city is required");
-        if (request.getState() == null || request.getState().isBlank())
-            throw new IllegalArgumentException("state is required");
-        if (request.getPincode() == null || request.getPincode().isBlank())
-            throw new IllegalArgumentException("pincode is required");
+        validateTheatreUpdateRequest(request);
 
         boolean theatreUpdated = theatreRepository.updateTheatre(theatreId, request);
         boolean addressUpdated = theatreRepository.updateTheatreAddress(theatreId, request);
 
-        if (!theatreUpdated) throw new IllegalArgumentException("Theatre not found");
-        if (!addressUpdated) throw new IllegalArgumentException("Failed to update theatre address");
+        if (!theatreUpdated) throw new TheatreCreationException("Failed to update the theatre");
+        if (!addressUpdated) throw new PartialUpdateException("Failed to update theatre address");
 
-        try {
-            theatreRepository.getTheatreById(theatreId).ifPresent(theatre -> {
-                try {
-                    cache.update(theatre);
-                    System.out.println("-- Created Theatre by ID : " + theatre + " to cache -- ");
-                } catch (Exception ex) {
-                    System.err.println("[Service] " + ex.getMessage());
-                }
-            });
-        } catch (Exception e) {
-            System.err.println("[Service] " + e.getMessage());
-        }
 
+        theatreRepository.getTheatreById(theatreId).ifPresent(theatreCacheRepository::update);
         return true;
     }
 
-    public boolean deleteTheatre(int theatreId, int ownerId, String role) throws SQLException {
+    public boolean deleteTheatre(int theatreId, int ownerId, String role) throws SQLException, CustomException {
 
         hasAccessToResource(theatreId, ownerId, role);
 
         if (!screenRepository.getScreensByTheatreId(theatreId).isEmpty()) {
-            throw new RuntimeException("Delete screens/shows under this theatre first");
+            throw new ResourceConflictException("Delete screens/shows under this theatre first");
         }
 
         boolean deleted = theatreRepository.deleteTheatre(theatreId);
 
-        if (deleted) cache.delete(theatreId);
+        if (deleted) theatreCacheRepository.delete(theatreId);
 
         return deleted;
     }
 
-    private void hasAccessToResource(int theatreId, int ownerId, String role) throws SQLException {
+    private void hasAccessToResource(int theatreId, int ownerId, String role) throws SQLException, CustomException {
         Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);
-        if (theatreDetails.isEmpty()) throw new RuntimeException("The theatre does not exist");
+        if (theatreDetails.isEmpty()) throw new ResourceNotFoundException("Theatre not found with id: " + theatreId);
 
         if (!"ADMIN".equals(role) && theatreDetails.get().getTheatre().getOwnerId() != ownerId) {
-            throw new RuntimeException("The theatre does not belong to the user");
+            throw new ForbiddenException("Access denied");
         }
     }
 }

@@ -1,0 +1,94 @@
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+         https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+
+    <servlet>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <servlet-class>org.bookyourshows.core.DispatcherServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DispatcherServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
+
+    <listener>
+        <listener-class>org.bookyourshows.listener.AppInitializer</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>TokenWhitelistFilter</filter-name>
+        <filter-class>org.bookyourshows.filters.TokenWhitelistFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>TokenWhitelistFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>JWTFilter</filter-name>
+        <filter-class>org.bookyourshows.filters.JWTFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>JWTFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!--
+        <servlet>
+            <servlet-name>TheatreServlet</servlet-name>
+            <servlet-class>org.bookyourshows.servlet.TheatreServlet</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>TheatreServlet</servlet-name>
+            <url-pattern>/theatres/*</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>ScreenServlet</servlet-name>
+            <servlet-class>org.bookyourshows.servlet.ScreenServlet</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>ScreenServlet</servlet-name>
+            <url-pattern>/screens/*</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>MovieServlet</servlet-name>
+            <servlet-class>org.bookyourshows.servlet.MovieServlet</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>MovieServlet</servlet-name>
+            <url-pattern>/movies/*</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>ShowServlet</servlet-name>
+            <servlet-class>org.bookyourshows.servlet.ShowServlet</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>ShowServlet</servlet-name>
+            <url-pattern>/shows/*</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>SeatServlet</servlet-name>
+            <servlet-class>org.bookyourshows.servlet.SeatServlet</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>SeatServlet</servlet-name>
+            <url-pattern>/seats/*</url-pattern>
+        </servlet-mapping>-->
+
+</web-app>

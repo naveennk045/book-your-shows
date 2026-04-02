@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 import org.bookyourshows.dto.show.*;
 import org.bookyourshows.exceptions.CustomException;
-import org.bookyourshows.exceptions.ShowCreationException;
 import org.bookyourshows.service.ShowService;
 
 import java.io.IOException;

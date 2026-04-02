@@ -1,9 +1,15 @@
 package org.bookyourshows.dto.theatre;
 
 
+import com.fasterxml.jackson.annotation.JsonView;
+import org.bookyourshows.dto.Views;
+
 public class TheatreDetails {
 
+    @JsonView(Views.Public.class)
     private Theatre theatre;
+
+    @JsonView(Views.Public.class)
     private TheatreAddress address;
 
     public TheatreDetails() {

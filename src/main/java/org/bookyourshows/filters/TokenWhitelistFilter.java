@@ -2,6 +2,7 @@ package org.bookyourshows.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,19 +46,22 @@ public class TokenWhitelistFilter implements Filter {
             byte[] val = redisClient.get(key.getBytes());
 
             if (val == null) {
-                sendError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+                writeError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
 
             chain.doFilter(servletRequest, servletResponse);
 
+        } catch (JwtException e) {
+            System.err.println("[TokenWhitelistFilter]" + e.getMessage());
+            writeError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
         } catch (Exception e) {
             System.err.println("[TokenWhitelistFilter]" + e.getMessage());
-            sendError(httpServletResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error: Error in authentication");
+            writeError(httpServletResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error: Error in authentication");
         }
     }
 
-    private void sendError(HttpServletResponse response, int status, String message) throws IOException {
+    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
         objectMapper.writeValue(response.getWriter(), Map.of("message", message));
     }
