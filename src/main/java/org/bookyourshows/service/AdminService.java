@@ -1,5 +1,6 @@
 package org.bookyourshows.service;
 
+import org.bookyourshows.exceptions.ResourceNotFoundException;
 import org.bookyourshows.repository.AdminRepository;
 import org.bookyourshows.repository.TheatreRepository;
 
@@ -15,9 +16,9 @@ public class AdminService {
         this.theatreRepository = new TheatreRepository();
     }
 
-    public boolean updateTheatreStatus(Integer theatreId,String status) throws SQLException {
+    public boolean updateTheatreStatus(Integer theatreId,String status) throws SQLException, ResourceNotFoundException {
         if(this.theatreRepository.getTheatreById(theatreId).isEmpty()){
-            throw  new SQLException("theatre not found");
+            throw  new ResourceNotFoundException("Theatre with this id does not exist");
         }
         return this.adminRepository.updateTheatreStatus(theatreId,status);
     }

@@ -3,10 +3,10 @@ package org.bookyourshows.servlet;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AdminService;
 
 import java.io.IOException;
@@ -26,42 +26,50 @@ public class AdminServlet extends HttpServlet {
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    public void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+    public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        String path = request.getPathInfo();
-        String[] parts = path.split("/");
+        String[] parts = splitPath(request);
 
-
-        try{
+        try {
             // /admin/theatre/{theatre_id}/aprrove
             Integer theatreId = Integer.valueOf(parts[3]);
 
             if (parts.length == 5 && parts[4].equals("approve")) {
-                boolean isApproved = this.adminService.updateTheatreStatus(theatreId,"APPROVED");
-                if(isApproved){
+                boolean isApproved = this.adminService.updateTheatreStatus(theatreId, "APPROVED");
+                if (isApproved) {
                     response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(),Map.of("message","Theatre approved successfully"));
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre approved successfully"));
                 }
             }
             // /admin/theatre/{theatre_id}/reject
             if (parts.length == 5 && parts[4].equals("reject")) {
-                boolean isReject = this.adminService.updateTheatreStatus(theatreId,"REJECTED");
-                if(isReject){
+                boolean isReject = this.adminService.updateTheatreStatus(theatreId, "REJECTED");
+                if (isReject) {
                     response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(),Map.of("message","Theatre rejected successfully"));
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre rejected successfully"));
                 }
             }
 
-        }catch (NumberFormatException e){
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
+        } catch (NumberFormatException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid theater_id");
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
 
 
     }
+
+
+    private String[] splitPath(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
+    }
+
 }

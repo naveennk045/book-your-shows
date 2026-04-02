@@ -317,7 +317,7 @@ public class TheatreServlet extends HttpServlet {
 
     private void writeError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
-        objectMapper.writeValue(response.getWriter(), Map.of("message", message));
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
     }
 
     private int parseIntOrDefault(String value, int defaultValue) {
