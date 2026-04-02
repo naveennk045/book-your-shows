@@ -52,7 +52,7 @@ public class TheatreService {
                                               UserContext userContext
     ) throws SQLException, CustomException {
 
-        if ("PENDING".equals(status) && !"ADMIN".equalsIgnoreCase(userContext.getUserRole())) {
+        if (status != null && !"ADMIN".equalsIgnoreCase(userContext.getUserRole())) {
             throw new ForbiddenException("Access denied");
         }
 
