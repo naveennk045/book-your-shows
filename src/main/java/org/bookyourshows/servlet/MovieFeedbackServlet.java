@@ -34,19 +34,17 @@ public class MovieFeedbackServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        String path = request.getPathInfo(); // /movies/{movie_id}/feedback
+        String path = request.getPathInfo();
+
         if (path == null || path.isBlank()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Movie id required"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie id required"));
             return;
         }
 
         String[] parts = path.split("/");
-        System.out.println("MovieFeedbackServlet GET path parts: " + Arrays.toString(parts));
 
         // /movies/{movie_id}/feedback
         if (parts.length == 4 && "feedbacks".equals(parts[3])) {
@@ -56,8 +54,7 @@ public class MovieFeedbackServlet extends HttpServlet {
                 movieId = Integer.parseInt(parts[2]);
             } catch (NumberFormatException e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Invalid movie_id"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid movie_id"));
                 return;
             }
 
@@ -66,19 +63,16 @@ public class MovieFeedbackServlet extends HttpServlet {
 
             if (limit > 100 || limit < 0 || offset < 0) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Invalid pagination values"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid pagination values"));
                 return;
             }
 
             try {
-                List<MovieFeedbackResponse> list =
-                        movieFeedbackService.getFeedbacksForMovie(movieId, limit, offset);
+                List<MovieFeedbackResponse> list = movieFeedbackService.getFeedbacksForMovie(movieId, limit, offset);
 
                 if (list.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "No feedbacks"));
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No feedbacks"));
                     return;
                 }
 
@@ -87,49 +81,35 @@ public class MovieFeedbackServlet extends HttpServlet {
 
             } catch (SQLException e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Database error"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
             }
 
             return;
         }
 
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        objectMapper.writeValue(response.getWriter(),
-                Map.of("message", "Not found"));
+        objectMapper.writeValue(response.getWriter(), Map.of("message", "Not found"));
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 
         String path = request.getPathInfo(); // /movies/{movie_id}/feedback
         if (path == null || path.isBlank()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Movie id required"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie id required"));
             return;
         }
 
         String[] parts = path.split("/");
-        System.out.println("MovieFeedbackServlet POST path parts: " + Arrays.toString(parts));
 
         if (!(parts.length == 4 && "feedbacks".equals(parts[3]))) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL for creating feedback"));
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Not found"));
             return;
         }
 
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
 
         int movieId;
         MovieFeedbackCreateRequest createReq;
@@ -139,61 +119,47 @@ public class MovieFeedbackServlet extends HttpServlet {
             createReq = objectMapper.readValue(request.getReader(), MovieFeedbackCreateRequest.class);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid movie_id"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid movie_id"));
             return;
         } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON body"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid JSON body"));
             return;
         }
 
         try {
-            MovieFeedbackResponse created =
-                    movieFeedbackService.createFeedback(movieId, createReq);
+            MovieFeedbackResponse created = movieFeedbackService.createFeedback(movieId, createReq);
 
             response.setStatus(HttpServletResponse.SC_CREATED);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of(
-                            "message", "Feedback created successfully",
-                            "rating_id", created.getRatingId()
-                    ));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Feedback created successfully", "rating_id", created.getRatingId()));
 
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
         } catch (CustomException e) {
             response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         String path = request.getPathInfo(); // /movies/{movie_id}/feedback/{rating_id}
         if (path == null || path.isBlank()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Movie id and rating id required"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie id and rating id required"));
             return;
         }
 
         String[] parts = path.split("/");
-        System.out.println("MovieFeedbackServlet PUT path parts: " + Arrays.toString(parts));
 
         if (!(parts.length == 5 && "feedbacks".equals(parts[3]))) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL for updating feedback"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No route found"));
             return;
         }
 
@@ -207,13 +173,11 @@ public class MovieFeedbackServlet extends HttpServlet {
             updateReq = objectMapper.readValue(request.getReader(), MovieFeedbackUpdateRequest.class);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid movie_id or rating_id"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid movie_id or rating_id"));
             return;
         } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON body"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid JSON body"));
             return;
         }
 
@@ -221,30 +185,22 @@ public class MovieFeedbackServlet extends HttpServlet {
             movieFeedbackService.updateFeedback(movieId, ratingId, updateReq);
 
             response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of(
-                            "message", "Feedback updated successfully",
-                            "rating_id", ratingId
-                    ));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Feedback updated successfully", "rating_id", ratingId));
 
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
         } catch (CustomException e) {
             response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -252,18 +208,15 @@ public class MovieFeedbackServlet extends HttpServlet {
         String path = request.getPathInfo(); // /movies/{movie_id}/feedback/{rating_id}
         if (path == null || path.isBlank()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Movie id and rating id required"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie id and rating id required"));
             return;
         }
 
         String[] parts = path.split("/");
-        System.out.println("MovieFeedbackServlet DELETE path parts: " + Arrays.toString(parts));
 
         if (!(parts.length == 5 && "feedbacks".equals(parts[3]))) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL for deleting feedback"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No route found"));
             return;
         }
 
@@ -275,8 +228,7 @@ public class MovieFeedbackServlet extends HttpServlet {
             ratingId = Integer.parseInt(parts[4]);
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid movie_id or rating_id"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid movie_id or rating_id"));
             return;
         }
 
@@ -285,27 +237,22 @@ public class MovieFeedbackServlet extends HttpServlet {
 
             if (!deleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Feedback not found"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Feedback not found"));
                 return;
             }
 
             response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Feedback deleted successfully"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Feedback deleted successfully"));
 
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
         } catch (CustomException e) {
             response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 

@@ -394,7 +394,6 @@ public class BookingRepository {
         }
     }
 
-
     public void updateBookingStatus(Integer bookingId, String bookingStatus, String paymentStatus, Integer transactionId) throws SQLException {
 
 

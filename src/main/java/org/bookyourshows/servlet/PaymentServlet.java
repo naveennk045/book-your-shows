@@ -12,6 +12,8 @@ import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.payment.PaymentInitiateRequest;
 import org.bookyourshows.dto.payment.PaymentInitiateResponse;
 import org.bookyourshows.dto.payment.PaymentWebhookPayload;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.PaymentService;
 
 import java.io.IOException;
@@ -36,16 +38,6 @@ public class PaymentServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
 
         try {
 
@@ -100,10 +92,13 @@ public class PaymentServlet extends HttpServlet {
     private void handlePaymentInitiation(HttpServletRequest request, HttpServletResponse response, Integer bookingId) throws ServletException, IOException {
 
         try {
+
+            UserContext userContext = (UserContext) request.getAttribute("userContext");
+
             PaymentInitiateRequest paymentInitiateRequest =
                     objectMapper.readValue(request.getReader(), PaymentInitiateRequest.class);
 
-            PaymentInitiateResponse paymentInitiateResponse = this.paymentService.initiatePayment(bookingId, paymentInitiateRequest);
+            PaymentInitiateResponse paymentInitiateResponse = this.paymentService.initiatePayment(bookingId, paymentInitiateRequest, userContext);
             System.out.println("Payment _ url :  " + paymentInitiateResponse.getPaymentUrl());
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getWriter(), paymentInitiateResponse);
@@ -114,6 +109,10 @@ public class PaymentServlet extends HttpServlet {
                     Map.of("message", "Database error"));
         } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
@@ -149,11 +148,11 @@ public class PaymentServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
-        }catch (JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
-        }catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid parameters  format"));

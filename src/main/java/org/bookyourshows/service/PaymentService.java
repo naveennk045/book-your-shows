@@ -2,11 +2,16 @@ package org.bookyourshows.service;
 
 import org.bookyourshows.dto.booking.BookingDetails;
 import org.bookyourshows.dto.booking.BookingSeatInfo;
+import org.bookyourshows.dto.booking.BookingSummary;
 import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.payment.PaymentInitiateRequest;
 import org.bookyourshows.dto.payment.PaymentInitiateResponse;
 import org.bookyourshows.dto.payment.PaymentWebhookPayload;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
+import org.bookyourshows.exceptions.ForbiddenException;
+import org.bookyourshows.exceptions.ResourceNotFoundException;
 import org.bookyourshows.repository.BookingRepository;
 import org.bookyourshows.repository.PaymentRepository;
 import org.bookyourshows.repository.cache.show.ShowSeatCacheRepository;
@@ -29,7 +34,9 @@ public class PaymentService {
         this.showSeatCacheRepository = new ShowSeatCacheRepository();
     }
 
-    public PaymentInitiateResponse initiatePayment(Integer bookingId, PaymentInitiateRequest request) throws SQLException {
+    public PaymentInitiateResponse initiatePayment(Integer bookingId, PaymentInitiateRequest request, UserContext userContext) throws SQLException, CustomException {
+
+        hasAccessToResource(bookingId, userContext);
 
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
         if (bookingDetails.isEmpty()) {
@@ -102,8 +109,6 @@ public class PaymentService {
             bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, transactionId);
             this.showSeatCacheRepository.updateBookingStatus(showId, showSeatIdToBeBooked, "BOOKED", userId);
         }
-
-
     }
 
     public List<PaymentDetails> getPayments(
@@ -113,5 +118,19 @@ public class PaymentService {
             String status) throws SQLException {
 
         return paymentRepository.getPayments(year, month, bookingId, status);
+    }
+
+    private void hasAccessToResource(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
+
+        if (bookingRepository.getBookingById(bookingId).isEmpty()) {
+            throw new ResourceNotFoundException("Booking not found");
+        }
+
+        if (!userContext.getUserRole().equals("ADMIN")) {
+            Optional<BookingSummary> bookings = bookingRepository.getBookingsByUserIdBookingId(userContext.getUserId(), bookingId);
+            if (bookings.isEmpty()) {
+                throw new ForbiddenException("Access Denied");
+            }
+        }
     }
 }
