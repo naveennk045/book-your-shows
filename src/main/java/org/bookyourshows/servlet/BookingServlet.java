@@ -57,7 +57,7 @@ public class BookingServlet extends HttpServlet {
             // 1. ADMIN → /bookings
             if (path.equals("/bookings") || path.equals("/bookings/")) {
 
-                String userRole = String.valueOf(request.getHeader("user_role"));
+                String userRole = String.valueOf(request.getAttribute("user_role"));
 
 
                 if (!"ADMIN".equals(userRole)) {

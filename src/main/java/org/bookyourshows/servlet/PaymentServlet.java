@@ -125,7 +125,7 @@ public class PaymentServlet extends HttpServlet {
 
         response.setContentType("application/json");
 
-        String role = String.valueOf(request.getHeader("user_role"));
+        String role = String.valueOf(request.getAttribute("user_role"));
         if (!"ADMIN".equals(role)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             objectMapper.writeValue(response.getWriter(),

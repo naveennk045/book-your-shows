@@ -44,7 +44,7 @@ public class RefundServlet extends HttpServlet {
             // 1. ADMIN LIST → /refunds
             if ("/refunds".equals(path) || "/refunds/".equals(path)) {
 
-                String role = String.valueOf(request.getHeader("user_role"));
+                String role = String.valueOf(request.getAttribute("user_role"));
 
                 if (!"ADMIN".equals(role)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
