@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.refund.RefundDetails;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.RefundService;
 
 import java.io.IOException;
@@ -30,11 +32,11 @@ public class RefundServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request,
-                         HttpServletResponse response) throws IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
+
 
         String path = request.getPathInfo();
 
@@ -48,8 +50,7 @@ public class RefundServlet extends HttpServlet {
 
                 if (!"ADMIN".equals(role)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "Unauthorized"));
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Unauthorized"));
                     return;
                 }
 
@@ -57,8 +58,7 @@ public class RefundServlet extends HttpServlet {
                 Integer paymentId = parseInt(request.getParameter("payment_id"));
                 String status = request.getParameter("status");
 
-                List<RefundDetails> refunds =
-                        refundService.getRefunds(year, paymentId, status);
+                List<RefundDetails> refunds = refundService.getRefunds(year, paymentId, status);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), refunds);
@@ -69,8 +69,7 @@ public class RefundServlet extends HttpServlet {
             // 2. SINGLE → /refund/{id}
             if (path == null || !path.startsWith("/refund")) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Not found"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Not found"));
                 return;
             }
 
@@ -78,8 +77,7 @@ public class RefundServlet extends HttpServlet {
 
             if (remainder.isEmpty() || "/".equals(remainder)) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "refund_id is required in path"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "refund_id is required in path"));
                 return;
             }
 
@@ -87,8 +85,7 @@ public class RefundServlet extends HttpServlet {
 
             if (parts.length < 2) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "refund_id is required in path"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "refund_id is required in path"));
                 return;
             }
 
@@ -97,17 +94,15 @@ public class RefundServlet extends HttpServlet {
                 refundId = Integer.parseInt(parts[1]);
             } catch (NumberFormatException e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Invalid refund id: " + parts[1]));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid refund id: " + parts[1]));
                 return;
             }
 
-            Optional<RefundDetails> refundDetails = refundService.getRefundById(refundId);
+            Optional<RefundDetails> refundDetails = refundService.getRefundById(refundId, userContext);
 
             if (refundDetails.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Refund not found"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Refund not found"));
                 return;
             }
 
@@ -116,12 +111,13 @@ public class RefundServlet extends HttpServlet {
 
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
-        } catch (Exception e) {
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+        } catch (RuntimeException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 

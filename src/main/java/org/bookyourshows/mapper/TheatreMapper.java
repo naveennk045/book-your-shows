@@ -75,12 +75,6 @@ public class TheatreMapper {
         theatreAddress.setLongitude(resultSet.getDouble("longitude"));
         theatreDetails.setAddress(theatreAddress);
 
-        System.out.println("MySQL DB");
-        System.out.println("Status: " + theatre.getStatus());
-        System.out.println("Registration Date: " + theatre.getRegistrationDate());
-        System.out.println("License Document: " + theatre.getLicenseDocument());
-
-
         return theatreDetails;
     }
 
@@ -145,12 +139,6 @@ public class TheatreMapper {
         TheatreDetails theatreDetails = new TheatreDetails();
         theatreDetails.setTheatre(theatre);
         theatreDetails.setAddress(theatreAddress);
-
-        System.out.println("REDIS DB");
-        System.out.println("Status: " + theatre.getStatus());
-        System.out.println("Registration Date: " + theatre.getRegistrationDate());
-        System.out.println("License Document: " + theatre.getLicenseDocument());
-
 
         return theatreDetails;
     }

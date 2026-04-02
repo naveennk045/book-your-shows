@@ -31,6 +31,20 @@ public class PaymentRepository {
         return Optional.empty();
     }
 
+    public Optional<PaymentDetails> getPaymentDetailsByTransactionId(Integer transactionId) throws SQLException {
+        String query = "SELECT * FROM payments WHERE transaction_id = ?";
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, transactionId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(PaymentMapper.mapRowToPaymentDetails(resultSet));
+            }
+        }
+        return Optional.empty();
+    }
+
     public Optional<PaymentDetails> getPaymentDetailsByBookingId(Integer bookingId) throws SQLException {
         String query = "SELECT * FROM payments WHERE booking_id = ? ORDER BY created_at DESC LIMIT 1";
 
@@ -52,9 +66,9 @@ public class PaymentRepository {
             String status) throws SQLException {
 
         StringBuilder query = new StringBuilder("""
-        SELECT * FROM payments
-        WHERE 1=1
-    """);
+                    SELECT * FROM payments
+                    WHERE 1=1
+                """);
 
         if (year != null) {
             query.append(" AND YEAR(created_at) = ?");
