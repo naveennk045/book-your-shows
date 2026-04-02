@@ -4,10 +4,18 @@ public class SeatSummary {
 
     private Integer seatId;
     private String seatNumber;
+    private Integer screenId;
     private String seatCategory;
     private double priceMultiplier;
     private String status;
 
+    public Integer getScreenId() {
+        return screenId;
+    }
+
+    public void setScreenId(Integer screenId) {
+        this.screenId = screenId;
+    }
 
     public Integer getSeatId() {
         return seatId;

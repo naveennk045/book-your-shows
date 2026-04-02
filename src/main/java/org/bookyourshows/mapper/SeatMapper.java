@@ -16,6 +16,7 @@ public class SeatMapper {
         seat.setSeatNumber(String.valueOf(rs.getString("seat_number")));
         seat.setPriceMultiplier(rs.getDouble("price_multiplier"));
         seat.setStatus(rs.getString("seat_status"));
+        seat.setScreenId(rs.getInt("screen_id"));
 
         return seat;
     }

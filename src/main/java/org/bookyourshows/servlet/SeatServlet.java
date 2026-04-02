@@ -11,8 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.seat.SeatCreateRequest;
 import org.bookyourshows.dto.seat.SeatRowResponse;
-import org.bookyourshows.dto.seat.SeatSummary;
 import org.bookyourshows.dto.seat.SeatUpdateRequest;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.SeatService;
 
 import java.io.IOException;
@@ -37,8 +38,8 @@ public class SeatServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         String[] parts = request.getPathInfo().split("/");
 
@@ -70,7 +71,7 @@ public class SeatServlet extends HttpServlet {
                     }
             );
 
-            seatService.createSeat(seats, screenId);
+            seatService.createSeat(seats, screenId, theatreId, userContext);
 
             response.setStatus(HttpServletResponse.SC_CREATED);
             objectMapper.writeValue(response.getWriter(),
@@ -83,7 +84,11 @@ public class SeatServlet extends HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+                    Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
@@ -145,8 +150,9 @@ public class SeatServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+
+
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         // /seats/{seat_id}
         String[] parts = request.getPathInfo().split("/");
@@ -160,7 +166,7 @@ public class SeatServlet extends HttpServlet {
         try {
             int showId = Integer.parseInt(parts[2]);
             seatUpdateRequest = objectMapper.readValue(request.getReader(), SeatUpdateRequest.class);
-            boolean isUpdated = this.seatService.updateSeat(showId, seatUpdateRequest);
+            boolean isUpdated = this.seatService.updateSeat(showId, seatUpdateRequest, userContext);
             if (isUpdated) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "Seats updated successfully"));
@@ -181,13 +187,18 @@ public class SeatServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid JSON"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+
+
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         // /seats/{seat_id}
         String[] parts = request.getPathInfo().split("/");
@@ -198,8 +209,8 @@ public class SeatServlet extends HttpServlet {
         }
 
         try {
-            int showId = Integer.parseInt(parts[2]);
-            boolean isDeleted = this.seatService.deleteSeat(showId);
+            int seatId = Integer.parseInt(parts[2]);
+            boolean isDeleted = this.seatService.deleteSeat(seatId, userContext);
             if (isDeleted) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "Seats deleted successfully"));
@@ -214,6 +225,10 @@ public class SeatServlet extends HttpServlet {
                     Map.of("message", "Invalid show id"));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }

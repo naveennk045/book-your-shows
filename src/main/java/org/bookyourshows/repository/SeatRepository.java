@@ -23,6 +23,7 @@ public class SeatRepository {
                   SELECT s.seat_id,
                            s.row_no,
                            s.seat_number,
+                           s.screen_id,
                            sc.name AS seat_category,
                            sc.price_multiplier,
                            s.seat_status
@@ -88,7 +89,8 @@ public class SeatRepository {
                            s.seat_number,
                            sc.name AS seat_category,
                            sc.price_multiplier,
-                           s.seat_status
+                           s.seat_status,
+                           s.screen_id
                 
                     FROM seats AS s
                              JOIN seat_categories AS sc ON sc.seat_category_id = s.seat_category_id

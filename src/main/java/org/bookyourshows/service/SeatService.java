@@ -1,19 +1,29 @@
 package org.bookyourshows.service;
 
+import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.seat.*;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.*;
+import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.SeatRepository;
+import org.bookyourshows.repository.TheatreRepository;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.bookyourshows.utils.SeatUtils.validateSeatCreateRequests;
 
 public class SeatService {
 
     private final SeatRepository seatRepository;
+    private final ScreenRepository screenRepository;
+    private final TheatreRepository theatreRepository;
 
     public SeatService() {
         this.seatRepository = new SeatRepository();
+        this.screenRepository = new ScreenRepository();
+        this.theatreRepository = new TheatreRepository();
     }
 
     public List<SeatRowResponse> getSeatsByScreenId(int screenId, int theatreId) throws SQLException {
@@ -34,8 +44,18 @@ public class SeatService {
         return response;
     }
 
-    public void createSeat(List<SeatCreateRequest> requests, int screenId) throws SQLException {
+    public void createSeat(List<SeatCreateRequest> requests, Integer screenId, Integer theatreId, UserContext userContext) throws SQLException, CustomException {
 
+        hasAccessToScreen(theatreId, userContext);
+        Optional<ScreenDetails> screenDetails = screenRepository.getScreenByScreenId(screenId);
+
+        if (screenDetails.isEmpty()) {
+            throw new ResourceNotFoundException("Screen with id " + screenId + " does not exist");
+        }
+        if (!Objects.equals(screenDetails.get().getTheatreId(), theatreId)) {
+            throw new ResourceConflictException("Screen not belongs to the theatre");
+        }
+        validateSeatCreateRequests(requests);
 
         Map<Integer, Integer> rowSeatCountMap = seatRepository.getMaxSeatNumberByScreen(screenId);
         List<SeatCreateDetails> seats = new ArrayList<>();
@@ -76,23 +96,56 @@ public class SeatService {
         return sb.reverse().toString();
     }
 
-    public boolean updateSeat(int seatId, SeatUpdateRequest seatUpdateRequest) throws SQLException {
+    public boolean updateSeat(int seatId, SeatUpdateRequest seatUpdateRequest, UserContext userContext) throws SQLException, CustomException {
 
-        if(this.seatRepository.getSeatById(seatId).isEmpty()) {
-            throw new IllegalArgumentException("Seat with id " + seatId + " does not exist");
+        Optional<SeatSummary> seatDetails = this.seatRepository.getSeatById(seatId);
+        if (seatDetails.isEmpty()) {
+            throw new ResourceNotFoundException("Seat with id " + seatId + " does not exist");
         }
+
+        Integer screenId = seatDetails.get().getScreenId();
+        Optional<ScreenDetails> screenDetails = screenRepository.getScreenByScreenId(screenId);
+
+        if (screenDetails.isEmpty()) {
+            throw new ResourceNotFoundException("Screen with id " + screenId + " does not exist");
+        }
+
+        Integer theatreId = screenDetails.get().getTheatreId();
+
+        hasAccessToScreen(theatreId, userContext);
 
         return this.seatRepository.updateSeat(seatId, seatUpdateRequest);
 
 
     }
 
-    public boolean deleteSeat(int seatId) throws SQLException {
-        if(this.seatRepository.getSeatById(seatId).isEmpty()) {
-            throw new IllegalArgumentException("Seat with id " + seatId + " does not exist");
+    public boolean deleteSeat(int seatId, UserContext userContext) throws SQLException, CustomException {
+
+        Optional<SeatSummary> seatDetails = this.seatRepository.getSeatById(seatId);
+        if (seatDetails.isEmpty()) {
+            throw new ResourceNotFoundException("Seat with id " + seatId + " does not exist");
         }
+
+        Integer screenId = seatDetails.get().getScreenId();
+        Optional<ScreenDetails> screenDetails = screenRepository.getScreenByScreenId(screenId);
+
+        if (screenDetails.isEmpty()) {
+            throw new ResourceNotFoundException("Screen with id " + screenId + " does not exist");
+        }
+
+        Integer theatreId = screenDetails.get().getTheatreId();
+        hasAccessToScreen(theatreId, userContext);
+
         return this.seatRepository.deleteSeat(seatId);
     }
 
+    private void hasAccessToScreen(Integer theatreId, UserContext userContext) throws SQLException, CustomException {
+
+        Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);
+        if (!userContext.getUserRole().equals("ADMIN") && theatreDetails.isPresent() &&
+                !Objects.equals(theatreDetails.get().getTheatre().getOwnerId(), userContext.getUserId())) {
+            throw new ForbiddenException("Access denied");
+        }
+    }
 
 }
