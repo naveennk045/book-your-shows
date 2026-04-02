@@ -253,6 +253,7 @@ public class MovieServlet extends HttpServlet {
                     Map.of("message", "Database error"));
         }
     }
+/*
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
@@ -310,6 +311,7 @@ public class MovieServlet extends HttpServlet {
                     Map.of("message", "Database error"));
         }
     }
+*/
 
     private Integer parseIntOrDefault(String value, int defaultValue) {
         if (value == null || value.isBlank()) return defaultValue;

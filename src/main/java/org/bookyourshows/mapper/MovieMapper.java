@@ -39,39 +39,40 @@ public class MovieMapper {
     }
 
 
-    public static Map<String, String> mapToHashData(MovieDetails movie) {
-        Map<String, String> map = new HashMap<>();
-        map.put("movie_id", String.valueOf(movie.getMovieId()));
-        map.put("title", nullSafe(movie.getTitle()));
-        map.put("language", nullSafe(movie.getLanguage()));
-        map.put("genre", nullSafe(movie.getGenre()));
-        map.put("duration", String.valueOf(movie.getDuration()));
-        map.put("censor_rating", nullSafe(movie.getCensorRating()));
-        map.put("poster_url", nullSafe(movie.getPosterUrl()));
-        map.put("trailer_url", nullSafe(movie.getTrailerUrl()));
-        map.put("description", nullSafe(movie.getDescription()));
+    public static Map<String, String> mapMovieDeatilsToHashMap(MovieDetails movie) {
+        Map<String, String> movieMap = new HashMap<>();
+
+        movieMap.put("movie_id", String.valueOf(movie.getMovieId()));
+        movieMap.put("title", nullSafe(movie.getTitle()));
+        movieMap.put("language", nullSafe(movie.getLanguage()));
+        movieMap.put("genre", nullSafe(movie.getGenre()));
+        movieMap.put("duration", String.valueOf(movie.getDuration()));
+        movieMap.put("censor_rating", nullSafe(movie.getCensorRating()));
+        movieMap.put("poster_url", nullSafe(movie.getPosterUrl()));
+        movieMap.put("trailer_url", nullSafe(movie.getTrailerUrl()));
+        movieMap.put("description", nullSafe(movie.getDescription()));
 
         if (movie.getReleaseDate() != null) {
-            map.put("release_date", movie.getReleaseDate().toString());
-            map.put("release_year", String.valueOf(
+            movieMap.put("release_date", movie.getReleaseDate().toString());
+            movieMap.put("release_year", String.valueOf(
                     movie.getReleaseDate().toLocalDate().getYear()));
         }
-        return map;
+        return movieMap;
     }
 
-    public static MovieDetails maptoMovieDetails(Map<String, String> fields) {
+    public static MovieDetails mapHashMaptoMovieDetails(Map<String, String> movieDetailsMap) {
         MovieDetails movieDetails = new MovieDetails();
-        movieDetails.setMovieId(parseIntSafe(fields.get("movie_id")));
-        movieDetails.setTitle(fields.get("title"));
-        movieDetails.setLanguage(fields.get("language"));
-        movieDetails.setGenre(fields.get("genre"));
-        movieDetails.setDuration(parseIntSafe(fields.get("duration")));
-        movieDetails.setCensorRating(fields.get("censor_rating"));
-        movieDetails.setPosterUrl(fields.get("poster_url"));
-        movieDetails.setTrailerUrl(fields.get("trailer_url"));
-        movieDetails.setDescription(fields.get("description"));
+        movieDetails.setMovieId(parseIntSafe(movieDetailsMap.get("movie_id")));
+        movieDetails.setTitle(movieDetailsMap.get("title"));
+        movieDetails.setLanguage(movieDetailsMap.get("language"));
+        movieDetails.setGenre(movieDetailsMap.get("genre"));
+        movieDetails.setDuration(parseIntSafe(movieDetailsMap.get("duration")));
+        movieDetails.setCensorRating(movieDetailsMap.get("censor_rating"));
+        movieDetails.setPosterUrl(movieDetailsMap.get("poster_url"));
+        movieDetails.setTrailerUrl(movieDetailsMap.get("trailer_url"));
+        movieDetails.setDescription(movieDetailsMap.get("description"));
 
-        String releaseDateStr = fields.get("release_date");
+        String releaseDateStr = movieDetailsMap.get("release_date");
         if (releaseDateStr != null && !releaseDateStr.isEmpty()) {
             movieDetails.setReleaseDate(java.sql.Date.valueOf(releaseDateStr));
         }

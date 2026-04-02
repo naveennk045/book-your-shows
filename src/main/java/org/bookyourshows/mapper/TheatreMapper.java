@@ -80,36 +80,36 @@ public class TheatreMapper {
 
 
     public static Map<String, String> mapTheatreToHash(TheatreDetails theatreDetails) {
-        Map<String, String> flatMap = new HashMap<>();
+        Map<String, String> theatreDetailsMap = new HashMap<>();
 
         Theatre theatre = theatreDetails.getTheatre();
-        flatMap.put("theatre_id", String.valueOf(theatre.getTheatreId()));
-        flatMap.put("owner_id", String.valueOf(theatre.getOwnerId()));
-        flatMap.put("theatre_name", nullSafe(theatre.getTheatreName()));
-        flatMap.put("email", nullSafe(theatre.getEmail()));
-        flatMap.put("contact_number", nullSafe(theatre.getContactNumber()));
-        flatMap.put("total_screens", String.valueOf(theatre.getTotalScreens()));
-        flatMap.put("license_document", nullSafe(theatre.getLicenseDocument()));
-        flatMap.put("status", nullSafe(theatre.getStatus()));
-        flatMap.put("registration_date", theatre.getRegistrationDate() != null
+        theatreDetailsMap.put("theatre_id", String.valueOf(theatre.getTheatreId()));
+        theatreDetailsMap.put("owner_id", String.valueOf(theatre.getOwnerId()));
+        theatreDetailsMap.put("theatre_name", nullSafe(theatre.getTheatreName()));
+        theatreDetailsMap.put("email", nullSafe(theatre.getEmail()));
+        theatreDetailsMap.put("contact_number", nullSafe(theatre.getContactNumber()));
+        theatreDetailsMap.put("total_screens", String.valueOf(theatre.getTotalScreens()));
+        theatreDetailsMap.put("license_document", nullSafe(theatre.getLicenseDocument()));
+        theatreDetailsMap.put("status", nullSafe(theatre.getStatus()));
+        theatreDetailsMap.put("registration_date", theatre.getRegistrationDate() != null
                 ? theatre.getRegistrationDate().toString() : "");
-        flatMap.put("approval_date", theatre.getApprovalDate() != null
+        theatreDetailsMap.put("approval_date", theatre.getApprovalDate() != null
                 ? theatre.getApprovalDate().toString() : "");
 
         TheatreAddress theatreAddress = theatreDetails.getAddress();
-        flatMap.put("address_id", String.valueOf(theatreAddress.getAddressId()));
-        flatMap.put("address_line1", nullSafe(theatreAddress.getAddressLine1()));
-        flatMap.put("city", nullSafe(theatreAddress.getCity()));
-        flatMap.put("state", nullSafe(theatreAddress.getState()));
-        flatMap.put("pincode", nullSafe(theatreAddress.getPincode()));
-        flatMap.put("latitude", String.valueOf(theatreAddress.getLatitude()));
-        flatMap.put("longitude", String.valueOf(theatreAddress.getLongitude()));
+        theatreDetailsMap.put("address_id", String.valueOf(theatreAddress.getAddressId()));
+        theatreDetailsMap.put("address_line1", nullSafe(theatreAddress.getAddressLine1()));
+        theatreDetailsMap.put("city", nullSafe(theatreAddress.getCity()));
+        theatreDetailsMap.put("state", nullSafe(theatreAddress.getState()));
+        theatreDetailsMap.put("pincode", nullSafe(theatreAddress.getPincode()));
+        theatreDetailsMap.put("latitude", String.valueOf(theatreAddress.getLatitude()));
+        theatreDetailsMap.put("longitude", String.valueOf(theatreAddress.getLongitude()));
 
-        return flatMap;
+        return theatreDetailsMap;
     }
 
 
-    public static TheatreDetails mapHashToTheatreDetails(Map<String, String> theatreDetailsMap) {
+    public static TheatreDetails mapHashMapToTheatreDetails(Map<String, String> theatreDetailsMap) {
         if (theatreDetailsMap == null || theatreDetailsMap.isEmpty()) {
             return null;
         }
@@ -143,7 +143,7 @@ public class TheatreMapper {
         return theatreDetails;
     }
 
-    public static TheatreSummary mapHashToTheatreSummary(Map<String, String> theatreDetailsMap) {
+    public static TheatreSummary mapHashMapToTheatreSummary(Map<String, String> theatreDetailsMap) {
         if (theatreDetailsMap == null || theatreDetailsMap.isEmpty()) {
             return null;
         }

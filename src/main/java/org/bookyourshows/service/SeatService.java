@@ -119,7 +119,7 @@ public class SeatService {
 
     }
 
-    public boolean deleteSeat(int seatId, UserContext userContext) throws SQLException, CustomException {
+/*    public boolean deleteSeat(int seatId, UserContext userContext) throws SQLException, CustomException {
 
         Optional<SeatSummary> seatDetails = this.seatRepository.getSeatById(seatId);
         if (seatDetails.isEmpty()) {
@@ -137,7 +137,7 @@ public class SeatService {
         hasAccessToScreen(theatreId, userContext);
 
         return this.seatRepository.deleteSeat(seatId);
-    }
+    }*/
 
     private void hasAccessToScreen(Integer theatreId, UserContext userContext) throws SQLException, CustomException {
 

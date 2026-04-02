@@ -8,8 +8,8 @@ import redis.clients.jedis.search.*;
 import java.sql.Date;
 import java.util.*;
 
-import static org.bookyourshows.mapper.ShowMapper.mapHashToShowDetails;
-import static org.bookyourshows.mapper.ShowMapper.mapShowToHashData;
+import static org.bookyourshows.mapper.ShowMapper.mapHashMapToShowDetails;
+import static org.bookyourshows.mapper.ShowMapper.mapShowDetailsToHashMap;
 
 
 public class ShowCacheRepository {
@@ -52,9 +52,9 @@ public class ShowCacheRepository {
         try {
             RedisClient redisClient = RedisManager.getClient();
             String key = "show:" + showDetails.getShowId();
-            redisClient.hset(key, mapShowToHashData(showDetails));
+            redisClient.hset(key, mapShowDetailsToHashMap(showDetails));
         } catch (Exception e) {
-            System.err.println("[Cache] save failed for shows " + showDetails.getShowId() + ": " + e.getMessage());
+            System.err.println("[Show Cache] save failed for shows " + showDetails.getShowId() + ": " + e.getMessage());
         }
     }
 
@@ -67,7 +67,7 @@ public class ShowCacheRepository {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("show:" + showId);
         } catch (Exception e) {
-            System.err.println("[Cache] delete failed for shows " + showId + ": " + e.getMessage());
+            System.err.println("[Show Cache] delete failed for shows " + showId + ": " + e.getMessage());
         }
     }
 
@@ -79,9 +79,9 @@ public class ShowCacheRepository {
             if (fields == null || fields.isEmpty()) {
                 return Optional.empty();
             }
-            return Optional.of(mapHashToShowDetails(fields));
+            return Optional.of(mapHashMapToShowDetails(fields));
         } catch (Exception e) {
-            System.err.println("[Cache] getById failed for show " + showId + ": " + e.getMessage());
+            System.err.println("[Show Cache] getById failed for show " + showId + ": " + e.getMessage());
             return Optional.empty();
         }
     }
@@ -100,21 +100,24 @@ public class ShowCacheRepository {
                 for (Map.Entry<String, Object> entry : doc.getProperties()) {
                     fields.put(entry.getKey(), String.valueOf(entry.getValue()));
                 }
-                ShowDetails showDetails = mapHashToShowDetails(fields);
+                ShowDetails showDetails = mapHashMapToShowDetails(fields);
                 showDetailsList.add(showDetails);
             }
 
         } catch (Exception e) {
-
-            System.err.println("[Cache] Search failed: " + e.getMessage());
+            System.err.println("[Show Cache] Search failed: " + e.getMessage());
         }
         return showDetailsList;
     }
 
 
     private static void saveShowStatic(ShowDetails showDetails) {
-        RedisClient redisClient = RedisManager.getClient();
-        String key = "show:" + showDetails.getShowId();
-        redisClient.hset(key, mapShowToHashData(showDetails));
+        try {
+            RedisClient redisClient = RedisManager.getClient();
+            String key = "show:" + showDetails.getShowId();
+            redisClient.hset(key, mapShowDetailsToHashMap(showDetails));
+        } catch (Exception e) {
+            System.err.println("[Show Cache] save failed for shows " + showDetails.getShowId() + ": " + e.getMessage());
+        }
     }
 }

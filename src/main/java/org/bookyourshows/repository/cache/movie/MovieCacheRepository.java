@@ -8,8 +8,8 @@ import redis.clients.jedis.search.*;
 
 import java.util.*;
 
-import static org.bookyourshows.mapper.MovieMapper.mapToHashData;
-import static org.bookyourshows.mapper.MovieMapper.maptoMovieDetails;
+import static org.bookyourshows.mapper.MovieMapper.mapMovieDeatilsToHashMap;
+import static org.bookyourshows.mapper.MovieMapper.mapHashMaptoMovieDetails;
 
 public class MovieCacheRepository {
 
@@ -50,7 +50,7 @@ public class MovieCacheRepository {
         try {
             RedisClient redisClient = RedisManager.getClient();
             String key = "movie:" + movieDetails.getMovieId();
-            redisClient.hset(key, mapToHashData(movieDetails));
+            redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
         } catch (Exception e) {
             System.err.println("[Cache] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
         }
@@ -77,7 +77,7 @@ public class MovieCacheRepository {
             if (fields == null || fields.isEmpty()) {
                 return Optional.empty();
             }
-            return Optional.of(maptoMovieDetails(fields));
+            return Optional.of(mapHashMaptoMovieDetails(fields));
         } catch (Exception e) {
             System.err.println("[Cache] getById failed for movie " + movieId + ": " + e.getMessage());
             return Optional.empty();
@@ -100,7 +100,7 @@ public class MovieCacheRepository {
             for (Map.Entry<String, Object> entry : doc.getProperties()) {
                 fields.put(entry.getKey(), String.valueOf(entry.getValue()));
             }
-            MovieDetails movieDetails = maptoMovieDetails(fields);
+            MovieDetails movieDetails = mapHashMaptoMovieDetails(fields);
             movieDetailsList.add(movieDetails);
         }
 
@@ -110,7 +110,7 @@ public class MovieCacheRepository {
     private static void saveMovieStatic(MovieDetails movieDetails) {
         RedisClient redisClient = RedisManager.getClient();
         String key = "movie:" + movieDetails.getMovieId();
-        redisClient.hset(key, mapToHashData(movieDetails));
+        redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
     }
 
 

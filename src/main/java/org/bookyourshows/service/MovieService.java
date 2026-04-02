@@ -122,6 +122,7 @@ public class MovieService {
         return updated;
     }
 
+/*
     public boolean deleteMovie(int movieId) throws SQLException {
 
         boolean deleted = movieRepository.deleteMovie(movieId);
@@ -137,6 +138,7 @@ public class MovieService {
 
         return deleted;
     }
+*/
 
 
 }

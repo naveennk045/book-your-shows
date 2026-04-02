@@ -194,7 +194,7 @@ public class SeatServlet extends HttpServlet {
         }
     }
 
-    @Override
+/*    @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 
@@ -232,5 +232,5 @@ public class SeatServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
-    }
+    }*/
 }

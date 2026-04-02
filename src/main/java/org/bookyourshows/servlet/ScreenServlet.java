@@ -259,7 +259,7 @@ public class ScreenServlet extends HttpServlet {
                     Map.of("message", "Access denied"));
         }
     }
-
+/*
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws
             ServletException, IOException {
@@ -325,5 +325,5 @@ public class ScreenServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
         }
-    }
+    }*/
 }

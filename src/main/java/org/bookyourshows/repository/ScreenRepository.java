@@ -125,7 +125,7 @@ public class ScreenRepository {
         return Optional.empty();
     }
 
-    public Optional<ScreenDetails> getScreenById(int screenId, int theatreId) throws SQLException {
+    public Optional<ScreenDetails> getScreenByTheatreIdScreenId(int screenId, int theatreId) throws SQLException {
         String query = """
                        SELECT s.screen_id,
                        s.screen_name,

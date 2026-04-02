@@ -19,7 +19,6 @@ public class ShowDetails {
     private Time startTime;
     private Time endTime;
     private Double basePrice;
-
     private String status;
 
     public String getStatus() {

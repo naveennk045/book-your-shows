@@ -11,7 +11,7 @@ import redis.clients.jedis.resps.ScanResult;
 import java.util.*;
 import java.time.Duration;
 
-import static org.bookyourshows.mapper.ShowMapper.mapHashToShowSeating;
+import static org.bookyourshows.mapper.ShowMapper.mapHashMapToShowSeating;
 import static org.bookyourshows.mapper.ShowMapper.mapShowSeatingToHashData;
 
 
@@ -77,7 +77,7 @@ public class ShowSeatCacheRepository {
         if (locked && !Objects.equals(map.get("status"), "BOOKED")) {
             map.put("status", "LOCKED");
         }
-        return mapHashToShowSeating(map);
+        return mapHashMapToShowSeating(map);
     }
 
     public void delete(String key) {

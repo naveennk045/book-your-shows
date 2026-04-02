@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.http.*;
 import org.bookyourshows.dto.show.*;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.ShowService;
 
@@ -33,8 +34,7 @@ public class ShowServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         String[] parts = request.getPathInfo().split("/");
 
@@ -59,11 +59,11 @@ public class ShowServlet extends HttpServlet {
         }
 
         try {
-            ShowCreateRequest req = objectMapper.readValue(request.getReader(), ShowCreateRequest.class);
-            req.setTheatreId(theatreId);
-            req.setScreenId(screenId);
+            ShowCreateRequest showCreateRequest = objectMapper.readValue(request.getReader(), ShowCreateRequest.class);
+            showCreateRequest.setTheatreId(theatreId);
+            showCreateRequest.setScreenId(screenId);
 
-            int showId = showService.createShow(req);
+            int showId = showService.createShow(showCreateRequest, userContext);
 
             response.setStatus(HttpServletResponse.SC_CREATED);
             objectMapper.writeValue(response.getWriter(),
@@ -73,8 +73,7 @@ public class ShowServlet extends HttpServlet {
             response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
-        }
-        catch (JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid JSON"));
@@ -88,8 +87,6 @@ public class ShowServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo();
         String[] parts = path.split("/");
@@ -165,14 +162,17 @@ public class ShowServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        UserContext userContext = (UserContext) request.getAttribute("userContext");
 
         // /shows/{show_id}
         String path = request.getPathInfo();
@@ -186,11 +186,11 @@ public class ShowServlet extends HttpServlet {
         }
 
         int showId;
-        ShowUpdateRequest req;
+        ShowUpdateRequest showUpdateRequest;
 
         try {
             showId = Integer.parseInt(parts[2]);
-            req = objectMapper.readValue(request.getReader(), ShowUpdateRequest.class);
+            showUpdateRequest = objectMapper.readValue(request.getReader(), ShowUpdateRequest.class);
 
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -205,7 +205,7 @@ public class ShowServlet extends HttpServlet {
         }
 
         try {
-            boolean updated = showService.updateShow(showId, req);
+            boolean updated = showService.updateShow(showId, showUpdateRequest, userContext);
             if (updated) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(),
@@ -226,7 +226,7 @@ public class ShowServlet extends HttpServlet {
                     Map.of("message", e.getMessage()));
         }
     }
-
+/*
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -282,5 +282,5 @@ public class ShowServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
         }
-    }
+    }*/
 }

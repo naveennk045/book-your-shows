@@ -1,8 +1,12 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.screen.ScreenDetails;
+import org.bookyourshows.dto.seat.SeatSummary;
 import org.bookyourshows.dto.show.*;
-import org.bookyourshows.exceptions.CustomException;
+import org.bookyourshows.dto.theatre.Theatre;
+import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.*;
 import org.bookyourshows.repository.*;
 import org.bookyourshows.repository.cache.show.ShowCacheRepository;
 import org.bookyourshows.repository.cache.show.ShowSeatCacheRepository;
@@ -19,38 +23,37 @@ public class ShowService {
     private final ShowRepository showRepository;
     private final ScreenRepository screenRepository;
     private final MovieRepository movieRepository;
-    private final BookingRepository bookingRepository;
     private final ShowCacheRepository showCacheRepository;
     private final ShowSeatCacheRepository showSeatCacheRepository;
+    private final TheatreRepository theatreRepository;
+    private final SeatRepository seatRepository;
 
     public ShowService() {
         this.showRepository = new ShowRepository();
         this.screenRepository = new ScreenRepository();
         this.movieRepository = new MovieRepository();
-        this.bookingRepository = new BookingRepository();
         this.showCacheRepository = new ShowCacheRepository();
         this.showSeatCacheRepository = new ShowSeatCacheRepository();
+        this.theatreRepository = new TheatreRepository();
+        this.seatRepository = new SeatRepository();
     }
 
-    public Optional<ShowDetails> getShowById(int showId) throws SQLException {
+    public Optional<ShowDetails> getShowById(int showId) throws SQLException, ResourceNotFoundException {
 
         Optional<ShowDetails> showDetails = showCacheRepository.getById(showId);
 
         if (showDetails.isPresent()) {
-            System.out.println("-- Get Show by ID : " + showId + " from cache -- ");
             return showDetails;
         }
-
         showDetails = showRepository.getShowById(showId);
         if (showDetails.isPresent()) {
-            try {
-                showCacheRepository.save(showDetails.get());
-                System.out.println("-- Saved Show Details  in redis-- ");
-            } catch (Exception e) {
-                System.out.println("[ShowService] " + e.getMessage());
-            }
+            showCacheRepository.save(showDetails.get());
+            return showDetails;
+
         }
-        return showDetails;
+
+        throw new ResourceNotFoundException("Show not found.");
+
     }
 
     public List<TheatreShowsResponse> getShows(Integer theatreId, String location, Date showDate, int movieId) throws SQLException {
@@ -79,24 +82,26 @@ public class ShowService {
         return response;
     }
 
-    public int createShow(ShowCreateRequest request) throws SQLException, CustomException {
+    public int createShow(ShowCreateRequest request, UserContext userContext) throws SQLException, CustomException {
 
         validateShowCreationAllowed(request);
+        hasAccessToResource(request.getTheatreId(), userContext);
+
 
         Optional<ScreenDetails> screenDetails = screenRepository.getScreenByScreenId(request.getScreenId());
         if (screenDetails.isEmpty()) {
-            throw new IllegalArgumentException("Screen not found");
+            throw new ResourceNotFoundException("Screen not found");
         }
         if (!Objects.equals(request.getTheatreId(), screenDetails.get().getTheatreId())) {
-            throw new RuntimeException("Theatre id mismatch");
+            throw new ResourceConflictException("Theatre id mismatch");
         }
 
         if (movieRepository.getMovieById(request.getMovieId()).isEmpty()) {
-            throw new IllegalArgumentException("Movie not found");
+            throw new ResourceNotFoundException("Movie not found");
         }
 
         if (request.getStartTime().after(request.getEndTime())) {
-            throw new IllegalArgumentException("Invalid timing");
+            throw new ShowCreationException("Invalid timing");
         }
 
 
@@ -106,20 +111,25 @@ public class ShowService {
                 request.getStartTime(),
                 request.getEndTime()
         )) {
-            throw new IllegalArgumentException("Show timing conflicts with existing show");
+            throw new ResourceConflictException("Show timing conflicts with existing show");
         }
 
         Integer showId = showRepository.createShow(request);
         System.out.println("Created show with id: " + showId);
 
         if (showId == null) {
-            throw new IllegalArgumentException("Create show failed");
+            throw new ShowCreationException("Create show failed");
+        }
+
+        boolean isScreenHaveSeats = !this.seatRepository.getSeatByScreenId(request.getScreenId()).isEmpty();
+        if (!isScreenHaveSeats) {
+            throw new ResourceNotFoundException("Seats not found, Pls create seats.");
         }
 
         boolean isShowSeatingCreated = this.showRepository.createShowSeating(request.getScreenId(), showId);
         if (!isShowSeatingCreated) {
             this.showRepository.deleteShow(showId);
-            throw new IllegalArgumentException("Create show failed.");
+            throw new ShowCreationException("Create show failed.");
         }
         Optional<ShowDetails> showDetails = showRepository.getShowById(showId);
 
@@ -130,26 +140,19 @@ public class ShowService {
                 System.out.println("[ShowService] " + e.getMessage());
             }
         } else {
-            throw new IllegalArgumentException("Saving show is failed in redis");
+            throw new ShowCreationException("Saving show is failed in redis");
         }
-
 
         Map<Integer, ShowSeating> showSeatingLayout = this.showRepository.getShowSeatsByShowId(showId);
-
         List<ShowSeating> showSeatingList = new ArrayList<>(showSeatingLayout.values());
-
-        if (showSeatingList.isEmpty()) {
-            throw new RuntimeException("Show seating list is empty, Update failed in redis");
-        }
-
         this.showSeatCacheRepository.saveAll(showSeatingList, showId);
         return showId;
     }
 
-    public List<ShowSeatingResponse> getShowSeats(Integer showId) throws SQLException {
+    public List<ShowSeatingResponse> getShowSeats(Integer showId) throws SQLException, ShowCreationException {
 
         if (showRepository.getShowSeats(showId).isEmpty()) {
-            throw new IllegalArgumentException("Show seats not found");
+            throw new ShowCreationException("Show seats not found");
         }
 
         Map<Integer, List<ShowSeating>> map = null;
@@ -179,19 +182,22 @@ public class ShowService {
         return response;
     }
 
-    public boolean updateShow(int showId, ShowUpdateRequest request) throws SQLException, CustomException {
+    public boolean updateShow(int showId, ShowUpdateRequest request, UserContext userContext) throws SQLException, CustomException {
 
         Optional<ShowDetails> showDetails = showRepository.getShowById(showId);
         if (showDetails.isEmpty()) {
-            throw new IllegalArgumentException("Show not found");
+            throw new ResourceNotFoundException("Show not found");
         }
+
+        hasAccessToResource(showDetails.get().getTheatreId(), userContext);
+
 
         ShowDetails show = showDetails.get();
 
         validateModificationAllowed(show);
 
         if (request.getStartTime().after(request.getEndTime())) {
-            throw new IllegalArgumentException("Invalid timing");
+            throw new ResourceConflictException("Invalid timing");
         }
 
         if (showRepository.isShowConflict(
@@ -200,7 +206,7 @@ public class ShowService {
                 request.getStartTime(),
                 request.getEndTime()
         )) {
-            throw new IllegalArgumentException("Timing conflict");
+            throw new ShowCreationException("Timing conflict");
         }
 
 
@@ -208,11 +214,7 @@ public class ShowService {
 
         if (isShowUpdated) {
             showDetails = this.showRepository.getShowById(showId);
-            if (showDetails.isPresent()) {
-                showCacheRepository.save(showDetails.get());
-            } else {
-                throw new IllegalArgumentException("Update show failed,Show Not found");
-            }
+            showCacheRepository.save(showDetails.get());
         }
 
         if (isShowUpdated) {
@@ -220,29 +222,41 @@ public class ShowService {
         }
 
         Map<Integer, ShowSeating> showSeatingLayout = this.showRepository.getShowSeatsByShowId(showId);
-
         List<ShowSeating> showSeatingList = new ArrayList<>(showSeatingLayout.values());
-
-        if (showSeatingList.isEmpty()) {
-            throw new RuntimeException("Show seating list is empty, Update failed in redis");
-        }
-
         this.showSeatCacheRepository.saveAll(showSeatingList, showId);
 
 
         return true;
     }
 
+    private void hasAccessToResource(Integer theatreId, UserContext userContext) throws CustomException, SQLException {
+
+        Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);
+
+        if (theatreDetails.isEmpty()) {
+            throw new ResourceNotFoundException("No theatre found.");
+        }
+
+        Theatre theatre = theatreDetails.get().getTheatre();
+
+        boolean isAdmin = "ADMIN".equals(userContext.getUserRole());
+        boolean isOwner = theatre.getOwnerId().equals(userContext.getUserId());
+
+        if (!isAdmin && !isOwner) {
+            throw new ForbiddenException("Access denied.");
+        }
+    }
+/*
     public boolean deleteShow(int showId) throws SQLException, CustomException {
 
         ShowDetails show = showRepository.getShowById(showId)
-                .orElseThrow(() -> new IllegalArgumentException("Show not found"));
+                .orElseThrow(() -> new ShowCreationException("Show not found"));
 
 
         validateModificationAllowed(show);
         if (Objects.equals(show.getStatus(), "SCHEDULED") || Objects.equals(show.getStatus(), "RESCHEDULED")) {
             if (!bookingRepository.getAllBookingsByShowId(showId).isEmpty()) {
-                throw new IllegalArgumentException("Show have bookings.");
+                throw new ShowCreationException("Show have bookings.");
             }
             ;
         }
@@ -262,5 +276,7 @@ public class ShowService {
             this.showSeatCacheRepository.deleteAllSeatsByShowId(showId);
         }
         return true;
-    }
+    }*/
+
+
 }

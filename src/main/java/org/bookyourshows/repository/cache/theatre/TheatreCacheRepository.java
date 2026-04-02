@@ -70,7 +70,7 @@ public class TheatreCacheRepository {
             if (fields == null || fields.isEmpty()) {
                 return Optional.empty();
             }
-            return Optional.of((TheatreMapper.mapHashToTheatreDetails(fields)));
+            return Optional.of((TheatreMapper.mapHashMapToTheatreDetails(fields)));
         } catch (JedisException e) {
             System.err.println("[Theatre Cache] getById failed for theatre " + theatreId + ": " + e.getMessage());
             return Optional.empty();
@@ -95,7 +95,7 @@ public class TheatreCacheRepository {
                 for (Map.Entry<String, Object> entry : doc.getProperties()) {
                     fields.put(entry.getKey(), String.valueOf(entry.getValue()));
                 }
-                theatreSummaries.add(TheatreMapper.mapHashToTheatreSummary(fields));
+                theatreSummaries.add(TheatreMapper.mapHashMapToTheatreSummary(fields));
             }
             return theatreSummaries;
         } catch (JedisException e) {

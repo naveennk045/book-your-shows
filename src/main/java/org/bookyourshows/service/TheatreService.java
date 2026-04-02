@@ -56,6 +56,8 @@ public class TheatreService {
             throw new ForbiddenException("Access denied");
         }
 
+        status = "APPROVED";
+
         List<TheatreSummary> theatreSummaries = theatreCacheRepository.search(limit, offset, theatreName, city, status);
 
         if (!theatreSummaries.isEmpty()) {
@@ -127,6 +129,7 @@ public class TheatreService {
         theatreRepository.getTheatreById(theatreId).ifPresent(theatreCacheRepository::update);
         return true;
     }
+/*
 
     public boolean deleteTheatre(int theatreId, int ownerId, String role) throws SQLException, CustomException {
 
@@ -142,6 +145,7 @@ public class TheatreService {
 
         return deleted;
     }
+*/
 
     private void hasAccessToResource(int theatreId, int ownerId, String role) throws SQLException, CustomException {
         Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);

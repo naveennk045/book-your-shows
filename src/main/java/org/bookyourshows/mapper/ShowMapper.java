@@ -40,28 +40,31 @@ public class ShowMapper {
         if (hasColumn(resultSet, "base_price")) showDetails.setBasePrice(resultSet.getDouble("base_price"));
         if (hasColumn(resultSet, "status")) showDetails.setStatus(resultSet.getString("status"));
 
+
         return showDetails;
     }
 
-    public static Map<String, String> mapShowToHashData(ShowDetails showDetail) {
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("show_id", String.valueOf(showDetail.getShowId()));
-        hashMap.put("theatre_id", String.valueOf(showDetail.getTheatreId()));
-        hashMap.put("theatre_name", nullSafe(showDetail.getTheatreName()));
-        hashMap.put("city", nullSafe(showDetail.getTheatreLocation()));
-        hashMap.put("screen_id", String.valueOf(showDetail.getScreenId()));
-        hashMap.put("screen_name", nullSafe(showDetail.getScreenName()));
-        hashMap.put("movie_id", String.valueOf(showDetail.getMovieId()));
-        hashMap.put("show_date", showDetail.getShowDate() != null ? String.valueOf(showDetail.getShowDate().getTime()) : "0");
-        hashMap.put("start_time", showDetail.getStartTime() != null ? String.valueOf(showDetail.getStartTime().getTime()) : "0");
-        hashMap.put("end_time", showDetail.getEndTime() != null ? String.valueOf(showDetail.getEndTime().getTime()) : "0");
-        hashMap.put("base_price", showDetail.getBasePrice() != null ? String.valueOf(showDetail.getBasePrice()) : "0");
-        return hashMap;
+    public static Map<String, String> mapShowDetailsToHashMap(ShowDetails showDetail) {
+        HashMap<String, String> showDetailsMap = new HashMap<>();
+        showDetailsMap.put("show_id", String.valueOf(showDetail.getShowId()));
+        showDetailsMap.put("theatre_id", String.valueOf(showDetail.getTheatreId()));
+        showDetailsMap.put("theatre_name", nullSafe(showDetail.getTheatreName()));
+        showDetailsMap.put("city", nullSafe(showDetail.getTheatreLocation()));
+        showDetailsMap.put("screen_id", String.valueOf(showDetail.getScreenId()));
+        showDetailsMap.put("screen_name", nullSafe(showDetail.getScreenName()));
+        showDetailsMap.put("movie_id", String.valueOf(showDetail.getMovieId()));
+        showDetailsMap.put("show_date", showDetail.getShowDate() != null ? String.valueOf(showDetail.getShowDate().getTime()) : "0");
+        showDetailsMap.put("start_time", showDetail.getStartTime() != null ? String.valueOf(showDetail.getStartTime().getTime()) : "0");
+        showDetailsMap.put("end_time", showDetail.getEndTime() != null ? String.valueOf(showDetail.getEndTime().getTime()) : "0");
+        showDetailsMap.put("base_price", showDetail.getBasePrice() != null ? String.valueOf(showDetail.getBasePrice()) : "0");
+        showDetailsMap.put("status", showDetail.getStatus());
+
+        return showDetailsMap;
     }
 
-    public static ShowDetails mapHashToShowDetails(Map<String, String> showDetailsMap) {
-        ShowDetails showDetails = new ShowDetails();
+    public static ShowDetails mapHashMapToShowDetails(Map<String, String> showDetailsMap) {
 
+        ShowDetails showDetails = new ShowDetails();
         showDetails.setShowId(parseIntSafe(showDetailsMap.get("show_id")));
         showDetails.setTheatreId(parseIntSafe(showDetailsMap.get("theatre_id")));
         showDetails.setTheatreName(nullSafe(showDetailsMap.get("theatre_name")));
@@ -79,34 +82,36 @@ public class ShowMapper {
         showDetails.setEndTime(endTimeMillis > 0 ? new Time(endTimeMillis) : null);
 
         showDetails.setBasePrice(parseDoubleSafe(showDetailsMap.get("base_price")));
+        showDetails.setStatus(nullSafe(showDetailsMap.get("status")));
+
 
         return showDetails;
     }
 
     public static Map<String, String> mapShowSeatingToHashData(ShowSeating showSeating) {
 
-        HashMap<String, String> hashMap = new HashMap<>();
+        HashMap<String, String> showSeatingMap = new HashMap<>();
 
-        hashMap.put("show_seat_id", showSeating.getShowSeatId() != null ? String.valueOf(showSeating.getShowSeatId()) : "0");
-        hashMap.put("seat_id", showSeating.getSeatId() != null ? String.valueOf(showSeating.getSeatId()) : "0");
-        hashMap.put("seat_number", nullSafe(showSeating.getSeatNumber()));
-        hashMap.put("category", nullSafe(showSeating.getCategory()));
-        hashMap.put("status", nullSafe(showSeating.getStatus()));
-        hashMap.put("final_price", showSeating.getFinalPrice() != null ? String.valueOf(showSeating.getFinalPrice()) : "0.0");
-        hashMap.put("row_no", String.valueOf(showSeating.getRowNo()));
-        return hashMap;
+        showSeatingMap.put("show_seat_id", showSeating.getShowSeatId() != null ? String.valueOf(showSeating.getShowSeatId()) : "0");
+        showSeatingMap.put("seat_id", showSeating.getSeatId() != null ? String.valueOf(showSeating.getSeatId()) : "0");
+        showSeatingMap.put("seat_number", nullSafe(showSeating.getSeatNumber()));
+        showSeatingMap.put("category", nullSafe(showSeating.getCategory()));
+        showSeatingMap.put("status", nullSafe(showSeating.getStatus()));
+        showSeatingMap.put("final_price", showSeating.getFinalPrice() != null ? String.valueOf(showSeating.getFinalPrice()) : "0.0");
+        showSeatingMap.put("row_no", String.valueOf(showSeating.getRowNo()));
+        return showSeatingMap;
     }
 
-    public static ShowSeating mapHashToShowSeating(Map<String, String> hashMap) {
+    public static ShowSeating mapHashMapToShowSeating(Map<String, String> showSeatingMap) {
 
         ShowSeating showSeating = new ShowSeating();
-        showSeating.setShowSeatId(parseIntSafe(hashMap.get("show_seat_id")));
-        showSeating.setSeatId(parseIntSafe(hashMap.get("seat_id")));
-        showSeating.setSeatNumber(nullSafe(hashMap.get("seat_number")));
-        showSeating.setCategory(nullSafe(hashMap.get("category")));
-        showSeating.setStatus(nullSafe(hashMap.get("status")));
-        showSeating.setFinalPrice(parseDoubleSafe(hashMap.get("final_price")));
-        showSeating.setRowNo(parseIntSafe(hashMap.get("row_no")));
+        showSeating.setShowSeatId(parseIntSafe(showSeatingMap.get("show_seat_id")));
+        showSeating.setSeatId(parseIntSafe(showSeatingMap.get("seat_id")));
+        showSeating.setSeatNumber(nullSafe(showSeatingMap.get("seat_number")));
+        showSeating.setCategory(nullSafe(showSeatingMap.get("category")));
+        showSeating.setStatus(nullSafe(showSeatingMap.get("status")));
+        showSeating.setFinalPrice(parseDoubleSafe(showSeatingMap.get("final_price")));
+        showSeating.setRowNo(parseIntSafe(showSeatingMap.get("row_no")));
 
         return showSeating;
     }

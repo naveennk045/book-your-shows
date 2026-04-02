@@ -25,7 +25,8 @@ public class ShowRepository {
                     start_time,
                     end_time,
                     status,
-                    base_price
+                    base_price,
+                    status
                 FROM shows
                 WHERE show_id = ?
                 """;
@@ -99,7 +100,8 @@ public class ShowRepository {
                     s.show_date,
                     s.start_time,
                     s.end_time,
-                    s.base_price
+                    s.base_price,
+                    s.status
                 FROM shows AS s
                          JOIN theatres AS t ON s.theatre_id = t.theatre_id
                          JOIN theatre_addresses AS ta ON t.theatre_id = ta.theatre_id
@@ -175,7 +177,8 @@ public class ShowRepository {
                     s.show_date,
                     s.start_time,
                     s.end_time,
-                    s.base_price
+                    s.base_price,
+                    s.status
                 FROM shows AS s
                          JOIN theatres AS t ON s.theatre_id = t.theatre_id
                          JOIN theatre_addresses AS ta ON t.theatre_id = ta.theatre_id
@@ -398,7 +401,6 @@ public class ShowRepository {
             if (rows > 0) {
                 System.out.println("Shows marked completed: " + rows);
             }
-
         } catch (Exception e) {
             System.out.println("Error updating show status: " + e.getMessage());
         }

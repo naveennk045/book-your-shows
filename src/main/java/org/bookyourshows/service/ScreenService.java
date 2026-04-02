@@ -3,7 +3,6 @@ package org.bookyourshows.service;
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
-import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.repository.ScreenRepository;
@@ -42,7 +41,7 @@ public class ScreenService {
     }
 
     public Optional<ScreenDetails> getScreensByScreenId(Integer screenId, Integer theatreId) throws SQLException {
-        return screenRepository.getScreenById(screenId, theatreId);
+        return screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId);
     }
 
     public int createScreen(ScreenCreateRequest screenCreateRequest, UserContext userContext) throws SQLException {
@@ -88,11 +87,11 @@ public class ScreenService {
 
         hasAccessToResources(screenId, theatreId, userContext);
 
-        if (!screenRepository.getScreenById(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
+        if (!screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
             throw new IllegalArgumentException("Screen not found");
         }
 
-        if (screenRepository.getScreenById(screenId, theatreId).isEmpty()) {
+        if (screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId).isEmpty()) {
             throw new IllegalArgumentException("Screen is not found");
         }
         ScreenUtils.validateScreenName(screenUpdateRequest.getScreenName());
@@ -108,7 +107,7 @@ public class ScreenService {
         return screenRepository.updateScreen(screenUpdateRequest, screenId);
     }
 
-    public boolean deleteScreen(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException {
+/*    public boolean deleteScreen(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException {
 
         hasAccessToResources(screenId, theatreId, userContext);
 
@@ -118,11 +117,11 @@ public class ScreenService {
         }
 
         return screenRepository.deleteScreen(screenId);
-    }
+    }*/
 
     private void hasAccessToResources(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException {
         if (!userContext.getUserRole().equals("ADMIN")) {
-            Optional<ScreenDetails> screenDetails = screenRepository.getScreenById(screenId, theatreId);
+            Optional<ScreenDetails> screenDetails = screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId);
             if (screenDetails.isEmpty()) {
                 throw new IllegalArgumentException("Screen not found");
             }

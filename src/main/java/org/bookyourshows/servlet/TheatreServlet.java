@@ -133,7 +133,7 @@ public class TheatreServlet extends HttpServlet {
         }
     }
 
-    @Override
+/*    @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -170,7 +170,7 @@ public class TheatreServlet extends HttpServlet {
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
         }
-    }
+    }*/
 
     //
     // Route handlers
