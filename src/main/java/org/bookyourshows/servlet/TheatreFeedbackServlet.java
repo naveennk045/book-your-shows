@@ -19,7 +19,6 @@ import org.bookyourshows.service.TheatreService;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,8 +26,8 @@ import java.util.Optional;
 public class TheatreFeedbackServlet extends HttpServlet {
 
     private final TheatreFeedbackService theatreFeedbackService;
-    private final ObjectMapper objectMapper;
     private final TheatreService theatreService;
+    private final ObjectMapper objectMapper;
 
     public TheatreFeedbackServlet() {
         this.theatreFeedbackService = new TheatreFeedbackService();
@@ -39,6 +38,7 @@ public class TheatreFeedbackServlet extends HttpServlet {
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -46,76 +46,22 @@ public class TheatreFeedbackServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo(); // /theatres/{theatre_id}/feedback
-        if (path == null || path.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre id required"));
-            return;
-        }
+        String[] parts = splitPath(request);
 
-        String[] parts = path.split("/");
-        System.out.println("TheatreFeedbackServlet GET path parts: " + Arrays.toString(parts));
-
-        if (parts.length == 4 && "feedbacks".equals(parts[3])) {
-
-            int theatreId;
-            try {
-                theatreId = Integer.parseInt(parts[2]);
-                Optional<TheatreDetails> theatreDetails = this.theatreService.getTheatreById(theatreId);
-                if (theatreDetails.isEmpty()) {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    objectMapper.writeValue(response.getWriter(), Map.of(
-                            "message", "The theatre id " + theatreId + " does not exist"
-                    ));
-                    return;
-                }
-
-            } catch (NumberFormatException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Invalid theatre_id"));
-                return;
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            Integer limit = parseIntOrDefault(request.getParameter("limit"), 20);
-            Integer offset = parseIntOrDefault(request.getParameter("offset"), 0);
-
-            if (limit > 100 || limit < 0 || offset < 0) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Invalid pagination values"));
+        try {
+            // /theatres/{theatreId}/feedbacks
+            if (parts.length == 4 && "feedbacks".equals(parts[3])) {
+                handleListFeedbacks(parts[2], request, response);
                 return;
             }
 
-            try {
-                List<TheatreFeedbackResponse> list =
-                        theatreFeedbackService.getFeedbacksForTheatre(theatreId, limit, offset);
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
-                if (list.isEmpty()) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "No feedbacks"));
-                    return;
-                }
-
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(), list);
-
-            } catch (SQLException e) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Database error"));
-            }
-
-            return;
+        } catch (SQLException e) {
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
-
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        objectMapper.writeValue(response.getWriter(),
-                Map.of("message", "Not found"));
     }
 
     @Override
@@ -125,87 +71,21 @@ public class TheatreFeedbackServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String path = request.getPathInfo(); // /theatres/{theatre_id}/feedback
-        if (path == null || path.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre id required"));
-            return;
-        }
-
-        String[] parts = path.split("/");
-        System.out.println("TheatreFeedbackServlet POST path parts: " + Arrays.toString(parts));
-
-        if (!(parts.length == 4 && "feedbacks".equals(parts[3]))) {
-
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL for creating feedback"));
-            return;
-        }
-
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
-
-        int theatreId;
-        TheatreFeedbackCreateRequest createReq;
+        String[] parts = splitPath(request);
 
         try {
-            theatreId = Integer.parseInt(parts[2]);
-            createReq = objectMapper.readValue(request.getReader(), TheatreFeedbackCreateRequest.class);
-
-            Optional<TheatreDetails> theatreDetails = this.theatreService.getTheatreById(theatreId);
-            if (theatreDetails.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(), Map.of(
-                        "message", "The theatre id " + theatreId + " does not exist"
-                ));
+            // /theatres/{theatreId}/feedbacks
+            if (parts.length == 4 && "feedbacks".equals(parts[3])) {
+                handleCreateFeedback(parts[2], request, response);
                 return;
             }
 
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid theatre_id"));
-            return;
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON body"));
-            return;
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            TheatreFeedbackResponse created =
-                    theatreFeedbackService.createFeedback(theatreId, createReq);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of(
-                            "message", "Feedback created successfully",
-                            "rating_id", created.getRatingId()
-                    ));
-
-        } catch (IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
 
@@ -216,88 +96,21 @@ public class TheatreFeedbackServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
-
-        String path = request.getPathInfo(); // /theatres/{theatre_id}/feedback/{rating_id}
-        if (path == null || path.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre id and rating id required"));
-            return;
-        }
-
-        String[] parts = path.split("/");
-        System.out.println("TheatreFeedbackServlet PUT path parts: " + Arrays.toString(parts));
-
-        if (!(parts.length == 5 && "feedbacks".equals(parts[3]))) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL for updating feedback"));
-            return;
-        }
-
-        int theatreId;
-        int ratingId;
-        TheatreFeedbackUpdateRequest updateReq;
-
+        String[] parts = splitPath(request);
 
         try {
-            theatreId = Integer.parseInt(parts[2]);
-            ratingId = Integer.parseInt(parts[4]);
-
-            Optional<TheatreDetails> theatreDetails = this.theatreService.getTheatreById(theatreId);
-            if (theatreDetails.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(), Map.of(
-                        "message", "The theatre id " + theatreId + " does not exist"
-                ));
+            // /theatres/{theatreId}/feedbacks/{ratingId}
+            if (parts.length == 5 && "feedbacks".equals(parts[3])) {
+                handleUpdateFeedback(parts[2], parts[4], request, response);
                 return;
             }
 
-            updateReq = objectMapper.readValue(request.getReader(), TheatreFeedbackUpdateRequest.class);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid theatre_id or rating_id"));
-            return;
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON body"));
-            return;
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            theatreFeedbackService.updateFeedback(theatreId, ratingId, updateReq);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of(
-                            "message", "Feedback updated successfully",
-                            "rating_id", ratingId
-                    ));
-
-        } catch (IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
 
@@ -305,70 +118,168 @@ public class TheatreFeedbackServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        UserContext userContext = (UserContext) request.getSession().getAttribute("userContext");
-
-        String path = request.getPathInfo(); // /theatres/{theatre_id}/feedback/{rating_id}
-        if (path == null || path.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Theatre id and rating id required"));
-            return;
-        }
-
-        String[] parts = path.split("/");
-        System.out.println("TheatreFeedbackServlet DELETE path parts: " + Arrays.toString(parts));
-
-        if (!(parts.length == 5 && "feedbacks".equals(parts[3]))) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL for deleting feedback"));
-            return;
-        }
-
-        int theatreId;
-        int ratingId;
+        String[] parts = splitPath(request);
 
         try {
-            theatreId = Integer.parseInt(parts[2]);
-            ratingId = Integer.parseInt(parts[4]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid theatre_id or rating_id"));
-            return;
-        }
-
-        try {
-            boolean deleted = theatreFeedbackService.deleteFeedback(theatreId, ratingId, userContext);
-
-            if (!deleted) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Feedback not found"));
+            // /theatres/{theatreId}/feedbacks/{ratingId}
+            if (parts.length == 5 && "feedbacks".equals(parts[3])) {
+                handleDeleteFeedback(parts[2], parts[4], request, response);
                 return;
             }
 
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Feedback deleted successfully"));
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
-        } catch (IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
 
-    private Integer parseIntOrDefault(String value, int defaultValue) {
+
+    private void handleListFeedbacks(String theatreIdStr, HttpServletRequest request,
+                                     HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
+
+        if (!theatreExists(theatreId, response)) return;
+
+        int limit = parseIntOrDefault(request.getParameter("limit"), 20);
+        int offset = parseIntOrDefault(request.getParameter("offset"), 0);
+
+        if (limit > 100 || limit < 0 || offset < 0) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid pagination values");
+            return;
+        }
+
+        List<TheatreFeedbackResponse> list =
+                theatreFeedbackService.getFeedbacksForTheatre(theatreId, limit, offset);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(),
+                list.isEmpty() ? Map.of("message", "No feedbacks") : list);
+    }
+
+    private void handleCreateFeedback(String theatreIdStr, HttpServletRequest request,
+                                      HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
+
+        TheatreFeedbackCreateRequest createReq;
+        try {
+            createReq = objectMapper.readValue(request.getReader(), TheatreFeedbackCreateRequest.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        if (!theatreExists(theatreId, response)) return;
+
+        TheatreFeedbackResponse created = theatreFeedbackService.createFeedback(theatreId, createReq);
+
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        objectMapper.writeValue(response.getWriter(),
+                Map.of("message", "Feedback created successfully", "rating_id", created.getRatingId()));
+    }
+
+    private void handleUpdateFeedback(String theatreIdStr, String ratingIdStr,
+                                      HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id or rating_id", response);
+        if (theatreId == -1) return;
+
+        int ratingId = parseId(ratingIdStr, "Invalid theatre_id or rating_id", response);
+        if (ratingId == -1) return;
+
+        TheatreFeedbackUpdateRequest updateReq;
+        try {
+            updateReq = objectMapper.readValue(request.getReader(), TheatreFeedbackUpdateRequest.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        if (!theatreExists(theatreId, response)) return;
+
+        theatreFeedbackService.updateFeedback(theatreId, ratingId, updateReq);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(),
+                Map.of("message", "Feedback updated successfully", "rating_id", ratingId));
+    }
+
+    private void handleDeleteFeedback(String theatreIdStr, String ratingIdStr,
+                                      HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id or rating_id", response);
+        if (theatreId == -1) return;
+
+        int ratingId = parseId(ratingIdStr, "Invalid theatre_id or rating_id", response);
+        if (ratingId == -1) return;
+
+        UserContext userContext = getUserContext(request);
+
+        boolean deleted = theatreFeedbackService.deleteFeedback(theatreId, ratingId, userContext);
+
+        if (!deleted) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Feedback not found");
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), Map.of("message", "Feedback deleted successfully"));
+    }
+
+
+    private boolean theatreExists(int theatreId, HttpServletResponse response)
+            throws IOException, SQLException {
+
+        Optional<TheatreDetails> theatreDetails = theatreService.getTheatreById(theatreId);
+        if (theatreDetails.isEmpty()) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND,
+                    "The theatre id " + theatreId + " does not exist");
+            return false;
+        }
+        return true;
+    }
+
+    private String[] splitPath(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
+    }
+
+    private UserContext getUserContext(HttpServletRequest request) {
+        return (UserContext) request.getAttribute("userContext");
+    }
+
+    private int parseId(String idStr, String errorMessage, HttpServletResponse response)
+            throws IOException {
+        try {
+            return Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, errorMessage);
+            return -1;
+        }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
+    }
+
+    private int parseIntOrDefault(String value, int defaultValue) {
         if (value == null || value.isBlank()) return defaultValue;
         try {
             return Integer.parseInt(value.trim());
