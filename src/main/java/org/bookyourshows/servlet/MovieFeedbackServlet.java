@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackCreateRequest;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackResponse;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackUpdateRequest;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.MovieFeedbackService;
 
 import java.io.IOException;
@@ -35,9 +36,6 @@ public class MovieFeedbackServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo(); // /movies/{movie_id}/feedback
         if (path == null || path.isBlank()) {
@@ -105,8 +103,6 @@ public class MovieFeedbackServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         String path = request.getPathInfo(); // /movies/{movie_id}/feedback
         if (path == null || path.isBlank()) {
@@ -172,24 +168,16 @@ public class MovieFeedbackServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
+            throws IOException {
 
         String path = request.getPathInfo(); // /movies/{movie_id}/feedback/{rating_id}
         if (path == null || path.isBlank()) {
@@ -247,12 +235,16 @@ public class MovieFeedbackServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -310,6 +302,10 @@ public class MovieFeedbackServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 

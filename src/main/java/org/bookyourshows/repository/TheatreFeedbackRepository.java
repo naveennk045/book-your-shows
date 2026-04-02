@@ -13,8 +13,7 @@ import java.util.Optional;
 
 public class TheatreFeedbackRepository {
 
-    public List<TheatreFeedbackResponse> getFeedbacksByTheatre(int theatreId, Integer limit, Integer offset)
-            throws SQLException {
+    public List<TheatreFeedbackResponse> getFeedbacksByTheatre(int theatreId, Integer limit, Integer offset) throws SQLException {
 
         StringBuilder query = new StringBuilder("""
                 SELECT
@@ -44,25 +43,24 @@ public class TheatreFeedbackRepository {
             params.add(offset);
         }
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query.toString())) {
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement prepareStatement = connection.prepareStatement(query.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
+                prepareStatement.setObject(i + 1, params.get(i));
             }
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet resultSet = prepareStatement.executeQuery();
             List<TheatreFeedbackResponse> list = new ArrayList<>();
 
-            while (rs.next()) {
-                list.add(TheatreFeedbackMapper.mapRowToTheatreFeedback(rs));
+            while (resultSet.next()) {
+                list.add(TheatreFeedbackMapper.mapRowToTheatreFeedback(resultSet));
             }
 
             return list;
         }
     }
 
-    public Optional<TheatreFeedbackResponse> getFeedbackById(int theatreId, int ratingId) throws SQLException {
+    public Optional<TheatreFeedbackResponse> getFeedbackByTheatreIdRatingId(int theatreId, int ratingId) throws SQLException {
         String query = """
                 SELECT
                     rating_id,
@@ -77,15 +75,42 @@ public class TheatreFeedbackRepository {
                 WHERE theatre_id = ? AND rating_id = ?
                 """;
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement prepareStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, theatreId);
-            ps.setInt(2, ratingId);
+            prepareStatement.setInt(1, theatreId);
+            prepareStatement.setInt(2, ratingId);
 
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return Optional.of(TheatreFeedbackMapper.mapRowToTheatreFeedback(rs));
+            ResultSet resultSet = prepareStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(TheatreFeedbackMapper.mapRowToTheatreFeedback(resultSet));
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<TheatreFeedbackResponse> getFeedbackByRatingId(int ratingId) throws SQLException {
+        String query = """
+                SELECT
+                    rating_id,
+                    theatre_id,
+                    booking_id,
+                    user_id,
+                    ratings,
+                    comment,
+                    created_at,
+                    updated_at
+                FROM theatre_ratings
+                WHERE rating_id = ?
+                """;
+
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement prepareStatement = connection.prepareStatement(query)) {
+
+            prepareStatement.setInt(1, ratingId);
+
+            ResultSet resultSet = prepareStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(TheatreFeedbackMapper.mapRowToTheatreFeedback(resultSet));
             }
         }
 
@@ -99,21 +124,20 @@ public class TheatreFeedbackRepository {
                 VALUES (?, ?, ?, ?, ?)
                 """;
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement prepareStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setInt(1, theatreId);
-            ps.setInt(2, request.getBookingId());
-            ps.setInt(3, request.getUserId());
-            ps.setInt(4, request.getRatings());
-            ps.setString(5, request.getComment());
+            prepareStatement.setInt(1, theatreId);
+            prepareStatement.setInt(2, request.getBookingId());
+            prepareStatement.setInt(3, request.getUserId());
+            prepareStatement.setInt(4, request.getRatings());
+            prepareStatement.setString(5, request.getComment());
 
-            int affected = ps.executeUpdate();
+            int affected = prepareStatement.executeUpdate();
             if (affected == 0) {
                 throw new RuntimeException("Failed to create theatre feedback");
             }
 
-            try (ResultSet keys = ps.getGeneratedKeys()) {
+            try (ResultSet keys = prepareStatement.getGeneratedKeys()) {
                 if (keys.next()) {
                     return keys.getInt(1);
                 }
@@ -122,8 +146,7 @@ public class TheatreFeedbackRepository {
         throw new RuntimeException("Failed to retrieve theatre feedback ID");
     }
 
-    public boolean updateFeedback(int theatreId, int ratingId, TheatreFeedbackUpdateRequest request)
-            throws SQLException {
+    public boolean updateFeedback(int theatreId, int ratingId, TheatreFeedbackUpdateRequest request) throws SQLException {
 
         String query = """
                 UPDATE theatre_ratings
@@ -132,15 +155,14 @@ public class TheatreFeedbackRepository {
                 WHERE theatre_id = ? AND rating_id = ?
                 """;
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement prepareStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, request.getRatings());
-            ps.setString(2, request.getComment());
-            ps.setInt(3, theatreId);
-            ps.setInt(4, ratingId);
+            prepareStatement.setInt(1, request.getRatings());
+            prepareStatement.setString(2, request.getComment());
+            prepareStatement.setInt(3, theatreId);
+            prepareStatement.setInt(4, ratingId);
 
-            return ps.executeUpdate() > 0;
+            return prepareStatement.executeUpdate() > 0;
         }
     }
 
@@ -150,13 +172,12 @@ public class TheatreFeedbackRepository {
                 WHERE theatre_id = ? AND rating_id = ?
                 """;
 
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+        try (Connection connection = DatabaseManager.getConnection(); PreparedStatement prepareStatement = connection.prepareStatement(query)) {
 
-            ps.setInt(1, theatreId);
-            ps.setInt(2, ratingId);
+            prepareStatement.setInt(1, theatreId);
+            prepareStatement.setInt(2, ratingId);
 
-            return ps.executeUpdate() > 0;
+            return prepareStatement.executeUpdate() > 0;
         }
     }
 }

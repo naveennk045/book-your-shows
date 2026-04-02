@@ -105,7 +105,7 @@ public class UserService {
     }
 
 
-    public void hasAccessToResource(Integer userIdFromJwt, String userRoleFromJwt, Integer userId) throws SQLException {
+    public void hasAccessToResource(Integer userIdFromJwt, String userRoleFromJwt, Integer userId) {
         if (!userRoleFromJwt.equals("ADMIN") && !Objects.equals(userIdFromJwt, userId)) {
             throw new SecurityException("Access denied");
         }

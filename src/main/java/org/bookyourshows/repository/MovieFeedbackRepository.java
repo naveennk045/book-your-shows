@@ -1,7 +1,6 @@
 package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
-import org.bookyourshows.dto.booking.BookingMovieInfo;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackCreateRequest;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackResponse;
 import org.bookyourshows.dto.feedback.movie.MovieFeedbackUpdateRequest;
@@ -52,11 +51,11 @@ public class MovieFeedbackRepository {
                 preparedStatement.setObject(i + 1, params.get(i));
             }
 
-            ResultSet rs = preparedStatement.executeQuery();
+            ResultSet resultSet = preparedStatement.executeQuery();
             List<MovieFeedbackResponse> list = new ArrayList<>();
 
-            while (rs.next()) {
-                list.add(MovieFeedbackMapper.mapRowToMovieFeedback(rs));
+            while (resultSet.next()) {
+                list.add(MovieFeedbackMapper.mapRowToMovieFeedback(resultSet));
             }
 
             return list;
@@ -84,9 +83,9 @@ public class MovieFeedbackRepository {
             preparedStatement.setInt(1, movieId);
             preparedStatement.setInt(2, ratingId);
 
-            ResultSet rs = preparedStatement.executeQuery();
-            if (rs.next()) {
-                return Optional.of(MovieFeedbackMapper.mapRowToMovieFeedback(rs));
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(MovieFeedbackMapper.mapRowToMovieFeedback(resultSet));
             }
         }
 

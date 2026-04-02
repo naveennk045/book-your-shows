@@ -151,12 +151,16 @@ public class BookingService {
         return refundRepository.createRefund(refundCreateRequest);
     }
 
-    private void hasAccessToResource(Integer bookingId, UserContext userContext) throws SQLException, ForbiddenException {
+    private void hasAccessToResource(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
+
+        if(bookingRepository.getBookingById(bookingId).isEmpty()) {
+            throw new ResourceNotFoundException("Booking not found");
+        }
 
         if (!userContext.getUserRole().equals("ADMIN")) {
             Optional<BookingSummary> bookings = bookingRepository.getBookingsByUserIdBookingId(userContext.getUserId(), bookingId);
             if (bookings.isEmpty()) {
-                throw new ForbiddenException("Booking not found");
+                throw new ForbiddenException("Access Denied");
             }
         }
     }

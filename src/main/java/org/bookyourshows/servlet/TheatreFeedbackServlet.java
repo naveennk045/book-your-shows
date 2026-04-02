@@ -12,6 +12,8 @@ import org.bookyourshows.dto.feedback.theatre.TheatreFeedbackCreateRequest;
 import org.bookyourshows.dto.feedback.theatre.TheatreFeedbackResponse;
 import org.bookyourshows.dto.feedback.theatre.TheatreFeedbackUpdateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
+import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.TheatreFeedbackService;
 import org.bookyourshows.service.TheatreService;
 
@@ -200,12 +202,16 @@ public class TheatreFeedbackServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -288,15 +294,19 @@ public class TheatreFeedbackServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+
+        UserContext userContext = (UserContext) request.getSession().getAttribute("userContext");
 
         String path = request.getPathInfo(); // /theatres/{theatre_id}/feedback/{rating_id}
         if (path == null || path.isBlank()) {
@@ -330,7 +340,7 @@ public class TheatreFeedbackServlet extends HttpServlet {
         }
 
         try {
-            boolean deleted = theatreFeedbackService.deleteFeedback(theatreId, ratingId);
+            boolean deleted = theatreFeedbackService.deleteFeedback(theatreId, ratingId, userContext);
 
             if (!deleted) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -351,6 +361,10 @@ public class TheatreFeedbackServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Database error"));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
         }
     }
 
