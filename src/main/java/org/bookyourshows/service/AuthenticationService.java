@@ -11,6 +11,7 @@ import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.repository.UserRepository;
 import org.bookyourshows.utils.JwtUtil;
 import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -105,9 +106,14 @@ public class AuthenticationService {
     }
 
     public void logout(String jti) {
-        RedisClient redisClient = RedisManager.getClient();
-        String key = "auth:token:" + jti;
-        redisClient.del(key);
+        try {
+            RedisClient redisClient = RedisManager.getClient();
+            String key = "auth:token:" + jti;
+            redisClient.del(key);
+        } catch (JedisException e) {
+            System.err.println("[Authentication Service] Jedis failed to delete token");
+            throw new JedisException(e.getMessage());
+        }
     }
 
 

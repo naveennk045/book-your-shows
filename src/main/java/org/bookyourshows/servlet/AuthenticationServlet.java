@@ -1,6 +1,7 @@
 package org.bookyourshows.servlet;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.jsonwebtoken.Claims;
@@ -12,10 +13,10 @@ import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AuthenticationService;
 import org.bookyourshows.utils.JwtUtil;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Map;
 
 public class AuthenticationServlet extends HttpServlet {
@@ -43,76 +44,75 @@ public class AuthenticationServlet extends HttpServlet {
 
         try {
 
-            if (path.equals("/register")) {
-                // /auth/register
-                UserCreateRequest req = objectMapper.readValue(request.getReader(), UserCreateRequest.class);
-                UserDetails created = authenticationService.registerUser(req);
+            switch (path) {
+                case "/register" -> {
+                    // /auth/register
+                    UserCreateRequest req = objectMapper.readValue(request.getReader(), UserCreateRequest.class);
+                    UserDetails created = authenticationService.registerUser(req);
 
-                response.setStatus(HttpServletResponse.SC_CREATED);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "User registered successfully",
-                                "user_id", created.getUserId()));
-            }
-
-            // LOGIN
-            else if (path.equals("/login")) {
-
-
-                Map<String, String> body = objectMapper.readValue(request.getReader(), Map.class);
-
-                String token = authenticationService.login(
-                        body.get("email"),
-                        body.get("password")
-                );
-
-                objectMapper.writeValue(response.getWriter(), Map.of("token", token));
-            }
-            // LOGOUT
-            else if (path.equals("/logout")) {
-
-                String header = request.getHeader("Authorization");
-
-                if (header == null || !header.startsWith("Bearer ")) {
-                    response.setStatus(401);
-                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Missing token"));
-                    return;
+                    response.setStatus(HttpServletResponse.SC_CREATED);
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "User registered successfully",
+                                    "user_id", created.getUserId()));
                 }
 
-                String token = header.substring(7);
+                // login
+                case "/login" -> {
 
-                // Extract JTI
-                Claims claims = JwtUtil.validateToken(token);
-                String jti = claims.getId();
 
-                // Call logout
-                authenticationService.logout(jti);
+                    Map body = objectMapper.readValue(request.getReader(), Map.class);
 
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Logged out successfully"));
-            }
+                    String token = authenticationService.login(
+                            String.valueOf(body.get("email")),
+                            String.valueOf(body.get("password"))
+                    );
 
-            //  REFRESH
-            else if (path.equals("/refresh")) {
-
-                String header = request.getHeader("Authorization");
-
-                if (header == null || !header.startsWith("Bearer ")) {
-                    response.setStatus(401);
-                    return;
+                    objectMapper.writeValue(response.getWriter(), Map.of("token", token));
                 }
 
-                String token = header.substring(7);
+                // logout
+                case "/logout" -> {
 
-                String newToken = authenticationService.refreshToken(token);
+                    String authHeader = request.getHeader("Authorization");
 
-                objectMapper.writeValue(response.getWriter(), Map.of("token", newToken));
+                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                        response.setStatus(401);
+                        objectMapper.writeValue(response.getWriter(), Map.of("message", "Missing token"));
+                        return;
+                    }
+
+                    String token = authHeader.substring(7);
+                    Claims claims = JwtUtil.validateToken(token);
+                    String jti = claims.getId();
+
+                    authenticationService.logout(jti);
+
+                    objectMapper.writeValue(response.getWriter(),
+                            Map.of("message", "Logged out successfully"));
+                }
+
+
+                //  refresh
+                case "/refresh" -> {
+
+                    String authHeader = request.getHeader("Authorization");
+
+                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                        response.setStatus(401);
+                        return;
+                    }
+
+                    String token = authHeader.substring(7);
+                    String newToken = authenticationService.refreshToken(token);
+                    objectMapper.writeValue(response.getWriter(), Map.of("token", newToken));
+                }
             }
 
+        } catch (JedisException | SQLException e) {
+            response.setStatus(500);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (RuntimeException e) {
             response.setStatus(400);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(500);
             objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (CustomException e) {
             response.setStatus(e.getStatusCode());
