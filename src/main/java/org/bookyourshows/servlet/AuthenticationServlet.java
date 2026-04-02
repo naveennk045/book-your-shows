@@ -1,7 +1,6 @@
 package org.bookyourshows.servlet;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.jsonwebtoken.Claims;
@@ -13,7 +12,6 @@ import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AuthenticationService;
 import org.bookyourshows.utils.JwtUtil;
-import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -108,15 +106,15 @@ public class AuthenticationServlet extends HttpServlet {
                 }
             }
 
-        } catch (JedisException | SQLException e) {
-            response.setStatus(500);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
-        } catch (RuntimeException e) {
-            response.setStatus(400);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+        } catch (SQLException | RuntimeException e) {
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
     }
 }
