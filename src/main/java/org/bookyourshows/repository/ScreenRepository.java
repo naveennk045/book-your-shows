@@ -4,6 +4,7 @@ import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.screen.ScreenCreateRequest;
 import org.bookyourshows.dto.screen.ScreenDetails;
 import org.bookyourshows.dto.screen.ScreenUpdateRequest;
+import org.bookyourshows.exceptions.ActionFailedException;
 import org.bookyourshows.mapper.ScreenMapper;
 
 import java.sql.*;
@@ -160,7 +161,7 @@ public class ScreenRepository {
     }
 
 
-    public int addScreen(ScreenCreateRequest request) throws SQLException {
+    public int addScreen(ScreenCreateRequest request) throws SQLException, ActionFailedException {
         String insertScreenQuery = """
                 INSERT INTO screens(theatre_id, screen_name, screen_type_id, total_rows, no_of_seats)
                 VALUES (?, ?, ?, ?, ?)
@@ -179,14 +180,14 @@ public class ScreenRepository {
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    throw new RuntimeException("Failed to create screen");
+                    throw new ActionFailedException("Failed to create screen");
                 }
 
                 try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                     if (keys.next()) {
                         screenId = keys.getInt(1);
                     } else {
-                        throw new RuntimeException("Failed to create screem");
+                        throw new ActionFailedException("Failed to create screem");
                     }
                 }
             }

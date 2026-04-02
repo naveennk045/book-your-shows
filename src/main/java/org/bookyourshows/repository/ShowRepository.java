@@ -5,8 +5,10 @@ import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.show.ShowSeating;
+import org.bookyourshows.exceptions.ActionFailedException;
 import org.bookyourshows.mapper.ShowMapper;
 
+import javax.swing.*;
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
@@ -216,7 +218,7 @@ public class ShowRepository {
     }
 
 
-    public Integer createShow(ShowCreateRequest request) throws SQLException {
+    public Integer createShow(ShowCreateRequest request) throws SQLException, ActionFailedException {
 
         String query = """
                 INSERT INTO shows
@@ -241,7 +243,7 @@ public class ShowRepository {
                 if (resultSet.next()) return resultSet.getInt(1);
             }
         }
-        throw new RuntimeException("Failed to create show");
+        throw new ActionFailedException("Failed to create show");
     }
 
     public boolean createShowSeating(Integer screenId, Integer showId) throws SQLException {

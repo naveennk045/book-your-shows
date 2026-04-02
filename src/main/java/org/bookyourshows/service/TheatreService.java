@@ -120,7 +120,7 @@ public class TheatreService {
         boolean theatreUpdated = theatreRepository.updateTheatre(theatreId, request);
         boolean addressUpdated = theatreRepository.updateTheatreAddress(theatreId, request);
 
-        if (!theatreUpdated) throw new TheatreCreationException("Failed to update the theatre");
+        if (!theatreUpdated) throw new ActionFailedException("Failed to update the theatre");
         if (!addressUpdated) throw new PartialUpdateException("Failed to update theatre address");
 
 

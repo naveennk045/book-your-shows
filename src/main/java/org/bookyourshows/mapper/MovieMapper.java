@@ -5,6 +5,7 @@ import org.bookyourshows.dto.movie.MovieSummary;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,8 @@ public class MovieMapper {
         movieDetails.setTrailerUrl(resultSet.getString("trailer_url"));
         movieDetails.setDescription(resultSet.getString("description"));
         movieDetails.setCensorRating(resultSet.getString("censor_rating"));
+        movieDetails.setCreatedAt(resultSet.getTimestamp("created_at"));
+        movieDetails.setUpdatedAt(resultSet.getTimestamp("updated_at"));
 
         return movieDetails;
     }
@@ -57,6 +60,8 @@ public class MovieMapper {
             movieMap.put("release_year", String.valueOf(
                     movie.getReleaseDate().toLocalDate().getYear()));
         }
+        movieMap.put("created_at", movie.getCreatedAt().toString());
+        movieMap.put("updated_at", movie.getUpdatedAt().toString());
         return movieMap;
     }
 
@@ -76,6 +81,8 @@ public class MovieMapper {
         if (releaseDateStr != null && !releaseDateStr.isEmpty()) {
             movieDetails.setReleaseDate(java.sql.Date.valueOf(releaseDateStr));
         }
+        movieDetails.setCreatedAt(Timestamp.valueOf(movieDetailsMap.get("created_at")));
+        movieDetails.setUpdatedAt(Timestamp.valueOf(movieDetailsMap.get("updated_at")));
         return movieDetails;
     }
 

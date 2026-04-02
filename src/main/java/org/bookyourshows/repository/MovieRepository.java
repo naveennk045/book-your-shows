@@ -2,6 +2,7 @@ package org.bookyourshows.repository;
 
 import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.movie.*;
+import org.bookyourshows.exceptions.ActionFailedException;
 import org.bookyourshows.mapper.MovieMapper;
 
 import java.sql.*;
@@ -23,7 +24,9 @@ public class MovieRepository {
                     poster_url,
                     trailer_url,
                     description,
-                    censor_rating
+                    censor_rating,
+                    updated_at,
+                    created_at
                 FROM movies
                 WHERE movie_id = ?
                 """;
@@ -55,7 +58,9 @@ public class MovieRepository {
                     poster_url,
                     trailer_url,
                     description,
-                    censor_rating
+                    censor_rating,
+                     updated_at,
+                    created_at
                 FROM movies
                 """;
 
@@ -140,7 +145,7 @@ public class MovieRepository {
         }
     }
 
-    public int createMovie(MovieCreateRequest request) throws SQLException {
+    public int createMovie(MovieCreateRequest request) throws SQLException, ActionFailedException {
 
         String query = """
                 INSERT INTO movies
@@ -164,7 +169,7 @@ public class MovieRepository {
 
             int affected = preparedStatement.executeUpdate();
             if (affected == 0) {
-                throw new RuntimeException("Failed to create movie");
+                throw new ActionFailedException("Failed to create movie");
             }
 
             try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
@@ -174,7 +179,7 @@ public class MovieRepository {
             }
         }
 
-        throw new RuntimeException("Failed to retrieve movie ID");
+        throw new ActionFailedException("Failed to create movie");
     }
 
     public boolean updateMovie(Integer movieId, MovieUpdateRequest request) throws SQLException {

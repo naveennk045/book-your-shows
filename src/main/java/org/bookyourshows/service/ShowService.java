@@ -117,7 +117,7 @@ public class ShowService {
         System.out.println("Created show with id: " + showId);
 
         if (showId == null) {
-            throw new ShowCreationException("Create show failed");
+            throw new ActionFailedException("Create show failed");
         }
 
         boolean isScreenHaveSeats = !this.seatRepository.getSeatByScreenId(request.getScreenId()).isEmpty();
@@ -128,19 +128,10 @@ public class ShowService {
         boolean isShowSeatingCreated = this.showRepository.createShowSeating(request.getScreenId(), showId);
         if (!isShowSeatingCreated) {
             this.showRepository.deleteShow(showId);
-            throw new ShowCreationException("Create show failed.");
+            throw new ActionFailedException("Create show failed.");
         }
         Optional<ShowDetails> showDetails = showRepository.getShowById(showId);
-
-        if (showDetails.isPresent()) {
-            try {
-                showCacheRepository.save(showDetails.get());
-            } catch (Exception e) {
-                System.out.println("[ShowService] " + e.getMessage());
-            }
-        } else {
-            throw new ShowCreationException("Saving show is failed in redis");
-        }
+        showCacheRepository.save(showDetails.get());
 
         Map<Integer, ShowSeating> showSeatingLayout = this.showRepository.getShowSeatsByShowId(showId);
         List<ShowSeating> showSeatingList = new ArrayList<>(showSeatingLayout.values());

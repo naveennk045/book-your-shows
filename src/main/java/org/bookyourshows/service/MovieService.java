@@ -1,6 +1,8 @@
 package org.bookyourshows.service;
 
 import org.bookyourshows.dto.movie.*;
+import org.bookyourshows.exceptions.ActionFailedException;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.repository.MovieRepository;
 import org.bookyourshows.repository.cache.movie.MovieCacheRepository;
 
@@ -16,64 +18,51 @@ import static org.bookyourshows.utils.MovieUtils.validateUpdateRequest;
 public class MovieService {
 
     private final MovieRepository movieRepository;
-    private final MovieCacheRepository cache;
+    private final MovieCacheRepository movieCacheRepository;
 
     public MovieService() {
         this.movieRepository = new MovieRepository();
-        this.cache = new MovieCacheRepository();
+        this.movieCacheRepository = new MovieCacheRepository();
 
     }
 
     public Optional<MovieDetails> getMovieById(int movieId) throws SQLException {
 
-        Optional<MovieDetails> cached = cache.getById(movieId);
-        if (cached.isPresent()) {
-            System.out.println("-- Get Movie by ID : " + movieId + " from cache -- ");
-            return cached;
+        Optional<MovieDetails> movieDetails = movieCacheRepository.getById(movieId);
+        if (movieDetails.isPresent()) {
+            return movieDetails;
         }
 
-        Optional<MovieDetails> fromDb = movieRepository.getMovieById(movieId);
+        movieDetails = movieRepository.getMovieById(movieId);
 
-        fromDb.ifPresent(movie -> {
-            try {
-                cache.save(movie);
-            } catch (Exception e) {
-                System.err.println("[Service] Redis warm after getById failed: " + e.getMessage());
-            }
-        });
-
-        return fromDb;
+        movieDetails.ifPresent(movieCacheRepository::save);
+        return movieDetails;
     }
 
     public List<MovieSummary> getAllMovies(MovieQueryParameter params) throws SQLException {
 
-        try {
-            List<MovieDetails> redisResults = cache.search(params);
 
-            if (!redisResults.isEmpty()) {
+        List<MovieDetails> redisResults = movieCacheRepository.search(params);
 
-                List<MovieSummary> summaries = new ArrayList<>();
+        if (!redisResults.isEmpty()) {
 
-                for (MovieDetails m : redisResults) {
-                    MovieSummary summary = new MovieSummary();
-                    summary.setMovieId(m.getMovieId());
-                    summary.setTitle(m.getTitle());
-                    summary.setReleaseDate(m.getReleaseDate());
+            List<MovieSummary> summaries = new ArrayList<>();
 
-                    summaries.add(summary);
-                }
-                System.out.println("-- Get movies from to cache -- ");
-                return summaries;
+            for (MovieDetails m : redisResults) {
+                MovieSummary summary = new MovieSummary();
+                summary.setMovieId(m.getMovieId());
+                summary.setTitle(m.getTitle());
+                summary.setReleaseDate(m.getReleaseDate());
+
+                summaries.add(summary);
             }
-
-        } catch (Exception e) {
-            System.err.println("[Service] Redis Search failed, falling back to MySQL: " + e.getMessage());
+            return summaries;
         }
 
         return movieRepository.getAllMovies(params);
     }
 
-    public MovieDetails createMovie(MovieCreateRequest request) throws SQLException {
+    public MovieDetails createMovie(MovieCreateRequest request) throws SQLException, CustomException {
 
         // 1. Validate
         validateCreateRequest(request);
@@ -82,44 +71,24 @@ public class MovieService {
 
         Optional<MovieDetails> created = movieRepository.getMovieById(newId);
         if (created.isEmpty()) {
-            throw new RuntimeException("Failed to retrieve created movie");
+            throw new ActionFailedException("Failed to created movie");
         }
 
-        try {
-            cache.save(created.get());
-            System.out.println("-- Created Movie by ID : " + newId + " to cache -- ");
-
-        } catch (Exception e) {
-            System.err.println("[Service] Redis sync after create failed: " + e.getMessage());
-        }
+        movieCacheRepository.save(created.get());
 
         return created.get();
     }
 
 
-    public boolean updateMovie(int movieId, MovieUpdateRequest request) throws SQLException {
+    public void updateMovie(int movieId, MovieUpdateRequest request) throws SQLException, CustomException {
 
         validateUpdateRequest(request);
 
         boolean updated = movieRepository.updateMovie(movieId, request);
 
         if (updated) {
-            try {
-                movieRepository.getMovieById(movieId).ifPresent(movie -> {
-                    try {
-                        cache.update(movie);
-                        System.out.println("-- Created Movie by ID : " + movieId + " to cache -- ");
-
-                    } catch (Exception ex) {
-                        System.err.println("[Service] Redis update failed: " + ex.getMessage());
-                    }
-                });
-            } catch (Exception e) {
-                System.err.println("[Service] Redis sync after update failed: " + e.getMessage());
-            }
+            movieRepository.getMovieById(movieId).ifPresent(movieCacheRepository::update);
         }
-
-        return updated;
     }
 
 /*
@@ -129,8 +98,8 @@ public class MovieService {
 
         if (deleted) {
             try {
-                cache.delete(movieId);
-                System.out.println("-- Created Movie by ID : " + movieId + " to cache -- ");
+                movieCacheRepository.delete(movieId);
+                System.out.println("-- Created Movie by ID : " + movieId + " to movieCacheRepository -- ");
             } catch (Exception e) {
                 System.err.println("[Service] Redis sync after delete failed: " + e.getMessage());
             }

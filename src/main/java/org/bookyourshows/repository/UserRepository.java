@@ -3,6 +3,7 @@ package org.bookyourshows.repository;
 import org.bookyourshows.config.DatabaseManager;
 import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.user.*;
+import org.bookyourshows.exceptions.ActionFailedException;
 import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.UserMapper;
 
@@ -276,7 +277,7 @@ public class UserRepository {
     }
 
 
-    public Integer createUser(UserCreateRequest userCreateRequest) throws SQLException {
+    public Integer createUser(UserCreateRequest userCreateRequest) throws SQLException, ActionFailedException {
         String query = """
                         INSERT INTO users(email, mobile_number, password_hash, user_role, first_name, last_name, date_of_birth,profile_picture)
                         VALUES (?, ?, ?, ?,?, ?, ?,?);
@@ -296,14 +297,14 @@ public class UserRepository {
 
             int affected = preparedStatement.executeUpdate();
             if (affected == 0) {
-                throw new RuntimeException("Failed to create user");
+                throw new ActionFailedException("Failed to create user");
             }
 
             try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
                 if (keys.next()) {
                     userId = keys.getInt(1);
                 } else {
-                    throw new RuntimeException("Failed to create user");
+                    throw new ActionFailedException("Failed to create user");
                 }
             }
             return userId;

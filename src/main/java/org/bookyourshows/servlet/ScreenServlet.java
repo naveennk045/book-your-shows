@@ -237,9 +237,9 @@ public class ScreenServlet extends HttpServlet {
         }
 
         try {
-            boolean screenDeleted = screenService.updateScreen(screenUpdateRequest, screenId, theatreId, userContext);
-            if (!screenDeleted) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            boolean screenUpdated = screenService.updateScreen(screenUpdateRequest, screenId, theatreId, userContext);
+            if (!screenUpdated) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "failed to update the screen"));
             }
             response.setStatus(HttpServletResponse.SC_CREATED);

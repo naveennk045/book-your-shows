@@ -3,7 +3,9 @@ package org.bookyourshows.repository.cache.movie;
 import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.dto.movie.MovieDetails;
 import org.bookyourshows.dto.movie.MovieQueryParameter;
+import org.bookyourshows.exceptions.CustomException;
 import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.search.*;
 
 import java.util.*;
@@ -18,25 +20,28 @@ public class MovieCacheRepository {
         RedisClient redisClient = RedisManager.getClient();
         try {
             redisClient.ftInfo("idx:movies");
-
         } catch (Exception e) {
             System.out.println("Redis: index 'idx:movies' Updating....");
-            Schema schema = new Schema()
-                    .addTextField("title", 1.0)
-                    .addTagField("language")
-                    .addTagField("genre")
-                    .addNumericField("release_year")
-                    .addNumericField("duration")
-                    .addTagField("censor_rating");
+            try {
+                Schema schema = new Schema()
+                        .addTextField("title", 1.0)
+                        .addTagField("language")
+                        .addTagField("genre")
+                        .addNumericField("release_year")
+                        .addNumericField("duration")
+                        .addTagField("censor_rating");
 
-            IndexDefinition def = new IndexDefinition()
-                    .setPrefixes(new String[]{"movie:"});
+                IndexDefinition def = new IndexDefinition()
+                        .setPrefixes(new String[]{"movie:"});
 
-            redisClient.ftCreate(
-                    "idx:movies",
-                    IndexOptions.defaultOptions().setDefinition(def),
-                    schema
-            );
+                redisClient.ftCreate(
+                        "idx:movies",
+                        IndexOptions.defaultOptions().setDefinition(def),
+                        schema
+                );
+            } catch (JedisException je) {
+                System.out.println("[Movie Cache]" + je.getMessage());
+            }
         }
     }
 
@@ -51,8 +56,8 @@ public class MovieCacheRepository {
             RedisClient redisClient = RedisManager.getClient();
             String key = "movie:" + movieDetails.getMovieId();
             redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
-        } catch (Exception e) {
-            System.err.println("[Cache] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[Movie Cache] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
         }
     }
 
@@ -64,8 +69,8 @@ public class MovieCacheRepository {
         try {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("movie:" + movieId);
-        } catch (Exception e) {
-            System.err.println("[Cache] delete failed for movie " + movieId + ": " + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[Movie Cache] delete failed for movie " + movieId + ": " + e.getMessage());
         }
     }
 
@@ -78,39 +83,47 @@ public class MovieCacheRepository {
                 return Optional.empty();
             }
             return Optional.of(mapHashMaptoMovieDetails(fields));
-        } catch (Exception e) {
-            System.err.println("[Cache] getById failed for movie " + movieId + ": " + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[Movie Cache] getById failed for movie " + movieId + ": " + e.getMessage());
             return Optional.empty();
         }
     }
 
     public List<MovieDetails> search(MovieQueryParameter params) {
 
-        RedisClient redisClient = RedisManager.getClient();
+        try {
+            RedisClient redisClient = RedisManager.getClient();
 
-        Query query = MovieSearchQueryBuilder.buildQuery(params);
+            Query query = MovieSearchQueryBuilder.buildQuery(params);
 
-        SearchResult result = redisClient.ftSearch("idx:movies", query);
+            SearchResult result = redisClient.ftSearch("idx:movies", query);
 
-        List<MovieDetails> movieDetailsList = new ArrayList<>();
+            List<MovieDetails> movieDetailsList = new ArrayList<>();
 
-        for (Document doc : result.getDocuments()) {
-            Map<String, String> fields = new HashMap<>();
+            for (Document doc : result.getDocuments()) {
+                Map<String, String> fields = new HashMap<>();
 
-            for (Map.Entry<String, Object> entry : doc.getProperties()) {
-                fields.put(entry.getKey(), String.valueOf(entry.getValue()));
+                for (Map.Entry<String, Object> entry : doc.getProperties()) {
+                    fields.put(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+                MovieDetails movieDetails = mapHashMaptoMovieDetails(fields);
+                movieDetailsList.add(movieDetails);
+                return movieDetailsList;
             }
-            MovieDetails movieDetails = mapHashMaptoMovieDetails(fields);
-            movieDetailsList.add(movieDetails);
+        } catch (JedisException e) {
+            System.err.println("[Movie Cache] search failed for movie.");
         }
-
-        return movieDetailsList;
+        return null;
     }
 
     private static void saveMovieStatic(MovieDetails movieDetails) {
-        RedisClient redisClient = RedisManager.getClient();
-        String key = "movie:" + movieDetails.getMovieId();
-        redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
+        try {
+            RedisClient redisClient = RedisManager.getClient();
+            String key = "movie:" + movieDetails.getMovieId();
+            redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
+        } catch (Exception e) {
+            System.err.println("[Movie Cache ] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
+        }
     }
 
 

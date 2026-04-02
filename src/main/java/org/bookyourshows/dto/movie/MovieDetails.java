@@ -1,20 +1,53 @@
 package org.bookyourshows.dto.movie;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import org.bookyourshows.dto.Views;
+
 import java.sql.Date;
+import java.sql.Timestamp;
 
 public class MovieDetails {
 
+    @JsonView(Views.Public.class)
     private Integer movieId;
+    @JsonView(Views.Public.class)
     private String title;
+    @JsonView(Views.Public.class)
     private String language;
+    @JsonView(Views.Public.class)
     private String genre;
+    @JsonView(Views.Public.class)
     private Integer duration;
+    @JsonView(Views.Public.class)
     private Date releaseDate;
+    @JsonView(Views.Public.class)
     private String posterUrl;
+    @JsonView(Views.Public.class)
     private String trailerUrl;
+    @JsonView(Views.Public.class)
     private String description;
+    @JsonView(Views.Public.class)
     private String censorRating;
+    @JsonView(Views.Admin.class)
+    private Timestamp createdAt;
+    @JsonView(Views.Admin.class)
+    private Timestamp updatedAt;
 
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     public Integer getMovieId() {
         return movieId;

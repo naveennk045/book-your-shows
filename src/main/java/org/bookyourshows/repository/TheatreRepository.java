@@ -7,6 +7,7 @@ import org.bookyourshows.dto.theatre.TheatreCreateRequest;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
+import org.bookyourshows.exceptions.ActionFailedException;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.exceptions.TheatreCreationException;
 import org.bookyourshows.mapper.AddressMapper;
@@ -229,7 +230,7 @@ public class TheatreRepository {
 
                 int affected = preparedStatement.executeUpdate();
                 if (affected == 0) {
-                    throw new TheatreCreationException("Failed to create theatre");
+                    throw new ActionFailedException("Failed to create theatre");
                 }
 
                 try (ResultSet keys = preparedStatement.getGeneratedKeys()) {
