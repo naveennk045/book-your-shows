@@ -11,13 +11,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class BookingRepository {
-    private final ShowRepository showRepository;
     private final PaymentRepository paymentRepository;
 
 
     public BookingRepository() {
-
-        this.showRepository = new ShowRepository();
         this.paymentRepository = new PaymentRepository();
     }
 

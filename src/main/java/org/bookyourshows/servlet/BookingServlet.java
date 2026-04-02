@@ -9,13 +9,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.booking.*;
 import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.BookingService;
 
 import java.io.IOException;
-import java.sql.Array;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,8 +39,6 @@ public class BookingServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         UserContext userContext = (UserContext) request.getAttribute("userContext");
-
-
         String path = request.getPathInfo();
 
         try {
@@ -50,15 +46,14 @@ public class BookingServlet extends HttpServlet {
             if (path == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Not found"));
+                        Map.of("message", "No route found"));
                 return;
             }
 
             // 1. ADMIN → /bookings
             if (path.equals("/bookings") || path.equals("/bookings/")) {
 
-                String userRole = String.valueOf(request.getAttribute("user_role"));
-
+                String userRole = userContext.getUserRole();
 
                 if (!"ADMIN".equals(userRole)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -81,7 +76,7 @@ public class BookingServlet extends HttpServlet {
                 if (parts.length < 4 || !"bookings".equals(parts[3])) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "Invalid user bookings path"));
+                            Map.of("message", "No route found"));
                     return;
                 }
 
@@ -96,7 +91,7 @@ public class BookingServlet extends HttpServlet {
                 }
 
                 // Optional security check
-                Integer loggedInUser = (Integer) request.getAttribute("user_id");
+                Integer loggedInUser = userContext.getUserId();
                 if (loggedInUser != null && !loggedInUser.equals(userId)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     objectMapper.writeValue(response.getWriter(),
@@ -188,8 +183,12 @@ public class BookingServlet extends HttpServlet {
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Not found"));
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
@@ -202,8 +201,6 @@ public class BookingServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
-
 
         String path = request.getPathInfo();
         String[] parts = path.split("/");
@@ -213,13 +210,6 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
         // /bookings
         if (!path.startsWith("/bookings")) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -229,7 +219,6 @@ public class BookingServlet extends HttpServlet {
         }
 
         String remainder = path.substring("/bookings".length());
-
         if (remainder.isEmpty() || "/".equals(remainder)) {
             // POST /bookings -> create booking
             handleCreateBooking(request, response);
@@ -255,9 +244,12 @@ public class BookingServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid booking id"));
-            return;
         } catch (RuntimeException | SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
@@ -278,12 +270,6 @@ public class BookingServlet extends HttpServlet {
         }
         UserContext userContext = (UserContext) request.getAttribute("userContext");
         int userId = userContext.getUserId();
-        if (userId == -1) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "user_id header is required"));
-            return;
-        }
 
         try {
             int bookingId = bookingService.createBooking(userId, createReq);
@@ -299,6 +285,10 @@ public class BookingServlet extends HttpServlet {
                     Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(response.getWriter(),
+                    Map.of("message", e.getMessage()));
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", e.getMessage()));
         }
