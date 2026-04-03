@@ -45,7 +45,7 @@ public class BookingService {
     }
 
     public List<BookingSummary> getBookingsByUserId(Integer userId, UserContext userContext) throws SQLException, CustomException {
-        if (!Objects.equals(userId, userContext.getUserId())) {
+        if (!userContext.getUserRole().equals("ADMIN") && !Objects.equals(userId, userContext.getUserId())) {
             throw new ForbiddenException("Access denied");
         }
         return bookingRepository.getBookingsByUserId(userId);
@@ -57,7 +57,7 @@ public class BookingService {
         if (theatre.isEmpty()) {
             throw new ResourceNotFoundException("No theatre found");
         }
-        if (!Objects.equals(theatre.get().getTheatre().getOwnerId(), userContext.getUserId())) {
+        if (!userContext.getUserRole().equals("ADMIN") && !Objects.equals(theatre.get().getTheatre().getOwnerId(), userContext.getUserId())) {
             throw new ForbiddenException("Access denied");
 
         }
@@ -72,6 +72,9 @@ public class BookingService {
             throw new BookingCreationException("At least one seat is required");
         }
 
+        if (showRepository.getShowById(request.getShowId()).isEmpty()) {
+            throw new ResourceNotFoundException("No show found");
+        }
 
         Map<Integer, ShowSeating> showSeating = showRepository.getShowSeatsByShowId(request.getShowId());
         Double totalAmount = (double) 0;
@@ -153,7 +156,7 @@ public class BookingService {
 
     private void hasAccessToBookings(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
 
-        if(bookingRepository.getBookingById(bookingId).isEmpty()) {
+        if (bookingRepository.getBookingById(bookingId).isEmpty()) {
             throw new ResourceNotFoundException("Booking not found");
         }
 

@@ -295,7 +295,7 @@ public class TheatreServlet extends HttpServlet {
             }
 
             response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre updated successfully"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Theatre updated successfully, Pending for admin approval"));
         } catch (IllegalArgumentException e) {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }

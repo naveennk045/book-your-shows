@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.utils.JwtUtil;
 import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -49,20 +50,28 @@ public class TokenWhitelistFilter implements Filter {
                 writeError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
                 return;
             }
-
             chain.doFilter(servletRequest, servletResponse);
 
         } catch (JwtException e) {
-            System.err.println("[TokenWhitelistFilter]" + e.getMessage());
+            System.err.println("[TokenWhitelistFilter] " + e.getMessage());
             writeError(httpServletResponse, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
-        } catch (Exception e) {
-            System.err.println("[TokenWhitelistFilter]" + e.getMessage());
+        } catch (JedisException e) {
+            System.err.println("[TokenWhitelistFilter - REDIS Exception] " + e.getMessage());
             writeError(httpServletResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error: Error in authentication");
+        }catch (Exception e) {
+            System.err.println("[TokenWhitelistFilter] " + e.getMessage());
+            writeError(httpServletResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
+
         }
     }
 
     private void writeError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
+
+        if (message == null) {
+            message = "Unexpected error occurred";
+        }
+
         objectMapper.writeValue(response.getWriter(), Map.of("message", message));
     }
 }

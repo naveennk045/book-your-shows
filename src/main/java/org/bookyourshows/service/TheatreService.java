@@ -53,7 +53,11 @@ public class TheatreService {
             throw new ForbiddenException("Access denied");
         }
 
-        status = "APPROVED";
+        if(!userContext.getUserRole().equals("ADMIN")) {
+            status = "APPROVED";
+        }
+
+
 
         List<TheatreSummary> theatreSummaries = theatreCacheRepository.search(limit, offset, theatreName, city, status);
 

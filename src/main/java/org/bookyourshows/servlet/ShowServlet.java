@@ -15,6 +15,7 @@ import org.bookyourshows.service.ShowService;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -186,6 +187,7 @@ public class ShowServlet extends HttpServlet {
                                   HttpServletRequest request, HttpServletResponse response)
             throws IOException, SQLException, CustomException {
 
+        UserContext userContext = getUserContext(request);
         int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
         if (theatreId == -1) return;
 
@@ -203,7 +205,6 @@ public class ShowServlet extends HttpServlet {
         showCreateRequest.setTheatreId(theatreId);
         showCreateRequest.setScreenId(screenId);
 
-        UserContext userContext = getUserContext(request);
         int showId = showService.createShow(showCreateRequest, userContext);
 
         response.setStatus(HttpServletResponse.SC_CREATED);

@@ -3,7 +3,6 @@ package org.bookyourshows.repository.cache.movie;
 import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.dto.movie.MovieDetails;
 import org.bookyourshows.dto.movie.MovieQueryParameter;
-import org.bookyourshows.exceptions.CustomException;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.search.*;
@@ -108,8 +107,9 @@ public class MovieCacheRepository {
                 }
                 MovieDetails movieDetails = mapHashMaptoMovieDetails(fields);
                 movieDetailsList.add(movieDetails);
-                return movieDetailsList;
             }
+            return movieDetailsList;
+
         } catch (JedisException e) {
             System.err.println("[Movie Cache] search failed for movie.");
         }
@@ -125,6 +125,4 @@ public class MovieCacheRepository {
             System.err.println("[Movie Cache ] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
         }
     }
-
-
 }

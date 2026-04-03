@@ -152,17 +152,12 @@ public class BookingServlet extends HttpServlet {
     private void handleGetBookingsByUser(String userIdStr, HttpServletResponse response, UserContext userContext)
             throws IOException, SQLException, CustomException {
 
+
         int userId;
         try {
             userId = Integer.parseInt(userIdStr);
         } catch (NumberFormatException e) {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid user id");
-            return;
-        }
-
-        Integer loggedInUser = userContext.getUserId();
-        if (loggedInUser != null && !loggedInUser.equals(userId)) {
-            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
 

@@ -147,5 +147,4 @@ public class SeatService {
             throw new ForbiddenException("Access denied");
         }
     }
-
 }

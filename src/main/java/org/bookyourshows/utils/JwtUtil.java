@@ -13,7 +13,7 @@ public class JwtUtil {
     private static final String SECRET = "abcABCDedefEFGHghiIJKLMONPjklmnoQRSWXZYpqrstuwbookmyshowillabookyourshowxyz123456";
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    private static final long EXPIRATION = 1000 * 60 * 60 * 10; // 10 hour
+    public static final long EXPIRATION = 1000 * 60 * 60 * 10; // 10 hour
 
     public static String generateToken(Integer userId, String role) {
 
@@ -37,4 +37,5 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
 }

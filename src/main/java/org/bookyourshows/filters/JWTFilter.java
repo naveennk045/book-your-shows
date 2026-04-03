@@ -74,6 +74,9 @@ public class JWTFilter implements Filter {
 
     private void sendError(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
+        if (message == null) {
+            message = "Unknown error";
+        }
         objectMapper.writeValue(response.getWriter(), Map.of("message", message));
     }
 }

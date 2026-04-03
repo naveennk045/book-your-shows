@@ -2,8 +2,11 @@ package org.bookyourshows.utils;
 
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.bookyourshows.exceptions.CustomException;
+import org.bookyourshows.exceptions.ResourceConflictException;
 import org.bookyourshows.exceptions.ShowCreationException;
 
+import java.time.*;
 import java.util.Calendar;
 
 
@@ -29,26 +32,38 @@ public class ShowUtils {
         }
     }
 
-    public static void validateShowCreationAllowed(ShowCreateRequest showCreateRequest) throws ShowCreationException {
 
-        Calendar today = Calendar.getInstance();
-        today.set(Calendar.HOUR_OF_DAY, 0);
-        today.set(Calendar.MINUTE, 0);
-        today.set(Calendar.SECOND, 0);
-        today.set(Calendar.MILLISECOND, 0);
+    public static void validateShowCreationAllowed(ShowCreateRequest showCreateRequest)
+            throws CustomException {
 
-        Calendar showDate = Calendar.getInstance();
-        showDate.setTime(showCreateRequest.getShowDate());
-        showDate.set(Calendar.HOUR_OF_DAY, 0);
-        showDate.set(Calendar.MINUTE, 0);
-        showDate.set(Calendar.SECOND, 0);
-        showDate.set(Calendar.MILLISECOND, 0);
+        try {
+            if (showCreateRequest.getShowDate() == null) {
+                throw new ShowCreationException("ShowDate cannot be null");
+            }
+            if (showCreateRequest.getStartTime() == null) {
+                throw new ShowCreationException("StartTime cannot be null");
+            }
 
-        long diffInMillis = showDate.getTimeInMillis() - today.getTimeInMillis();
-        long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+            ZoneId zone = ZoneId.of("Asia/Kolkata");
 
-        if (diffInDays < 1 || diffInDays > 2) {
-            throw new ShowCreationException("Show can only be created for the next two days");
+            // Correct conversion for java.sql.Date
+            LocalDate showDate = showCreateRequest.getShowDate().toLocalDate();
+            LocalTime startTime = showCreateRequest.getStartTime().toLocalTime();
+
+            LocalDateTime showDateTime = LocalDateTime.of(showDate, startTime);
+            LocalDateTime now = LocalDateTime.now(zone);
+
+            Duration diff = Duration.between(now, showDateTime);
+
+            boolean isInPast = diff.isNegative() || diff.isZero();
+            boolean isMoreThan48Hours = diff.toHours() > 48;
+
+            if (isInPast || isMoreThan48Hours) {
+                throw new ShowCreationException("Show must be scheduled within the next 48 hours");
+            }
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error validating show creation: " + e.getMessage());
         }
     }
 }

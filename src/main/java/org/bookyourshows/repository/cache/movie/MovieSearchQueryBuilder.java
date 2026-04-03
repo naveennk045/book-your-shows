@@ -36,7 +36,7 @@ public class MovieSearchQueryBuilder {
 
         String finalQuery = queryStr.toString().trim();
         if (finalQuery.isEmpty()) {
-            finalQuery = "*";
+            finalQuery = "* ";
         }
 
         Query query = new Query(finalQuery);

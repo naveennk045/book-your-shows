@@ -84,6 +84,7 @@ public class ShowService {
     public int createShow(ShowCreateRequest request, UserContext userContext) throws SQLException, CustomException {
 
         validateShowCreationAllowed(request);
+        System.out.println("Creating show....");
         hasAccessToShows(request.getTheatreId(), userContext);
 
 
@@ -100,7 +101,7 @@ public class ShowService {
         }
 
         if (request.getStartTime().after(request.getEndTime())) {
-            throw new ShowCreationException("Invalid timing");
+            throw new ResourceConflictException("Invalid timing");
         }
 
 

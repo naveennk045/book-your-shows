@@ -102,7 +102,7 @@ public class AuthenticationService {
 
         redisClient.setex(
                 key.getBytes(),
-                3600,
+                JwtUtil.EXPIRATION,
                 "valid".getBytes()
         );
 

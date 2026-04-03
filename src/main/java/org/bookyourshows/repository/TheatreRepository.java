@@ -283,7 +283,8 @@ public class TheatreRepository {
                                     email = ?,
                                     contact_number = ?,
                                     total_screens = ?,
-                                    license_document = ?
+                                    license_document = ?,
+                                    status = 'PENDING'
                                 WHERE theatre_id = ?
                 """;
 

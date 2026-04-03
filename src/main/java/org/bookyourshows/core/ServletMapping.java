@@ -318,7 +318,7 @@ public class ServletMapping {
 
         for (Map.Entry<String, ServletDetails> entry : SERVLET_REGISTRY.entrySet()) {
             if (requestUri.matches(entry.getKey())) {
-                System.out.println("Matched request URI: " + entry.getKey());
+//                System.out.println("Matched request URI: " + entry.getKey());
                 return entry.getValue();
             }
         }
