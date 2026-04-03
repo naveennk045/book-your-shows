@@ -35,7 +35,7 @@ public class PaymentService {
 
     public PaymentInitiateResponse initiatePayment(Integer bookingId, PaymentInitiateRequest request, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(bookingId, userContext);
+        hasAccessToPaymentDetails(bookingId, userContext);
 
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
         if (bookingDetails.isEmpty()) {
@@ -119,7 +119,7 @@ public class PaymentService {
         return paymentRepository.getPayments(year, month, bookingId, status);
     }
 
-    private void hasAccessToResource(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
+    private void hasAccessToPaymentDetails(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
 
         if (bookingRepository.getBookingById(bookingId).isEmpty()) {
             throw new ResourceNotFoundException("Booking not found");

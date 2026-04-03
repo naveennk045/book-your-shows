@@ -84,7 +84,7 @@ public class ShowService {
     public int createShow(ShowCreateRequest request, UserContext userContext) throws SQLException, CustomException {
 
         validateShowCreationAllowed(request);
-        hasAccessToResource(request.getTheatreId(), userContext);
+        hasAccessToShows(request.getTheatreId(), userContext);
 
 
         Optional<ScreenDetails> screenDetails = screenRepository.getScreenByScreenId(request.getScreenId());
@@ -179,7 +179,7 @@ public class ShowService {
             throw new ResourceNotFoundException("Show not found");
         }
 
-        hasAccessToResource(showDetails.get().getTheatreId(), userContext);
+        hasAccessToShows(showDetails.get().getTheatreId(), userContext);
 
 
         ShowDetails show = showDetails.get();
@@ -219,7 +219,7 @@ public class ShowService {
         return true;
     }
 
-    private void hasAccessToResource(Integer theatreId, UserContext userContext) throws CustomException, SQLException {
+    private void hasAccessToShows(Integer theatreId, UserContext userContext) throws CustomException, SQLException {
 
         Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);
 

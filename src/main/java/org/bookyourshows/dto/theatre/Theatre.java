@@ -10,7 +10,7 @@ public class Theatre {
     @JsonView(Views.Public.class)
     private Integer theatreId;
 
-    @JsonView(Views.Public.class)
+    @JsonView(Views.Admin.class)
     private Integer ownerId;
 
     @JsonView(Views.Public.class)

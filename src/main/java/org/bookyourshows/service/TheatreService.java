@@ -4,7 +4,6 @@ import org.bookyourshows.dto.address.Address;
 import org.bookyourshows.dto.theatre.*;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.*;
-import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.TheatreRepository;
 import org.bookyourshows.repository.cache.theatre.TheatreCacheRepository;
 
@@ -71,7 +70,7 @@ public class TheatreService {
 
     public void updateTheatreAddress(int theatreId, int ownerId, String role, Address request) throws SQLException, CustomException {
 
-        hasAccessToResource(theatreId, ownerId, role);
+        hasAccessToTheatre(theatreId, ownerId, role);
         validateTheatreAddress(request);
 
         boolean updated = theatreRepository.updateTheatreAddress(theatreId, request);
@@ -110,7 +109,7 @@ public class TheatreService {
 
     public boolean updateTheatre(int theatreId, int ownerId, String role, TheatreUpdateRequest request) throws SQLException, CustomException {
 
-        hasAccessToResource(theatreId, ownerId, role);
+        hasAccessToTheatre(theatreId, ownerId, role);
 
         validateTheatreName(request.getTheatreName());
         validateEmail(request.getEmail());
@@ -145,7 +144,7 @@ public class TheatreService {
     }
 */
 
-    private void hasAccessToResource(int theatreId, int ownerId, String role) throws SQLException, CustomException {
+    private void hasAccessToTheatre(int theatreId, int ownerId, String role) throws SQLException, CustomException {
         Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreById(theatreId);
         if (theatreDetails.isEmpty()) throw new ResourceNotFoundException("Theatre not found with id: " + theatreId);
 

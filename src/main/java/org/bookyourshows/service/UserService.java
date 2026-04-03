@@ -25,7 +25,7 @@ public class UserService {
 
     public Optional<UserDetails> getUserById(Integer userId, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(userContext, userId);
+        hasAccessToUserDetails(userContext, userId);
         return userRepository.getUserByUserId(userId);
     }
 
@@ -52,13 +52,13 @@ public class UserService {
     }
 
     public Optional<Address> getUserAddress(Integer userId, UserContext userContext) throws SQLException, CustomException {
-        hasAccessToResource(userContext, userId);
+        hasAccessToUserDetails(userContext, userId);
         return userRepository.getUserAddress(userId);
     }
 
     public void updateUserAddress(int userId, Address request, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(userContext, userId);
+        hasAccessToUserDetails(userContext, userId);
 
         validateAddress(request);
 
@@ -71,7 +71,7 @@ public class UserService {
     }
 
     public void updateUser(int userId, UserUpdateRequest request, UserContext userContext) throws SQLException, CustomException {
-        hasAccessToResource(userContext, userId);
+        hasAccessToUserDetails(userContext, userId);
         validateName(request.getFirstName(), "First name");
 
         boolean updated = userRepository.updateUser(request, userId);
@@ -87,12 +87,12 @@ public class UserService {
     }
 
     public boolean deleteUser(int userId, UserContext userContext) throws SQLException, CustomException {
-        hasAccessToResource(userContext, userId);
+        hasAccessToUserDetails(userContext, userId);
         return userRepository.deleteUser(userId);
     }
 
 
-    public void hasAccessToResource(UserContext userContext, Integer userId) throws CustomException {
+    public void hasAccessToUserDetails(UserContext userContext, Integer userId) throws CustomException {
         if (!userContext.getUserRole().equals("ADMIN") && !Objects.equals(userContext.getUserId(), userId)) {
             throw new ForbiddenException("Access denied");
         }

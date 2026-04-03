@@ -11,7 +11,6 @@ import org.bookyourshows.exceptions.ResourceNotFoundException;
 import org.bookyourshows.exceptions.ScreenCreationException;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
-import org.bookyourshows.repository.ShowRepository;
 import org.bookyourshows.repository.TheatreRepository;
 import org.bookyourshows.utils.ScreenUtils;
 
@@ -71,7 +70,7 @@ public class ScreenService {
 
     public boolean updateScreen(ScreenUpdateRequest screenUpdateRequest, int screenId, int theatreId, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResources(screenId, theatreId, userContext);
+        hasAccessToScreenDetails(screenId, theatreId, userContext);
 
         if (!screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
             throw new ScreenCreationException("Screen not found");
@@ -105,7 +104,7 @@ public class ScreenService {
         return screenRepository.deleteScreen(screenId);
     }*/
 
-    private void hasAccessToResources(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException, CustomException {
+    private void hasAccessToScreenDetails(Integer screenId, Integer theatreId, UserContext userContext) throws SQLException, CustomException {
         if (!userContext.getUserRole().equals("ADMIN")) {
             Optional<ScreenDetails> screenDetails = screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId);
             if (screenDetails.isEmpty()) {

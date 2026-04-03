@@ -32,7 +32,7 @@ public class RefundService {
 
     public Optional<RefundDetails> getRefundById(int refundId, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(refundId,userContext);
+        hasAccessToRefunds(refundId,userContext);
 
         return refundRepository.getRefundById(refundId);
     }
@@ -45,7 +45,7 @@ public class RefundService {
         return refundRepository.getRefunds(year, paymentId, status);
     }
 
-    private void hasAccessToResource(Integer refundId, UserContext userContext) throws SQLException, CustomException {
+    private void hasAccessToRefunds(Integer refundId, UserContext userContext) throws SQLException, CustomException {
 
         Optional<RefundDetails> refundDetails = this.refundRepository.getRefundById(refundId);
 

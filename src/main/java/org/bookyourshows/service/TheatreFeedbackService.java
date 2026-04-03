@@ -9,7 +9,6 @@ import org.bookyourshows.exceptions.*;
 import org.bookyourshows.repository.BookingRepository;
 import org.bookyourshows.repository.TheatreFeedbackRepository;
 import org.bookyourshows.repository.UserRepository;
-import org.bookyourshows.utils.TheatreFeedBackUtils.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -93,7 +92,7 @@ public class TheatreFeedbackService {
 
     public boolean deleteFeedback(int theatreId, int ratingId, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(ratingId, userContext);
+        hasAccessToTheatreFeedbacks(ratingId, userContext);
 
         // 1. rating_id exists for this theatre
         Optional<TheatreFeedbackResponse> existing =
@@ -107,7 +106,7 @@ public class TheatreFeedbackService {
     }
 
 
-    private void hasAccessToResource(Integer ratingId, UserContext userContext) throws CustomException, SQLException {
+    private void hasAccessToTheatreFeedbacks(Integer ratingId, UserContext userContext) throws CustomException, SQLException {
 
         Optional<TheatreFeedbackResponse> feedbackResponse = theatreFeedbackRepository.getFeedbackByRatingId(ratingId);
         if (feedbackResponse.isEmpty()) {

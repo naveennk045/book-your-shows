@@ -36,7 +36,7 @@ public class BookingService {
     }
 
     public Optional<BookingDetails> getBookingById(int bookingId, UserContext userContext) throws SQLException, CustomException {
-        hasAccessToResource(bookingId, userContext);
+        hasAccessToBookings(bookingId, userContext);
         return bookingRepository.getBookingById(bookingId);
     }
 
@@ -101,7 +101,7 @@ public class BookingService {
 
     public Integer cancelBooking(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
 
-        hasAccessToResource(bookingId, userContext);
+        hasAccessToBookings(bookingId, userContext);
 
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
         Optional<PaymentDetails> paymentDetailsOptional = paymentRepository.getPaymentDetailsByBookingId(bookingId);
@@ -151,7 +151,7 @@ public class BookingService {
         return refundRepository.createRefund(refundCreateRequest);
     }
 
-    private void hasAccessToResource(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
+    private void hasAccessToBookings(Integer bookingId, UserContext userContext) throws SQLException, CustomException {
 
         if(bookingRepository.getBookingById(bookingId).isEmpty()) {
             throw new ResourceNotFoundException("Booking not found");

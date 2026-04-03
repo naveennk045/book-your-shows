@@ -24867,3 +24867,15 @@ Matched request URI: ^/theatres/[^/]+$
 [TokenWhitelistFilter]JWT expired at 2026-04-02T22:49:28Z. Current time: 2026-04-03T01:39:50Z, a difference of 10222684 milliseconds.  Allowed clock skew: 0 milliseconds.
 Incoming request : /api/users/11
 Matched request URI: ^/users/[^/]+$
+Incoming request : /api/auth/login
+Matched request URI: ^/auth/login$
+User: 12 nkv@gmail.com $2a$12$g/yZl5712Bcxby0s08BR2OFC3fqt/du1dQp2rRut3HYCqOg1VNRMS CUSTOMER
+Key : auth:token:75869d27-fc1e-4d87-b360-710bd3ef78ed
+Incoming request : /api/theatres/4
+Matched request URI: ^/theatres/[^/]+$
+Incoming request : /api/auth/login
+Matched request URI: ^/auth/login$
+User: 11 theatre@gmail.com $2a$12$O0LIJm8mQxaFmxLo0iVCoe3oIWhV2Odr0Rf3EOTTyBx21JnK3X3fK THEATRE_OWNER
+Key : auth:token:6c1bbfcb-8cce-431a-9005-4b69c873dac8
+Incoming request : /api/theatres/4
+Matched request URI: ^/theatres/[^/]+$
