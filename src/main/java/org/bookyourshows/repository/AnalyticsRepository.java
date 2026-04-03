@@ -81,146 +81,253 @@ public class AnalyticsRepository {
 
     public List<PeakShowTimeResponse> getPeakShowTimes(Integer theatreId, Integer year, Integer month) throws SQLException {
 
-        String query = """
-                    SELECT 
-                        CASE
-                            WHEN HOUR(sh.start_time) >= 7 AND HOUR(sh.start_time) < 12 THEN 'Morning'
-                            WHEN HOUR(sh.start_time) >= 12 AND HOUR(sh.start_time) < 15 THEN 'Matinee'
-                            WHEN HOUR(sh.start_time) >= 15 AND HOUR(sh.start_time) < 19 THEN 'Evening'
-                            WHEN HOUR(sh.start_time) >= 19 AND HOUR(sh.start_time) < 22 THEN 'Night'
-                            ELSE 'Late night'
-                        END AS show_category,
-                        SUM(IF(ss.status = 'BOOKED', 1, 0)) AS seats_booked,
-                        SUM(IF(ss.status = 'AVAILABLE', 1, 0)) AS seats_not_booked
-                    FROM shows sh
-                    JOIN show_seating ss ON ss.show_id = sh.show_id
-                    WHERE sh.theatre_id = ?
-                    AND YEAR(sh.show_date) = ?
-                    AND MONTH(sh.show_date) = ?
-                    GROUP BY show_category
-                    ORDER BY seats_booked DESC
-                """;
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    CASE
+                        WHEN HOUR(sh.start_time) >= 7  AND HOUR(sh.start_time) < 12 THEN 'Morning'
+                        WHEN HOUR(sh.start_time) >= 12 AND HOUR(sh.start_time) < 15 THEN 'Matinee'
+                        WHEN HOUR(sh.start_time) >= 15 AND HOUR(sh.start_time) < 19 THEN 'Evening'
+                        WHEN HOUR(sh.start_time) >= 19 AND HOUR(sh.start_time) < 22 THEN 'Night'
+                        ELSE 'Late Night'
+                    END AS show_category,
+                    SUM(IF(ss.status = 'BOOKED', 1, 0))     AS seats_booked,
+                    SUM(IF(ss.status = 'AVAILABLE', 1, 0))  AS seats_not_booked
+                FROM shows sh
+                JOIN show_seating ss ON ss.show_id = sh.show_id
+                WHERE 1 = 1
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (theatreId != null) {
+            sql.append(" AND sh.theatre_id = ?");
+            params.add(theatreId);
+        }
+
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY show_category ORDER BY seats_booked DESC");
 
         List<PeakShowTimeResponse> list = new ArrayList<>();
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
-            preparedStatement.setInt(1, theatreId);
-            preparedStatement.setInt(2, year);
-            preparedStatement.setInt(3, month);
+            for (int i = 0; i < params.size(); i++) {
+                preparedStatement.setObject(i + 1, params.get(i));
+            }
 
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                PeakShowTimeResponse peakShowTimeResponse = new PeakShowTimeResponse();
-                peakShowTimeResponse.setShowCategory(resultSet.getString("show_category"));
-                peakShowTimeResponse.setSeatsBooked(resultSet.getInt("seats_booked"));
-                peakShowTimeResponse.setSeatsNotBooked(resultSet.getInt("seats_not_booked"));
-                list.add(peakShowTimeResponse);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    PeakShowTimeResponse peakShowTimeResponse = new PeakShowTimeResponse();
+                    peakShowTimeResponse.setShowCategory(resultSet.getString("show_category"));
+                    peakShowTimeResponse.setSeatsBooked(resultSet.getInt("seats_booked"));
+                    peakShowTimeResponse.setSeatsNotBooked(resultSet.getInt("seats_not_booked"));
+                    list.add(peakShowTimeResponse);
+                }
             }
         }
 
         return list;
     }
 
-    public List<UserBookingAnalytics> getUserBookingsAnalytics() throws SQLException {
+    public List<UserBookingAnalytics> getUserBookingsAnalytics(Integer year, Integer month) throws SQLException {
 
-        String query = """
-                    SELECT u.user_id,
-                            u.first_name,
-                           COUNT(DISTINCT b.booking_id) AS no_of_bookings,
-                           COUNT(bsd.show_seat_id) AS no_of_seats
-                    FROM users u
-                    LEFT JOIN bookings b ON b.user_id = u.user_id
-                    LEFT JOIN booking_seat_details bsd ON b.booking_id = bsd.booking_id
-                    WHERE b.booking_status = 'CONFIRMED'
-                    GROUP BY u.user_id
-                    ORDER BY no_of_seats DESC
-                """;
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    u.user_id,
+                    u.first_name,
+                    COUNT(DISTINCT b.booking_id) AS no_of_bookings,
+                    COUNT(bsd.show_seat_id)      AS no_of_seats
+                FROM users u
+                LEFT JOIN bookings b   ON b.user_id   = u.user_id
+                LEFT JOIN booking_seat_details bsd ON bsd.booking_id = b.booking_id
+                LEFT JOIN shows sh     ON sh.show_id  = b.show_id
+                WHERE b.booking_status = 'CONFIRMED'
+                """);
 
-        return getUserBookingAnalytics(query);
-    }
+        List<Object> params = new ArrayList<>();
 
-    private static List<UserBookingAnalytics> getUserBookingAnalytics(String query) throws SQLException {
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY u.user_id, u.first_name ORDER BY no_of_seats DESC");
+
         List<UserBookingAnalytics> list = new ArrayList<>();
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                UserBookingAnalytics userBookingAnalytics = new UserBookingAnalytics();
-                userBookingAnalytics.setUserId(resultSet.getInt("user_id"));
-                userBookingAnalytics.setFirstName(resultSet.getString("first_name"));
-                userBookingAnalytics.setNoOfBookings(resultSet.getInt("no_of_bookings"));
-                userBookingAnalytics.setNoOfSeats(resultSet.getInt("no_of_seats"));
-                list.add(userBookingAnalytics);
+            for (int i = 0; i < params.size(); i++) {
+                preparedStatement.setObject(i + 1, params.get(i));
             }
-        }
-        return list;
-    }
 
-    public List<TheatreBookingAnalytics> getTheatreBookingsAnalytics() throws SQLException {
-
-        String query = """
-                    SELECT t.theatre_id,t.theatre_name,
-                           COUNT(DISTINCT b.booking_id) AS no_of_bookings,
-                           COUNT(bsd.show_seat_id) AS no_of_seats_booked
-                    FROM theatres t
-                    LEFT JOIN shows sh ON t.theatre_id = sh.theatre_id
-                    LEFT JOIN bookings b ON b.show_id = sh.show_id
-                    LEFT JOIN booking_seat_details bsd ON b.booking_id = bsd.booking_id
-                    WHERE b.booking_status = 'CONFIRMED'
-                    GROUP BY t.theatre_id
-                    ORDER BY no_of_seats_booked DESC
-                """;
-
-        List<TheatreBookingAnalytics> list = new ArrayList<>();
-
-        try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                TheatreBookingAnalytics theatreBookingAnalytics = new TheatreBookingAnalytics();
-                theatreBookingAnalytics.setTheatreId(resultSet.getInt("theatre_id"));
-                theatreBookingAnalytics.setTheatreName(resultSet.getString("theatre_name"));
-                theatreBookingAnalytics.setNoOfBookings(resultSet.getInt("no_of_bookings"));
-                theatreBookingAnalytics.setNoOfSeatsBooked(resultSet.getInt("no_of_seats_booked"));
-                list.add(theatreBookingAnalytics);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    UserBookingAnalytics analytics = new UserBookingAnalytics();
+                    analytics.setUserId(resultSet.getInt("user_id"));
+                    analytics.setFirstName(resultSet.getString("first_name"));
+                    analytics.setNoOfBookings(resultSet.getInt("no_of_bookings"));
+                    analytics.setNoOfSeats(resultSet.getInt("no_of_seats"));
+                    list.add(analytics);
+                }
             }
         }
 
         return list;
     }
 
-    public List<TopSpentUser> getTopSpentUsers() throws SQLException {
+    public List<TheatreBookingAnalytics> getTheatreBookingsAnalytics(Integer year, Integer month) throws SQLException {
 
-        String query = """
-                    SELECT u.user_id,u.first_name, SUM(b.total_amount) AS amount_spent
-                    FROM users u
-                    LEFT JOIN bookings b ON b.user_id = u.user_id
-                    GROUP BY u.user_id
-                    ORDER BY amount_spent DESC
-                    LIMIT 10
-                """;
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    t.theatre_id,
+                    t.theatre_name,
+                    COUNT(DISTINCT b.booking_id) AS no_of_bookings,
+                    COUNT(bsd.show_seat_id)      AS no_of_seats_booked
+                FROM theatres t
+                LEFT JOIN shows sh ON sh.theatre_id = t.theatre_id
+                LEFT JOIN bookings b ON b.show_id = sh.show_id AND b.booking_status = 'CONFIRMED'
+                LEFT JOIN booking_seat_details bsd ON bsd.booking_id = b.booking_id
+                WHERE 1 = 1
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY t.theatre_id, t.theatre_name ORDER BY no_of_seats_booked DESC");
+
+        return getTheatreAnalytics(sql.toString(), params);
+    }
+
+    public List<TheatreBookingAnalytics> getTheatreBookingsAnalyticsByTheatre(Integer theatreId, Integer year, Integer month) throws SQLException {
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    t.theatre_id,
+                    t.theatre_name,
+                    COUNT(DISTINCT b.booking_id) AS no_of_bookings,
+                    COUNT(bsd.show_seat_id)      AS no_of_seats_booked
+                FROM theatres t
+                LEFT JOIN shows sh ON sh.theatre_id = t.theatre_id
+                LEFT JOIN bookings b ON b.show_id = sh.show_id AND b.booking_status = 'CONFIRMED'
+                LEFT JOIN booking_seat_details bsd ON bsd.booking_id = b.booking_id
+                WHERE t.theatre_id = ?
+                """);
+
+        List<Object> params = new ArrayList<>();
+        params.add(theatreId);
+
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY t.theatre_id, t.theatre_name");
+
+        return getTheatreAnalytics(sql.toString(), params);
+    }
+
+    public List<TopSpentUser> getTopSpentUsers(Integer year, Integer month) throws SQLException {
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    u.user_id,
+                    u.first_name,
+                    SUM(b.total_amount) AS amount_spent
+                FROM users u
+                LEFT JOIN bookings b ON b.user_id = u.user_id
+                LEFT JOIN shows sh   ON sh.show_id = b.show_id
+                WHERE b.booking_status = 'CONFIRMED'
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY u.user_id, u.first_name ORDER BY amount_spent DESC LIMIT 10");
 
         List<TopSpentUser> list = new ArrayList<>();
 
         try (Connection connection = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            for (int i = 0; i < params.size(); i++) {
+                preparedStatement.setObject(i + 1, params.get(i));
+            }
 
-            while (resultSet.next()) {
-                TopSpentUser topSpentUser = new TopSpentUser();
-                topSpentUser.setUserId(resultSet.getInt("user_id"));
-                topSpentUser.setFirstName(resultSet.getString("first_name"));
-                topSpentUser.setAmountSpent(resultSet.getDouble("amount_spent"));
-                list.add(topSpentUser);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    TopSpentUser topSpentUser = new TopSpentUser();
+                    topSpentUser.setUserId(resultSet.getInt("user_id"));
+                    topSpentUser.setFirstName(resultSet.getString("first_name"));
+                    topSpentUser.setAmountSpent(resultSet.getDouble("amount_spent"));
+                    list.add(topSpentUser);
+                }
+            }
+        }
+
+        return list;
+    }
+
+
+    private List<TheatreBookingAnalytics> getTheatreAnalytics(String sql, List<Object> params) throws SQLException {
+
+        List<TheatreBookingAnalytics> list = new ArrayList<>();
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            for (int i = 0; i < params.size(); i++) {
+                preparedStatement.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    TheatreBookingAnalytics analytics = new TheatreBookingAnalytics();
+                    analytics.setTheatreId(resultSet.getInt("theatre_id"));
+                    analytics.setTheatreName(resultSet.getString("theatre_name"));
+                    analytics.setNoOfBookings(resultSet.getInt("no_of_bookings"));
+                    analytics.setNoOfSeatsBooked(resultSet.getInt("no_of_seats_booked"));
+                    list.add(analytics);
+                }
             }
         }
 

@@ -298,14 +298,14 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/analytics/movie-performance$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
         SERVLET_REGISTRY.put("^/analytics/movie-performance/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
 
-        SERVLET_REGISTRY.put("^/analytics/peak-show-times$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
-        SERVLET_REGISTRY.put("^/analytics/peak-show-times/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/peak-show-times$", new ServletDetails(new AnalyticsServlet(), AccessLevel.THEATRE_OWNER));
+        SERVLET_REGISTRY.put("^/analytics/peak-show-times/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.THEATRE_OWNER));
 
         SERVLET_REGISTRY.put("^/analytics/users-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
         SERVLET_REGISTRY.put("^/analytics/users-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
 
-        SERVLET_REGISTRY.put("^/analytics/theatres-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
-        SERVLET_REGISTRY.put("^/analytics/theatres-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/theatres-bookings$", new ServletDetails(new AnalyticsServlet(), AccessLevel.THEATRE_OWNER));
+        SERVLET_REGISTRY.put("^/analytics/theatres-bookings/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.THEATRE_OWNER));
 
         SERVLET_REGISTRY.put("^/analytics/top-spent$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
         SERVLET_REGISTRY.put("^/analytics/top-spent/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));

@@ -3,6 +3,8 @@ package org.bookyourshows.service;
 import org.bookyourshows.dto.booking.*;
 import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.refund.RefundCreateRequest;
+import org.bookyourshows.dto.show.ShowCreateRequest;
+import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.user.UserContext;
@@ -65,6 +67,7 @@ public class BookingService {
     }
 
     public int createBooking(Integer userId, BookingCreateRequest request) throws SQLException, CustomException {
+
         if (request.getShowId() <= 0) {
             throw new BookingCreationException("show_id is required");
         }
@@ -72,8 +75,17 @@ public class BookingService {
             throw new BookingCreationException("At least one seat is required");
         }
 
-        if (showRepository.getShowById(request.getShowId()).isEmpty()) {
+        Optional<ShowDetails> showDetails = showRepository.getShowById(request.getShowId());
+
+        if (showDetails.isEmpty()) {
             throw new ResourceNotFoundException("No show found");
+        }
+        if (showDetails.get().getStatus().equals("COMPLETED")) {
+            throw new BookingCreationException("Show is already completed");
+        }
+
+        if (showDetails.get().getStatus().equals("CANCELLED")) {
+            throw new BookingCreationException("Show is cancelled");
         }
 
         Map<Integer, ShowSeating> showSeating = showRepository.getShowSeatsByShowId(request.getShowId());
@@ -106,8 +118,13 @@ public class BookingService {
 
         hasAccessToBookings(bookingId, userContext);
 
+
         Optional<BookingDetails> bookingDetails = bookingRepository.getBookingById(bookingId);
         Optional<PaymentDetails> paymentDetailsOptional = paymentRepository.getPaymentDetailsByBookingId(bookingId);
+
+        if (bookingDetails.isEmpty()) {
+            throw new ResourceNotFoundException("Booking not found");
+        }
 
         if (paymentDetailsOptional.isEmpty()) {
             throw new ResourceNotFoundException("Payment not found");
@@ -121,9 +138,6 @@ public class BookingService {
             throw new ResourceConflictException("Already refunded");
         }
 
-        if (bookingDetails.isEmpty()) {
-            throw new ResourceNotFoundException("Booking not found");
-        }
 
         LocalDate showDate = LocalDate.parse(bookingDetails.get().getShow().getShowDate());
         LocalTime startTime = LocalTime.parse(bookingDetails.get().getShow().getStartTime());

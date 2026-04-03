@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.bookyourshows.dto.analytics.*;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.user.UserContext;
+import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AnalyticsService;
 
 import jakarta.servlet.http.HttpServlet;
@@ -47,13 +48,11 @@ public class AnalyticsServlet extends HttpServlet {
 
         UserContext userContext = (UserContext) request.getAttribute("userContext");
 
-
         if (path == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "No route found"));
             return;
         }
-
 
         try {
 
@@ -63,11 +62,10 @@ public class AnalyticsServlet extends HttpServlet {
                 return;
             }
 
-            // 2. ADMIN CHECK
-            if (!"ADMIN".equals(userContext.getUserRole())) {
+            // 2. ADMIN / THEATRE_OWNER CHECK
+            if (!"ADMIN".equals(userContext.getUserRole()) && !"THEATRE_OWNER".equals(userContext.getUserRole())) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Unauthorized"));
+                objectMapper.writeValue(response.getWriter(), Map.of("message", "Unauthorized"));
                 return;
             }
 
@@ -75,13 +73,14 @@ public class AnalyticsServlet extends HttpServlet {
             if (parts.length > 2 && "peak-show-times".equals(parts[2])) {
 
                 Integer theatreId = parseInt(request.getParameter("theatre_id"));
-                Integer year = parseInt(request.getParameter("year"));
-                Integer month = parseInt(request.getParameter("month"));
+                Integer year      = parseInt(request.getParameter("year"));
+                Integer month     = parseInt(request.getParameter("month"));
 
+                // FIX: typo "requestuired" → "required"
                 if (theatreId == null || year == null || month == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     objectMapper.writeValue(response.getWriter(),
-                            Map.of("message", "theatre_id, year, month are requestuired"));
+                            Map.of("message", "theatre_id, year, month are required"));
                     return;
                 }
 
@@ -96,58 +95,64 @@ public class AnalyticsServlet extends HttpServlet {
             // 4. USER BOOKINGS
             if (parts.length > 2 && "users-bookings".equals(parts[2])) {
 
+                Integer year  = parseInt(request.getParameter("year"));
+                Integer month = parseInt(request.getParameter("month"));
+
                 List<UserBookingAnalytics> data =
-                        analyticsService.getUserBookingsAnalytics();
+                        analyticsService.getUserBookingsAnalytics(year, month);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
                 return;
             }
-
 
             // 5. THEATRE BOOKINGS
             if (parts.length > 2 && "theatres-bookings".equals(parts[2])) {
 
+                Integer year  = parseInt(request.getParameter("year"));
+                Integer month = parseInt(request.getParameter("month"));
+
                 List<TheatreBookingAnalytics> data =
-                        analyticsService.getTheatreBookingsAnalytics();
+                        analyticsService.getTheatreBookingsAnalytics(userContext, year, month);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
                 return;
             }
-
 
             // 6. TOP SPENT USERS
             if (parts.length > 2 && "top-spent".equals(parts[2])) {
 
+                Integer year  = parseInt(request.getParameter("year"));
+                Integer month = parseInt(request.getParameter("month"));
+
                 List<TopSpentUser> data =
-                        analyticsService.getTopSpentUsers();
+                        analyticsService.getTopSpentUsers(year, month);
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
                 return;
             }
 
-
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Not route found"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No route found"));
 
+        } catch (CustomException e) {
+            response.setStatus(e.getStatusCode());
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
-
 
     private void handleMoviePerformance(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         UserContext userContext = (UserContext) request.getAttribute("userContext");
+
         try {
             MoviePerformanceRequest requestDto = new MoviePerformanceRequest();
 
@@ -171,38 +176,33 @@ public class AnalyticsServlet extends HttpServlet {
                 requestDto.setLimit(Integer.parseInt(limitParam));
             }
 
-
-            List<MoviePerformanceResponse> topMovies =
-                    analyticsService.getMoviePerformance(requestDto);
-
             boolean isAdmin = "ADMIN".equals(userContext.getUserRole());
-            Integer userId = userContext.getUserId();
-
+            Integer userId  = userContext.getUserId();
 
             response.setStatus(HttpServletResponse.SC_OK);
 
             if (isAdmin) {
+                List<MoviePerformanceResponse> topMovies =
+                        analyticsService.getMoviePerformance(requestDto);
                 objectMapper.writeValue(response.getWriter(), topMovies);
-            } else {
 
+            } else {
                 Optional<TheatreDetails> theatreDetails = theatreService.getTheatreByOwnerId(userId);
 
                 if (theatreDetails.isEmpty()) {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Not found"));
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No theatre found for this owner"));
                     return;
                 }
 
                 Integer theatreId = theatreDetails.get().getTheatre().getTheatreId();
+                requestDto.setTheatreId(theatreId);
 
                 List<MoviePerformanceResponse> topMoviesByTheatre =
                         analyticsService.getMoviePerformance(requestDto);
-                requestDto.setTheatreId(theatreId);
-
 
                 Map<String, Object> body = new HashMap<>();
-
-                body.put("theatre_id", requestDto.getTheatreId());
+                body.put("theatre_id", theatreId);
                 body.put("top_movies", topMoviesByTheatre);
 
                 objectMapper.writeValue(response.getWriter(), body);
@@ -214,8 +214,7 @@ public class AnalyticsServlet extends HttpServlet {
                     Map.of("message", "Invalid numeric parameter"));
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", ex.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", ex.getMessage()));
         }
     }
 
@@ -232,6 +231,4 @@ public class AnalyticsServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
     }
-
-
 }
