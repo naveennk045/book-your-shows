@@ -31,304 +31,205 @@ public class ScreenServlet extends HttpServlet {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
+        this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-
-        String path = request.getPathInfo();
-        String[] part = path.split("/");
-
-
-        int theatreId;
+        String[] parts = splitPath(request);
 
         try {
-            theatreId = Integer.parseInt(part[2]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
-            return;
-        }
-
-        // GET : /theatres/{theatre_id}/screens
-        if (part.length == 4) {
-            try {
-
-                List<ScreenDetails> screenDetails = screenService.getScreensByTheatreId(theatreId);
-
-                if (screenDetails.isEmpty()) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No screens found"));
-                    return;
-                }
-
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(), screenDetails);
-            } catch (RuntimeException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+            // /theatres/{theatreId}/screens/{screenId}
+            if (parts.length == 5 && "screens".equals(parts[3])) {
+                handleGetScreenById(parts[2], parts[4], response);
                 return;
-            } catch (SQLException e) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
-                return;
-            } catch (CustomException e) {
-                response.setStatus(e.getStatusCode());
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", e.getMessage()));
-            }
-        }
-
-        // GET :  /theatres/{theatre_id}/screens/{screen_id}
-        int screenId;
-        try {
-            if (path.length() > 1) {
-                screenId = Integer.parseInt(part[part.length - 1]);
-                Optional<ScreenDetails> screenDetail = screenService.getScreensByScreenId(screenId, theatreId);
-                if (screenDetail.isEmpty()) {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No screen found"));
-                    return;
-                }
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(), screenDetail.get());
             }
 
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid screen_id"));
+            // /theatres/{theatreId}/screens
+            if (parts.length == 4 && "screens".equals(parts[3])) {
+                handleListScreens(parts[2], response);
+                return;
+            }
+
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
-
-
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-
-        // POST : /theatres/{theatre_id}/screens
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
-
-        String path = request.getPathInfo();
-        String[] part = path.split("/");
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
-
-
-        int theatreId;
+        String[] parts = splitPath(request);
 
         try {
-            theatreId = Integer.parseInt(part[2]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
+            // /theatres/{theatreId}/screens
+            if (parts.length == 4 && "screens".equals(parts[3])) {
+                handleCreateScreen(parts[2], request, response);
+                return;
+            }
+
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+
+        } catch (SQLException e) {
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String[] parts = splitPath(request);
+
+        try {
+            // /theatres/{theatreId}/screens/{screenId}
+            if (parts.length == 5 && "screens".equals(parts[3])) {
+                handleUpdateScreen(parts[2], parts[4], request, response);
+                return;
+            }
+
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "screen_id is required");
+
+        } catch (SQLException e) {
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
+        }
+    }
+
+
+    private void handleListScreens(String theatreIdStr, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
+
+        List<ScreenDetails> screenDetails = screenService.getScreensByTheatreId(theatreId);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(),
+                screenDetails.isEmpty() ? Map.of("message", "No screens found") : screenDetails);
+    }
+
+    private void handleGetScreenById(String theatreIdStr, String screenIdStr,
+                                     HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
+
+        int screenId = parseId(screenIdStr, "Invalid screen_id", response);
+        if (screenId == -1) return;
+
+        Optional<ScreenDetails> screenDetail = screenService.getScreensByScreenId(screenId, theatreId);
+
+        if (screenDetail.isEmpty()) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Screen not found");
             return;
         }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), screenDetail.get());
+    }
+
+    private void handleCreateScreen(String theatreIdStr, HttpServletRequest request,
+                                    HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
 
         ScreenCreateRequest screenCreateRequest;
         try {
             screenCreateRequest = objectMapper.readValue(request.getReader(), ScreenCreateRequest.class);
-            screenCreateRequest.setTheatreId(theatreId);
         } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON body"));
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
             return;
         }
 
-        try {
-            int screenId = screenService.createScreen(screenCreateRequest, userContext);
-            response.setStatus(HttpServletResponse.SC_CREATED);
+        screenCreateRequest.setTheatreId(theatreId);
 
-            Map<String, Object> body = Map.of(
-                    "message", "Screen created successfully",
-                    "screen_id", screenId
-            );
-            objectMapper.writeValue(response.getWriter(), body);
+        UserContext userContext = getUserContext(request);
+        int screenId = screenService.createScreen(screenCreateRequest, userContext);
 
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        }
-
-
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        objectMapper.writeValue(response.getWriter(),
+                Map.of("message", "Screen created successfully", "screen_id", screenId));
     }
 
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws
-            IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+    private void handleUpdateScreen(String theatreIdStr, String screenIdStr,
+                                    HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
 
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
 
-        // /screens/{screen_id}
-        if (request.getContentType() == null ||
-                !request.getContentType().toLowerCase().contains("application/json")) {
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
+        int screenId = parseId(screenIdStr, "Invalid screen_id", response);
+        if (screenId == -1) return;
 
-        String path = request.getPathInfo();
-        String[] part = path.split("/");
-
-
-        int theatreId;
-
-        try {
-            theatreId = Integer.parseInt(part[2]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theatre_id"));
-            return;
-        }
-
-
-        if (path.length() <= 4) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "screen id is required in path"));
-            return;
-        }
-
-
-        int screenId;
         ScreenUpdateRequest screenUpdateRequest;
-
         try {
-            screenId = Integer.parseInt(part[part.length - 1]);
             screenUpdateRequest = objectMapper.readValue(request.getReader(), ScreenUpdateRequest.class);
-
         } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON body"));
-            return;
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid screen_id"));
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
             return;
         }
 
+        UserContext userContext = getUserContext(request);
+        boolean updated = screenService.updateScreen(screenUpdateRequest, screenId, theatreId, userContext);
+
+        if (!updated) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Screen not found");
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(),
+                Map.of("message", "Screen updated successfully", "screen_id", screenId));
+    }
+
+    private String[] splitPath(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
+    }
+
+    private UserContext getUserContext(HttpServletRequest request) {
+        return (UserContext) request.getAttribute("userContext");
+    }
+
+    private int parseId(String idStr, String errorMessage, HttpServletResponse response)
+            throws IOException {
         try {
-            boolean screenUpdated = screenService.updateScreen(screenUpdateRequest, screenId, theatreId, userContext);
-            if (!screenUpdated) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "failed to update the screen"));
-            }
-            response.setStatus(HttpServletResponse.SC_CREATED);
-
-            Map<String, Object> body = Map.of(
-                    "message", "Screen updated successfully",
-                    "screen_id", screenId
-            );
-            objectMapper.writeValue(response.getWriter(), body);
-
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            return Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, errorMessage);
+            return -1;
         }
     }
-/*
-    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws
-            ServletException, IOException {
+
+    private void writeError(HttpServletResponse response, int status, String message)
+            throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-
-        String path = request.getPathInfo();
-        String[] part = path.split("/");
-
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
-
-        // /screens/{screen_id}
-        int theatreId;
-
-        try {
-            theatreId = Integer.parseInt(part[2]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid theater_id"));
-            return;
-        }
-
-
-        if (path.length() <= 4) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "screen id is required in path"));
-            return;
-        }
-
-        int screenId;
-
-        try {
-            screenId = Integer.parseInt(part[part.length - 1]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid screen_id"));
-            return;
-        }
-
-        try {
-            boolean screenDeleted = screenService.deleteScreen(screenId, theatreId, userContext);
-
-            if (!screenDeleted) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "Screen not found"));
-                return;
-            }
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-
-            Map<String, Object> body = Map.of(
-                    "message", "Screen Deleted successfully"
-            );
-            objectMapper.writeValue(response.getWriter(), body);
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
-        }
-    }*/
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
+    }
 }

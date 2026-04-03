@@ -212,7 +212,7 @@ public class TheatreServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_NOT_FOUND, "Theatre not found");
             return;
         }
-
+        writeWithView(response, theatreDetails.get(), userContext.getUserRole());
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
@@ -302,7 +302,6 @@ public class TheatreServlet extends HttpServlet {
     }
 
 
-
     private UserContext getUserContext(HttpServletRequest request) {
         return (UserContext) request.getAttribute("userContext");
     }
@@ -330,7 +329,6 @@ public class TheatreServlet extends HttpServlet {
     private void writeWithView(HttpServletResponse response, Object data, String role)
             throws IOException {
         Class<?> view = Views.resolveView(role);
-        System.out.println("[JsonView] role='" + role + "' view=" + view.getSimpleName()); // add this
         objectMapper.writerWithView(view).writeValue(response.getWriter(), data);
     }
 }

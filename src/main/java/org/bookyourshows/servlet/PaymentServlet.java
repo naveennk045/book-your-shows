@@ -18,14 +18,13 @@ import org.bookyourshows.service.PaymentService;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class PaymentServlet extends HttpServlet {
 
-    private final ObjectMapper objectMapper;
     private final PaymentService paymentService;
+    private final ObjectMapper objectMapper;
 
     public PaymentServlet() {
         this.paymentService = new PaymentService();
@@ -35,136 +34,151 @@ public class PaymentServlet extends HttpServlet {
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-
-        try {
-
-            String path = request.getPathInfo();
-            String[] parts = path.split("/");
-
-            // /booking/{booking_id}/payments
-            if (parts.length == 4 && parts[3].equals("payments")) {
-                Integer bookingId = Integer.parseInt(parts[2]);
-                handlePaymentInitiation(request, response, bookingId);
-            }
-
-            // /fluxpay/{transaction_id}
-            if (parts.length == 3 && parts[1].equals("fluxpay")) {
-                System.out.println("flux :- " + Arrays.toString(parts));
-                String gatewayTransactionId = parts[2];
-                handlePaymentWebhook(request, response, gatewayTransactionId);
-            }
-
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid booking id format"));
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        }
-    }
-
-    private void handlePaymentWebhook(HttpServletRequest request, HttpServletResponse response, String gatewayTransactionId) throws IOException {
-
-        try {
-            PaymentWebhookPayload paymentWebhookPayload =
-                    objectMapper.readValue(request.getReader(), PaymentWebhookPayload.class);
-
-            this.paymentService.processPaymentWebhook(gatewayTransactionId, paymentWebhookPayload);
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Webhook received"));
-
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        }
-    }
-
-    private void handlePaymentInitiation(HttpServletRequest request, HttpServletResponse response, Integer bookingId) throws ServletException, IOException {
-
-        try {
-
-            UserContext userContext = (UserContext) request.getAttribute("userContext");
-
-            PaymentInitiateRequest paymentInitiateRequest =
-                    objectMapper.readValue(request.getReader(), PaymentInitiateRequest.class);
-
-            PaymentInitiateResponse paymentInitiateResponse = this.paymentService.initiatePayment(bookingId, paymentInitiateRequest, userContext);
-            System.out.println("Payment _ url :  " + paymentInitiateResponse.getPaymentUrl());
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), paymentInitiateResponse);
-
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        String role = String.valueOf(request.getAttribute("user_role"));
-        if (!"ADMIN".equals(role)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Unauthorized"));
+        UserContext userContext = getUserContext(request);
+
+        if (!"ADMIN".equals(userContext.getUserRole())) {
+            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
 
-        Integer year = parseInt(request.getParameter("year"));
-        Integer month = parseInt(request.getParameter("month"));
-        Integer bookingId = parseInt(request.getParameter("booking_id"));
-        String status = request.getParameter("status");
-
         try {
-            List<PaymentDetails> payments =
-                    paymentService.getPayments(year, month, bookingId, status);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), payments);
-
+            handleListPayments(request, response);
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid parameters  format"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
 
-    private Integer parseInt(String val) {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String[] parts = splitPath(request);
+
+        try {
+            // /bookings/{bookingId}/payments
+            if (parts.length == 4 && "bookings".equals(parts[1]) && "payments".equals(parts[3])) {
+                handlePaymentInitiation(parts[2], request, response);
+                return;
+            }
+
+            // /fluxpay/{transactionId}
+            if (parts.length == 3 && "fluxpay".equals(parts[1])) {
+                handlePaymentWebhook(parts[2], request, response);
+                return;
+            }
+
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+
+        } catch (SQLException e) {
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
+        }
+    }
+
+
+    private void handleListPayments(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        Integer year = parseNullableInt(request.getParameter("year"));
+        Integer month = parseNullableInt(request.getParameter("month"));
+        Integer bookingId = parseNullableInt(request.getParameter("booking_id"));
+        String status = request.getParameter("status");
+
+        List<PaymentDetails> payments = paymentService.getPayments(year, month, bookingId, status);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), payments);
+    }
+
+    private void handlePaymentInitiation(String bookingIdStr, HttpServletRequest request,
+                                         HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int bookingId = parseId(bookingIdStr, "Invalid booking id", response);
+        if (bookingId == -1) return;
+
+        PaymentInitiateRequest paymentInitiateRequest;
+        try {
+            paymentInitiateRequest = objectMapper.readValue(request.getReader(), PaymentInitiateRequest.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        UserContext userContext = getUserContext(request);
+        PaymentInitiateResponse paymentInitiateResponse =
+                paymentService.initiatePayment(bookingId, paymentInitiateRequest, userContext);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), paymentInitiateResponse);
+    }
+
+    private void handlePaymentWebhook(String gatewayTransactionId, HttpServletRequest request,
+                                      HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        PaymentWebhookPayload payload;
+        try {
+            payload = objectMapper.readValue(request.getReader(), PaymentWebhookPayload.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        paymentService.processPaymentWebhook(gatewayTransactionId, payload);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), Map.of("message", "Webhook received"));
+    }
+
+
+    private String[] splitPath(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
+    }
+
+    private UserContext getUserContext(HttpServletRequest request) {
+        return (UserContext) request.getAttribute("userContext");
+    }
+
+    private int parseId(String idStr, String errorMessage, HttpServletResponse response)
+            throws IOException {
+        try {
+            return Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, errorMessage);
+            return -1;
+        }
+    }
+
+    private Integer parseNullableInt(String val) {
         if (val == null || val.isBlank()) return null;
         try {
             return Integer.parseInt(val);
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
     }
 }

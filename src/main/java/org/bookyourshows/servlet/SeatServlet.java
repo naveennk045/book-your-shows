@@ -23,74 +23,17 @@ import java.util.Map;
 
 public class SeatServlet extends HttpServlet {
 
-    private final ObjectMapper objectMapper;
     private final SeatService seatService;
+    private final ObjectMapper objectMapper;
 
     public SeatServlet() {
         this.seatService = new SeatService();
         this.objectMapper = new ObjectMapper();
         this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
+        this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
-
-        String[] parts = request.getPathInfo().split("/");
-
-        // POST : /theatres/{id}/screens/{id}/seats
-        if (parts.length < 6) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL"));
-            return;
-        }
-
-        int theatreId;
-        int screenId;
-
-        try {
-            theatreId = Integer.parseInt(parts[2]);
-            screenId = Integer.parseInt(parts[4]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid theatre_id or screen_id"));
-            return;
-        }
-
-        try {
-            List<SeatCreateRequest> seats = objectMapper.readValue(
-                    request.getReader(),
-                    new TypeReference<List<SeatCreateRequest>>() {
-                    }
-            );
-
-            seatService.createSeat(seats, screenId, theatreId, userContext);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Seats created successfully"));
-
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON"));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -99,138 +42,175 @@ public class SeatServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String[] parts = request.getPathInfo().split("/");
-
-        // GET /theatres/{id}/screens/{id}/seats
-        if (parts.length < 6) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid URL"));
-            return;
-        }
-
-        int theatreId;
-        int screenId;
+        String[] parts = splitPath(request);
 
         try {
-            theatreId = Integer.parseInt(parts[2]);
-            screenId = Integer.parseInt(parts[4]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid theatre_id or screen_id"));
-            return;
-        }
-
-        try {
-
-            List<SeatRowResponse> seatLayout = seatService.getSeatsByScreenId(screenId, theatreId);
-
-            if (seatLayout.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Seats not found"));
+            // /theatres/{theatreId}/screens/{screenId}/seats
+            if (parts.length == 6 && "theatres".equals(parts[1])
+                    && "screens".equals(parts[3]) && "seats".equals(parts[5])) {
+                handleListSeats(parts[2], parts[4], response);
                 return;
             }
 
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), seatLayout);
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON"));
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
-
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
+        String[] parts = splitPath(request);
 
-        // /seats/{seat_id}
-        String[] parts = request.getPathInfo().split("/");
-        if (parts.length < 3) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "seat id is required"));
-        }
-
-        SeatUpdateRequest seatUpdateRequest;
         try {
-            int showId = Integer.parseInt(parts[2]);
-            seatUpdateRequest = objectMapper.readValue(request.getReader(), SeatUpdateRequest.class);
-            boolean isUpdated = this.seatService.updateSeat(showId, seatUpdateRequest, userContext);
-            if (isUpdated) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "Seats updated successfully"));
+            // /theatres/{theatreId}/screens/{screenId}/seats
+            if (parts.length == 6 && "theatres".equals(parts[1])
+                    && "screens".equals(parts[3]) && "seats".equals(parts[5])) {
+                handleCreateSeats(parts[2], parts[4], request, response);
                 return;
             }
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Seat not found"));
 
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid show id"));
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
+
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid JSON"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
 
-/*    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        UserContext userContext = (UserContext) request.getAttribute("userContext");
-
-        // /seats/{seat_id}
-        String[] parts = request.getPathInfo().split("/");
-        if (parts.length < 3) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "seat id is required"));
-        }
+        String[] parts = splitPath(request);
 
         try {
-            int seatId = Integer.parseInt(parts[2]);
-            boolean isDeleted = this.seatService.deleteSeat(seatId, userContext);
-            if (isDeleted) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "Seats deleted successfully"));
+            // /seats/{seatId}
+            if (parts.length == 3 && "seats".equals(parts[1])) {
+                handleUpdateSeat(parts[2], request, response);
                 return;
             }
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "seat not found"));
 
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid show id"));
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "seat_id is required");
+
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
-    }*/
+    }
+
+
+    private void handleListSeats(String theatreIdStr, String screenIdStr,
+                                 HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
+
+        int screenId = parseId(screenIdStr, "Invalid screen_id", response);
+        if (screenId == -1) return;
+
+        List<SeatRowResponse> seatLayout = seatService.getSeatsByScreenId(screenId, theatreId);
+
+        if (seatLayout.isEmpty()) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Seats not found");
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), seatLayout);
+    }
+
+    private void handleCreateSeats(String theatreIdStr, String screenIdStr,
+                                   HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int theatreId = parseId(theatreIdStr, "Invalid theatre_id", response);
+        if (theatreId == -1) return;
+
+        int screenId = parseId(screenIdStr, "Invalid screen_id", response);
+        if (screenId == -1) return;
+
+        List<SeatCreateRequest> seats;
+        try {
+            seats = objectMapper.readValue(request.getReader(), new TypeReference<List<SeatCreateRequest>>() {});
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        UserContext userContext = getUserContext(request);
+        seatService.createSeat(seats, screenId, theatreId, userContext);
+
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        objectMapper.writeValue(response.getWriter(), Map.of("message", "Seats created successfully"));
+    }
+
+    private void handleUpdateSeat(String seatIdStr, HttpServletRequest request,
+                                  HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int seatId = parseId(seatIdStr, "Invalid seat_id", response);
+        if (seatId == -1) return;
+
+        SeatUpdateRequest seatUpdateRequest;
+        try {
+            seatUpdateRequest = objectMapper.readValue(request.getReader(), SeatUpdateRequest.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        UserContext userContext = getUserContext(request);
+        boolean updated = seatService.updateSeat(seatId, seatUpdateRequest, userContext);
+
+        if (!updated) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Seat not found");
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), Map.of("message", "Seat updated successfully"));
+    }
+
+
+    private String[] splitPath(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
+    }
+
+    private UserContext getUserContext(HttpServletRequest request) {
+        return (UserContext) request.getAttribute("userContext");
+    }
+
+    private int parseId(String idStr, String errorMessage, HttpServletResponse response)
+            throws IOException {
+        try {
+            return Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, errorMessage);
+            return -1;
+        }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
+    }
 }

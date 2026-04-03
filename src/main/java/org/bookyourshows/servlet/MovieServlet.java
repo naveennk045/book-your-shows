@@ -1,6 +1,5 @@
 package org.bookyourshows.servlet;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.dto.movie.*;
+import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.MovieService;
 
@@ -31,264 +31,202 @@ public class MovieServlet extends HttpServlet {
         this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
-
-
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
 
-        String path = request.getPathInfo();
-        String[] parts = path.split("/");
+        String[] parts = splitPath(request);
 
         try {
-            //  /movies/{movie_id}
-            if (parts.length == 3) {
-                int movieId = Integer.parseInt(parts[2]);
-                Optional<MovieDetails> movie = movieService.getMovieById(movieId);
-
-                if (movie.isPresent()) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    objectMapper.writeValue(response.getWriter(), movie.get());
-                } else {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie not found"));
-                }
+            // /movies/{movieId}
+            if (parts.length == 3 && !parts[2].isBlank()) {
+                handleGetMovieById(parts[2], response);
                 return;
             }
 
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid movie_id"));
-            return;
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
-            return;
-        }
-
-        // /movies?name=&language=&genre=&sort=&
-        MovieQueryParameter query = new MovieQueryParameter();
-
-        query.setName(request.getParameter("name"));
-        query.setLanguage(request.getParameter("language"));
-        query.setGenre(request.getParameter("genre"));
-        query.setSort(request.getParameter("sort"));
-
-        query.setLimit(parseIntOrDefault(request.getParameter("limit"), 20));
-        query.setOffset(parseIntOrDefault(request.getParameter("offset"), 0));
-        String year = request.getParameter("release_year");
-
-        if (year != null) {
-            try {
-                query.setReleaseYear(Integer.parseInt(year));
-            } catch (NumberFormatException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid release_year"));
-                return;
-            }
-        }
-
-        if (query.getLimit() > 100 || query.getLimit() < 0 || query.getOffset() < 0) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid pagination values"));
-            return;
-        }
-
-        try {
-            List<MovieSummary> movies = movieService.getAllMovies(query);
-
-            if (movies.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(response.getWriter(), Map.of("message", "No movies"));
-                return;
-            }
-
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), movies);
+            // /movies
+            handleListMovies(request, response);
 
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        if (!request.getAttribute("user_role").equals("ADMIN")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Unauthorized"));
-            return;
-        }
-
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        if (request.getContentType() == null || !request.getContentType().toLowerCase().contains("application/json")) {
-
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
-
-        MovieCreateRequest createReq;
-
-        try {
-            createReq = objectMapper.readValue(request.getReader(), MovieCreateRequest.class);
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid JSON body"));
-            return;
-        }
-
-        try {
-            MovieDetails created = movieService.createMovie(createReq);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie created successfully", "movie_id", created.getMovieId()));
-
-        } catch (RuntimeException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        System.out.println("role : " + request.getAttribute("user_role"));
-
-        if (!request.getAttribute("user_role").equals("ADMIN")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Unauthorized"));
-            return;
-        }
-
-
-        if (request.getContentType() == null || !request.getContentType().toLowerCase().contains("application/json")) {
-
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
-        String path = request.getPathInfo();
-        String[] parts = path.split("/");
-
-
-        if (path.length() < 3) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie id required"));
-            return;
-        }
-
-        int movieId;
-        MovieUpdateRequest updateReq;
-
-        try {
-            movieId = Integer.parseInt(parts[2]);
-            updateReq = objectMapper.readValue(request.getReader(), MovieUpdateRequest.class);
-
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid movie_id"));
-            return;
-        } catch (JsonProcessingException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Invalid JSON body"));
-            return;
-        }
-
-        try {
-            movieService.updateMovie(movieId, updateReq);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Movie updated successfully", "movie_id", movieId));
-
-        } catch (IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
-        } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
-        } catch (CustomException e) {
-            response.setStatus(e.getStatusCode());
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", e.getMessage()));
-        }
-    }
-/*
-
-    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        if (!request.getAttribute("user_role").equals("ADMIN")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Unauthorized"));
-            return;
-        }
+        UserContext userContext = getUserContext(request);
 
-        String path = request.getPathInfo();
-        String[] parts = path.split("/");
-
-
-        if (path.length() < 3) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Movie id required"));
-            return;
-        }
-
-        int movieId;
-
-        try {
-            movieId = Integer.parseInt(parts[2]);
-        } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Invalid movie_id"));
+        if (!"ADMIN".equals(userContext.getUserRole())) {
+            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
 
         try {
-            boolean deleted = movieService.deleteMovie(movieId);
+            handleCreateMovie(request, response);
+        } catch (SQLException e) {
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
+        }
+    }
 
-            if (!deleted) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                objectMapper.writeValue(response.getWriter(),
-                        Map.of("message", "Movie not found"));
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        UserContext userContext = getUserContext(request);
+
+        if (!"ADMIN".equals(userContext.getUserRole())) {
+            writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
+
+        String[] parts = splitPath(request);
+
+        try {
+            // /movies/{movieId}
+            if (parts.length == 3 && !parts[2].isBlank()) {
+                handleUpdateMovie(parts[2], request, response);
                 return;
             }
 
-            response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Movie deleted successfully"));
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Movie id is required");
 
         } catch (SQLException e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("message", "Database error"));
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
+        } catch (CustomException e) {
+            writeError(response, e.getStatusCode(), e.getMessage());
         }
     }
-*/
 
-    private Integer parseIntOrDefault(String value, int defaultValue) {
+
+    private void handleGetMovieById(String movieIdStr, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int movieId = parseId(movieIdStr, "Invalid movie_id", response);
+        if (movieId == -1) return;
+
+        Optional<MovieDetails> movie = movieService.getMovieById(movieId);
+
+        if (movie.isEmpty()) {
+            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Movie not found");
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(), movie.get());
+    }
+
+    private void handleListMovies(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        MovieQueryParameter query = new MovieQueryParameter();
+        query.setName(request.getParameter("name"));
+        query.setLanguage(request.getParameter("language"));
+        query.setGenre(request.getParameter("genre"));
+        query.setSort(request.getParameter("sort"));
+        query.setLimit(parseIntOrDefault(request.getParameter("limit"), 20));
+        query.setOffset(parseIntOrDefault(request.getParameter("offset"), 0));
+
+        String year = request.getParameter("release_year");
+        if (year != null) {
+            int parsedYear = parseId(year, "Invalid release_year", response);
+            if (parsedYear == -1) return;
+            query.setReleaseYear(parsedYear);
+        }
+
+        if (query.getLimit() > 100 || query.getLimit() < 0 || query.getOffset() < 0) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid pagination values");
+            return;
+        }
+
+        List<MovieSummary> movies = movieService.getAllMovies(query);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(),
+                movies.isEmpty() ? Map.of("message", "No movies") : movies);
+    }
+
+    private void handleCreateMovie(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        MovieCreateRequest createReq;
+        try {
+            createReq = objectMapper.readValue(request.getReader(), MovieCreateRequest.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        MovieDetails created = movieService.createMovie(createReq);
+
+        response.setStatus(HttpServletResponse.SC_CREATED);
+        objectMapper.writeValue(response.getWriter(),
+                Map.of("message", "Movie created successfully", "movie_id", created.getMovieId()));
+    }
+
+    private void handleUpdateMovie(String movieIdStr, HttpServletRequest request,
+                                   HttpServletResponse response)
+            throws IOException, SQLException, CustomException {
+
+        int movieId = parseId(movieIdStr, "Invalid movie_id", response);
+        if (movieId == -1) return;
+
+        MovieUpdateRequest updateReq;
+        try {
+            updateReq = objectMapper.readValue(request.getReader(), MovieUpdateRequest.class);
+        } catch (JsonProcessingException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
+            return;
+        }
+
+        movieService.updateMovie(movieId, updateReq);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        objectMapper.writeValue(response.getWriter(),
+                Map.of("message", "Movie updated successfully", "movie_id", movieId));
+    }
+
+    private String[] splitPath(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        return (pathInfo != null) ? pathInfo.split("/") : new String[]{""};
+    }
+
+    private UserContext getUserContext(HttpServletRequest request) {
+        return (UserContext) request.getAttribute("userContext");
+    }
+
+
+    private int parseId(String idStr, String errorMessage, HttpServletResponse response)
+            throws IOException {
+        try {
+            return Integer.parseInt(idStr);
+        } catch (NumberFormatException e) {
+            writeError(response, HttpServletResponse.SC_BAD_REQUEST, errorMessage);
+            return -1;
+        }
+    }
+
+    private void writeError(HttpServletResponse response, int status, String message)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+        objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
+    }
+
+    private int parseIntOrDefault(String value, int defaultValue) {
         if (value == null || value.isBlank()) return defaultValue;
         try {
             return Integer.parseInt(value.trim());
@@ -296,5 +234,4 @@ public class MovieServlet extends HttpServlet {
             return defaultValue;
         }
     }
-
 }
