@@ -56,27 +56,27 @@ public class AnalyticsServlet extends HttpServlet {
 
         try {
 
-            // 1. MOVIE PERFORMANCE (PUBLIC + OWNER + ADMIN)
+            // MOVIE PERFORMANCE
             if (parts.length > 2 && "movie-performance".equals(parts[2])) {
                 handleMoviePerformance(request, response);
                 return;
             }
 
-            // 2. ADMIN / THEATRE_OWNER CHECK
+            Integer year = parseInt(request.getParameter("year"));
+            Integer month = parseInt(request.getParameter("month"));
+
+            // ADMIN / THEATRE_OWNER CHECK
             if (!"ADMIN".equals(userContext.getUserRole()) && !"THEATRE_OWNER".equals(userContext.getUserRole())) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 objectMapper.writeValue(response.getWriter(), Map.of("message", "Unauthorized"));
                 return;
             }
 
-            // 3. PEAK SHOW TIMES
+            // PEAK SHOW TIMES
             if (parts.length > 2 && "peak-show-times".equals(parts[2])) {
 
                 Integer theatreId = parseInt(request.getParameter("theatre_id"));
-                Integer year      = parseInt(request.getParameter("year"));
-                Integer month     = parseInt(request.getParameter("month"));
 
-                // FIX: typo "requestuired" → "required"
                 if (theatreId == null || year == null || month == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     objectMapper.writeValue(response.getWriter(),
@@ -87,47 +87,77 @@ public class AnalyticsServlet extends HttpServlet {
                 List<PeakShowTimeResponse> data =
                         analyticsService.getPeakShowTimes(theatreId, year, month);
 
+                if (data.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+                    return;
+                }
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
                 return;
             }
 
-            // 4. USER BOOKINGS
+            //  USER BOOKINGS
             if (parts.length > 2 && "users-bookings".equals(parts[2])) {
-
-                Integer year  = parseInt(request.getParameter("year"));
-                Integer month = parseInt(request.getParameter("month"));
 
                 List<UserBookingAnalytics> data =
                         analyticsService.getUserBookingsAnalytics(year, month);
 
+                if (data.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+                    return;
+                }
+
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
                 return;
             }
 
-            // 5. THEATRE BOOKINGS
+            //  THEATRE BOOKINGS
             if (parts.length > 2 && "theatres-bookings".equals(parts[2])) {
-
-                Integer year  = parseInt(request.getParameter("year"));
-                Integer month = parseInt(request.getParameter("month"));
 
                 List<TheatreBookingAnalytics> data =
                         analyticsService.getTheatreBookingsAnalytics(userContext, year, month);
 
+                if (data.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+                    return;
+                }
+
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
                 return;
             }
 
-            // 6. TOP SPENT USERS
+            //  TOP SPENT USERS
             if (parts.length > 2 && "top-spent".equals(parts[2])) {
-
-                Integer year  = parseInt(request.getParameter("year"));
-                Integer month = parseInt(request.getParameter("month"));
 
                 List<TopSpentUser> data =
                         analyticsService.getTopSpentUsers(year, month);
+
+                if (data.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+                    return;
+                }
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                objectMapper.writeValue(response.getWriter(), data);
+                return;
+            }
+            // THEATRE REVENUE
+            if (parts.length > 2 && "theatres-revenue".equals(parts[2])) {
+
+                List<TheatreRevenueAnalytics> data =
+                        analyticsService.getTheatreRevenue(userContext, year, month);
+
+                if (data.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+                    return;
+                }
 
                 response.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(response.getWriter(), data);
@@ -177,13 +207,18 @@ public class AnalyticsServlet extends HttpServlet {
             }
 
             boolean isAdmin = "ADMIN".equals(userContext.getUserRole());
-            Integer userId  = userContext.getUserId();
+            Integer userId = userContext.getUserId();
 
             response.setStatus(HttpServletResponse.SC_OK);
 
             if (isAdmin) {
                 List<MoviePerformanceResponse> topMovies =
                         analyticsService.getMoviePerformance(requestDto);
+                if (topMovies.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+                    return;
+                }
                 objectMapper.writeValue(response.getWriter(), topMovies);
 
             } else {

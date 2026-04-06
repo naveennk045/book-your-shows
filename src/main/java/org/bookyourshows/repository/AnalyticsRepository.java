@@ -333,4 +333,88 @@ public class AnalyticsRepository {
 
         return list;
     }
+
+    public List<TheatreRevenueAnalytics> getTheatreRevenue(Integer year, Integer month) throws SQLException {
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    t.theatre_id,
+                    t.theatre_name,
+                    SUM(b.total_amount) AS revenue
+                FROM theatres t
+                JOIN shows sh ON sh.theatre_id = t.theatre_id
+                JOIN bookings b ON b.show_id = sh.show_id
+                WHERE b.booking_status = 'CONFIRMED'
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY t.theatre_id, t.theatre_name ORDER BY revenue DESC");
+
+        return fetchTheatreRevenue(sql.toString(), params);
+    }
+
+    public List<TheatreRevenueAnalytics> getTheatreRevenueByTheatre(Integer theatreId, Integer year, Integer month) throws SQLException {
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    t.theatre_id,
+                    t.theatre_name,
+                    SUM(b.total_amount) AS revenue
+                FROM theatres t
+                JOIN shows sh ON sh.theatre_id = t.theatre_id
+                JOIN bookings b ON b.show_id = sh.show_id
+                WHERE b.booking_status = 'CONFIRMED'
+                AND t.theatre_id = ?
+                """);
+
+        List<Object> params = new ArrayList<>();
+        params.add(theatreId);
+
+        if (year != null) {
+            sql.append(" AND YEAR(sh.show_date) = ?");
+            params.add(year);
+        }
+        if (month != null) {
+            sql.append(" AND MONTH(sh.show_date) = ?");
+            params.add(month);
+        }
+
+        sql.append(" GROUP BY t.theatre_id, t.theatre_name");
+
+        return fetchTheatreRevenue(sql.toString(), params);
+    }
+
+    private List<TheatreRevenueAnalytics> fetchTheatreRevenue(String sql, List<Object> params) throws SQLException {
+
+        List<TheatreRevenueAnalytics> list = new ArrayList<>();
+
+        try (Connection connection = DatabaseManager.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    TheatreRevenueAnalytics analytics = new TheatreRevenueAnalytics();
+                    analytics.setTheatreId(rs.getInt("theatre_id"));
+                    analytics.setTheatreName(rs.getString("theatre_name"));
+                    analytics.setRevenue(rs.getDouble("revenue"));
+                    list.add(analytics);
+                }
+            }
+        }
+        return list;
+    }
 }

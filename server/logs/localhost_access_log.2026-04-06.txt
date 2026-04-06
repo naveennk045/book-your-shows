@@ -1,0 +1,10 @@
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:25:35 +0530] "GET /api/analytics/movie-performance?year=2027 HTTP/1.1" 401 27
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:25:44 +0530] "POST /api/auth/login HTTP/1.1" 200 262
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:25:58 +0530] "GET /api/analytics/movie-performance?year=2027 HTTP/1.1" 200 30
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:26:56 +0530] "GET /api/analytics/movie-performance?year=2026 HTTP/1.1" 200 194
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:44:33 +0530] "GET /api/analytics/theatres-revenue?year=2026 HTTP/1.1" 401 27
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:44:47 +0530] "GET /api/analytics/theatres-revenue?year=2026 HTTP/1.1" 500 75
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:46:09 +0530] "GET /api/analytics/theatres-revenue?year=2026 HTTP/1.1" 500 -
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:46:10 +0530] "GET /api/analytics/theatres-revenue?year=2026 HTTP/1.1" 404 790
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:46:11 +0530] "GET /api/analytics/theatres-revenue?year=2026 HTTP/1.1" 200 129
+0:0:0:0:0:0:0:1 - - [06/Apr/2026:09:46:24 +0530] "GET /api/analytics/theatres-revenue?year=2027 HTTP/1.1" 200 30

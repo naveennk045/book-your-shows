@@ -61,4 +61,22 @@ public class AnalyticsService {
     public List<TopSpentUser> getTopSpentUsers(Integer year, Integer month) throws SQLException {
         return analyticsRepository.getTopSpentUsers(year, month);
     }
+
+    public List<TheatreRevenueAnalytics> getTheatreRevenue(UserContext userContext, Integer year, Integer month) throws SQLException, CustomException {
+
+        if ("ADMIN".equals(userContext.getUserRole())) {
+            return analyticsRepository.getTheatreRevenue(year, month);
+        }
+
+        if ("THEATRE_OWNER".equals(userContext.getUserRole())) {
+            Optional<TheatreDetails> theatreDetails = theatreRepository.getTheatreByOwnerId(userContext.getUserId());
+            if (theatreDetails.isEmpty()) {
+                throw new ResourceNotFoundException("No theatre found for this owner");
+            }
+            return analyticsRepository.getTheatreRevenueByTheatre(
+                    theatreDetails.get().getTheatre().getTheatreId(), year, month);
+        }
+
+        throw new ForbiddenException("Access denied");
+    }
 }

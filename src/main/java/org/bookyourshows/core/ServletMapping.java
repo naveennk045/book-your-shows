@@ -310,6 +310,9 @@ public class ServletMapping {
         SERVLET_REGISTRY.put("^/analytics/top-spent$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
         SERVLET_REGISTRY.put("^/analytics/top-spent/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
 
+        SERVLET_REGISTRY.put("^/analytics/theatres-revenue$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+        SERVLET_REGISTRY.put("^/analytics/theatres-revenue/$", new ServletDetails(new AnalyticsServlet(), AccessLevel.ADMIN));
+
     }
 
 
