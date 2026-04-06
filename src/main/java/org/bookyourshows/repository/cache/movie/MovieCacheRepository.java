@@ -3,6 +3,8 @@ package org.bookyourshows.repository.cache.movie;
 import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.dto.movie.MovieDetails;
 import org.bookyourshows.dto.movie.MovieQueryParameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.search.*;
@@ -14,13 +16,15 @@ import static org.bookyourshows.mapper.MovieMapper.mapHashMaptoMovieDetails;
 
 public class MovieCacheRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(MovieCacheRepository.class);
+
 
     public static void ensureIndex() {
         RedisClient redisClient = RedisManager.getClient();
         try {
             redisClient.ftInfo("idx:movies");
         } catch (Exception e) {
-            System.out.println("Redis: index 'idx:movies' Updating....");
+            log.info("Redis: index 'idx:movies' Updating....");
             try {
                 Schema schema = new Schema()
                         .addTextField("title", 1.0)
@@ -39,7 +43,7 @@ public class MovieCacheRepository {
                         schema
                 );
             } catch (JedisException je) {
-                System.out.println("[Movie Cache]" + je.getMessage());
+                log.error("[Movie Cache] : {}", je.getMessage());
             }
         }
     }
@@ -56,7 +60,7 @@ public class MovieCacheRepository {
             String key = "movie:" + movieDetails.getMovieId();
             redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
         } catch (JedisException e) {
-            System.err.println("[Movie Cache] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
+            log.error("[Movie Cache] save failed for movie : {}, \n error : {}", movieDetails.getMovieId(), e.getMessage());
         }
     }
 
@@ -69,7 +73,7 @@ public class MovieCacheRepository {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("movie:" + movieId);
         } catch (JedisException e) {
-            System.err.println("[Movie Cache] delete failed for movie " + movieId + ": " + e.getMessage());
+            log.error("[Movie Cache] delete failed for movie {}, \n error : {}", movieId, e.getMessage());
         }
     }
 
@@ -83,7 +87,7 @@ public class MovieCacheRepository {
             }
             return Optional.of(mapHashMaptoMovieDetails(fields));
         } catch (JedisException e) {
-            System.err.println("[Movie Cache] getById failed for movie " + movieId + ": " + e.getMessage());
+            log.error("[Movie Cache] getById failed for movie {}, \n error : {}", movieId, e.getMessage());
             return Optional.empty();
         }
     }
@@ -111,7 +115,7 @@ public class MovieCacheRepository {
             return movieDetailsList;
 
         } catch (JedisException e) {
-            System.err.println("[Movie Cache] search failed for movie.");
+            log.error("[Movie Cache] search failed for movie.\n error :  {}", e.getMessage());
         }
         return null;
     }
@@ -122,7 +126,7 @@ public class MovieCacheRepository {
             String key = "movie:" + movieDetails.getMovieId();
             redisClient.hset(key, mapMovieDeatilsToHashMap(movieDetails));
         } catch (Exception e) {
-            System.err.println("[Movie Cache ] save failed for movie " + movieDetails.getMovieId() + ": " + e.getMessage());
+            log.error("[Movie Cache ] save failed for movie {}, \n error : {}", movieDetails.getMovieId(), e.getMessage());
         }
     }
 }

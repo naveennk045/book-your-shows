@@ -4,6 +4,8 @@ import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.dto.theatre.TheatreDetails;
 import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.mapper.TheatreMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.search.*;
@@ -13,6 +15,8 @@ import java.util.*;
 
 public class TheatreCacheRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(TheatreCacheRepository.class);
+
     public static void ensureIndex() {
         RedisClient redisClient = RedisManager.getClient();
         try {
@@ -20,7 +24,7 @@ public class TheatreCacheRepository {
 
         } catch (JedisException e) {
             try {
-                System.out.println("Redis: index 'idx:movies' Updating....");
+                log.info("Redis: index 'idx:movies' Updating....");
                 Schema schema = new Schema()
                         .addTextField("theatre_name", 1.0)
                         .addTextField("city", 1.0);
@@ -35,7 +39,7 @@ public class TheatreCacheRepository {
                         schema
                 );
             } catch (JedisException exception) {
-                System.err.println("[Theatre Cache] index creation failed for theatre.z" + e.getMessage());
+                log.error("[Theatre Cache] index creation failed for theatre, \n error : {}", e.getMessage());
             }
         }
     }
@@ -46,7 +50,7 @@ public class TheatreCacheRepository {
             String key = "theatre:" + theatreDetails.getTheatre().getTheatreId();
             redisClient.hset(key, TheatreMapper.mapTheatreToHash(theatreDetails));
         } catch (JedisException e) {
-            System.err.println("[Theatre Cache] save failed for theatre " + theatreDetails.getTheatre().getTheatreId() + ": " + e.getMessage());
+            log.error("[Theatre Cache] save failed for theatre {}: \n error : {} ", theatreDetails.getTheatre().getTheatreId(), e.getMessage());
         }
     }
 
@@ -59,7 +63,7 @@ public class TheatreCacheRepository {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("theatre:" + theatreId);
         } catch (JedisException e) {
-            System.err.println("[Theatre Cache] delete failed for theatre " + theatreId + ": " + e.getMessage());
+            log.error("[Theatre Cache] delete failed for theatre {}: \n error : {}", theatreId, e.getMessage());
         }
     }
 
@@ -72,7 +76,7 @@ public class TheatreCacheRepository {
             }
             return Optional.of((TheatreMapper.mapHashMapToTheatreDetails(fields)));
         } catch (JedisException e) {
-            System.err.println("[Theatre Cache] getById failed for theatre " + theatreId + ": " + e.getMessage());
+            log.error("[Theatre Cache] getById failed for theatre {}: \n error : {}", theatreId, e.getMessage());
             return Optional.empty();
         }
     }
@@ -99,7 +103,7 @@ public class TheatreCacheRepository {
             }
             return theatreSummaries;
         } catch (JedisException e) {
-            System.err.println("[Theatre Cache] search failed " + e.getMessage());
+            log.error("[Theatre Cache] search failed. \n error :  {}", e.getMessage());
         }
         return null;
     }
@@ -111,7 +115,7 @@ public class TheatreCacheRepository {
                 saveTheatreStatic(theatreDetails);
             }
         } catch (JedisException e) {
-            System.err.println("[Theatre Cache] bulkLoadTheatres failed: " + e.getMessage());
+            log.error("[Theatre Cache] bulkLoadTheatres failed: {}", e.getMessage());
         }
     }
 

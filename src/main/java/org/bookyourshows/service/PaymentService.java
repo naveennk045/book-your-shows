@@ -106,7 +106,7 @@ public class PaymentService {
 
         if (paymentStatus.equals("SUCCESS")) {
             bookingRepository.updateBookingStatus(bookingId, bookingStatus, paymentStatus, transactionId);
-            this.showSeatCacheRepository.updateBookingStatus(showId, showSeatIdToBeBooked, "BOOKED", userId);
+            this.showSeatCacheRepository.updateBookingStatus(showId, showSeatIdToBeBooked, userId);
         }
     }
 

@@ -2,6 +2,8 @@ package org.bookyourshows.repository.cache.show;
 
 import org.bookyourshows.config.RedisManager;
 import org.bookyourshows.dto.show.ShowDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.search.*;
 
@@ -14,6 +16,8 @@ import static org.bookyourshows.mapper.ShowMapper.mapShowDetailsToHashMap;
 
 public class ShowCacheRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(ShowCacheRepository.class);
+
 
     public static void ensureIndex() {
         RedisClient redisClient = RedisManager.getClient();
@@ -21,7 +25,7 @@ public class ShowCacheRepository {
             redisClient.ftInfo("idx:shows");
 
         } catch (Exception e) {
-            System.out.println("Redis: index 'idx:shows' Updating....");
+            log.info("Redis: index 'idx:shows' Updating....");
 
             Schema schema = new Schema()
                     .addTextField("theatre_location", 1.0)
@@ -54,7 +58,7 @@ public class ShowCacheRepository {
             String key = "show:" + showDetails.getShowId();
             redisClient.hset(key, mapShowDetailsToHashMap(showDetails));
         } catch (Exception e) {
-            System.err.println("[Show Cache] save failed for shows " + showDetails.getShowId() + ": " + e.getMessage());
+            log.error("[Show Cache] save failed for shows {}, \n error : {}", showDetails.getShowId(), e.getMessage());
         }
     }
 
@@ -67,7 +71,7 @@ public class ShowCacheRepository {
             RedisClient redisClient = RedisManager.getClient();
             redisClient.del("show:" + showId);
         } catch (Exception e) {
-            System.err.println("[Show Cache] delete failed for shows " + showId + ": " + e.getMessage());
+            log.error("[Show Cache] delete failed for shows {},  \n error : {}", showId, e.getMessage());
         }
     }
 
@@ -81,7 +85,7 @@ public class ShowCacheRepository {
             }
             return Optional.of(mapHashMapToShowDetails(fields));
         } catch (Exception e) {
-            System.err.println("[Show Cache] getById failed for show " + showId + ": " + e.getMessage());
+            log.error("[Show Cache] getById failed for show {},  \n error : {}", showId, e.getMessage());
             return Optional.empty();
         }
     }
@@ -105,7 +109,7 @@ public class ShowCacheRepository {
             }
 
         } catch (Exception e) {
-            System.err.println("[Show Cache] Search failed: " + e.getMessage());
+            log.error("[Show Cache] Search failed,  \n error : {}", e.getMessage());
         }
         return showDetailsList;
     }
@@ -117,7 +121,7 @@ public class ShowCacheRepository {
             String key = "show:" + showDetails.getShowId();
             redisClient.hset(key, mapShowDetailsToHashMap(showDetails));
         } catch (Exception e) {
-            System.err.println("[Show Cache] save failed for shows " + showDetails.getShowId() + ": " + e.getMessage());
+            log.error("[Show Cache] save failed for shows {}. \n error : {}", showDetails.getShowId(), e.getMessage());
         }
     }
 }
