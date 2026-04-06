@@ -2,47 +2,47 @@ package org.bookyourshows.utils;
 
 import org.bookyourshows.dto.movie.MovieCreateRequest;
 import org.bookyourshows.dto.movie.MovieUpdateRequest;
-import org.bookyourshows.exceptions.MovieCreationException;
+import org.bookyourshows.exceptions.CreationException;
 
 public class MovieUtils {
 
 
-    public static void validateCreateRequest(MovieCreateRequest request) throws MovieCreationException {
+    public static void validateCreateRequest(MovieCreateRequest request) throws CreationException {
         if (request.getTitle() == null || request.getTitle().isBlank()) {
-            throw new MovieCreationException("Title is required");
+            throw new CreationException("Title is required");
         }
         if (request.getLanguage() == null || request.getLanguage().isBlank()) {
-            throw new MovieCreationException("Language is required");
+            throw new CreationException("Language is required");
         }
         if (request.getGenre() == null || request.getGenre().isBlank()) {
-            throw new MovieCreationException("Genre is required");
+            throw new CreationException("Genre is required");
         }
         if (request.getDuration() == null || request.getDuration() <= 0) {
-            throw new MovieCreationException("Duration must be a positive number");
+            throw new CreationException("Duration must be a positive number");
         }
         if (request.getReleaseDate() == null) {
-            throw new MovieCreationException("Release date is required");
+            throw new CreationException("Release date is required");
         }
         if (request.getCensorRating() == null || request.getCensorRating().isBlank()) {
-            throw new MovieCreationException("Censor rating is required");
+            throw new CreationException("Censor rating is required");
         }
     }
 
-    public static void validateUpdateRequest(MovieUpdateRequest request) throws MovieCreationException {
+    public static void validateUpdateRequest(MovieUpdateRequest request) throws CreationException {
         if (request.getLanguage() == null || request.getLanguage().isBlank()) {
-            throw new MovieCreationException("Language is required");
+            throw new CreationException("Language is required");
         }
         if (request.getGenre() == null || request.getGenre().isBlank()) {
-            throw new MovieCreationException("Genre is required");
+            throw new CreationException("Genre is required");
         }
         if (request.getDuration() == null || request.getDuration() <= 0) {
-            throw new MovieCreationException("Duration must be a positive number");
+            throw new CreationException("Duration must be a positive number");
         }
         if (request.getReleaseDate() == null) {
-            throw new MovieCreationException("Release date is required");
+            throw new CreationException("Release date is required");
         }
         if (request.getCensorRating() == null || request.getCensorRating().isBlank()) {
-            throw new MovieCreationException("Censor rating is required");
+            throw new CreationException("Censor rating is required");
         }
     }
 }

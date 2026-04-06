@@ -4,20 +4,37 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-
 import java.io.IOException;
+import java.util.Set;
 
 public class CORSFilter implements Filter {
+
+    private static final Set<String> ALLOWED_ORIGINS = Set.of(
+    );
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
+
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        httpResponse.addHeader("Access-Control-Allow-Origin", "*");
-        httpResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        httpResponse.addHeader("Access-Control-Allow-Headers", "*");
+        String origin = httpRequest.getHeader("Origin");
+
+        if (origin != null && ALLOWED_ORIGINS.contains(origin)) {
+            httpResponse.setHeader("Access-Control-Allow-Origin", origin);
+        }
+
+        httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        httpResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        httpResponse.setHeader("Access-Control-Max-Age", "3600");
+
+        httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
+
+        if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
+            httpResponse.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
 
         chain.doFilter(request, response);
     }

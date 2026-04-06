@@ -3,17 +3,15 @@ package org.bookyourshows.utils;
 import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.exceptions.CustomException;
-import org.bookyourshows.exceptions.ResourceConflictException;
-import org.bookyourshows.exceptions.ShowCreationException;
+import org.bookyourshows.exceptions.CreationException;
 
 import java.time.*;
-import java.util.Calendar;
 
 
 public class ShowUtils {
 
 
-    public static void validateModificationAllowed(ShowDetails show) throws ShowCreationException {
+    public static void validateModificationAllowed(ShowDetails show) throws CreationException {
 
         java.time.LocalDateTime showTime = java.time.LocalDateTime.of(
                 show.getShowDate().toLocalDate(),
@@ -23,12 +21,12 @@ public class ShowUtils {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
 
         if (now.isAfter(showTime)) {
-            throw new ShowCreationException("Show already started / completed");
+            throw new CreationException("Show already started / completed");
         }
 
 
         if (java.time.Duration.between(now, showTime).toHours() < 5) {
-            throw new ShowCreationException("Cannot modify show within 5 hours of start time");
+            throw new CreationException("Cannot modify show within 5 hours of start time");
         }
     }
 
@@ -38,10 +36,10 @@ public class ShowUtils {
 
         try {
             if (showCreateRequest.getShowDate() == null) {
-                throw new ShowCreationException("ShowDate cannot be null");
+                throw new CreationException("ShowDate cannot be null");
             }
             if (showCreateRequest.getStartTime() == null) {
-                throw new ShowCreationException("StartTime cannot be null");
+                throw new CreationException("StartTime cannot be null");
             }
 
             ZoneId zone = ZoneId.of("Asia/Kolkata");
@@ -59,7 +57,7 @@ public class ShowUtils {
             boolean isMoreThan48Hours = diff.toHours() > 48;
 
             if (isInPast || isMoreThan48Hours) {
-                throw new ShowCreationException("Show must be scheduled within the next 48 hours");
+                throw new CreationException("Show must be scheduled within the next 48 hours");
             }
 
         } catch (RuntimeException e) {

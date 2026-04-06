@@ -2,50 +2,50 @@ package org.bookyourshows.utils;
 
 
 import org.bookyourshows.dto.address.Address;
+import org.bookyourshows.exceptions.CreationException;
 import org.bookyourshows.exceptions.CustomException;
-import org.bookyourshows.exceptions.UserCreationException;
 
 public class UserUtils {
 
-    public static void validateEmail(String email) throws UserCreationException {
+    public static void validateEmail(String email) throws CreationException {
         if (email == null || email.isBlank() || !email.contains("@")) {
-            throw new UserCreationException("Invalid email");
+            throw new CreationException("Invalid email");
         }
     }
 
-    public static void validateMobile(String mobile) throws UserCreationException {
+    public static void validateMobile(String mobile) throws CreationException {
         if (mobile == null || !mobile.matches("\\d{10}")) {
-            throw new UserCreationException("Invalid mobile number");
+            throw new CreationException("Invalid mobile number");
         }
     }
 
-    public static void validateName(String name, String field) throws UserCreationException {
+    public static void validateName(String name, String field) throws CreationException {
         if (name == null || name.isBlank()) {
-            throw new UserCreationException(field + " is required");
+            throw new CreationException(field + " is required");
         }
     }
 
-    public static void validatePassword(String password) throws UserCreationException {
+    public static void validatePassword(String password) throws CreationException {
         if (password == null || password.length() < 6) {
-            throw new UserCreationException("Password must be at least 6 characters");
+            throw new CreationException("Password must be at least 6 characters");
         }
     }
 
     public static void validateAddress(Address request) throws CustomException {
         if (request.getAddressLine1() == null || request.getAddressLine1().isBlank()) {
-            throw new UserCreationException("address_line1 is required");
+            throw new CreationException("address_line1 is required");
         }
 
         if (request.getCity() == null || request.getCity().isBlank()) {
-            throw new UserCreationException("city is required");
+            throw new CreationException("city is required");
         }
 
         if (request.getState() == null || request.getState().isBlank()) {
-            throw new UserCreationException("state is required");
+            throw new CreationException("state is required");
         }
 
         if (request.getPincode() == null || request.getPincode().isBlank()) {
-            throw new UserCreationException("pincode is required");
+            throw new CreationException("pincode is required");
         }
     }
 }

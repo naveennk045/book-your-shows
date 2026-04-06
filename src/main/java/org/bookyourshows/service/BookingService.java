@@ -3,7 +3,6 @@ package org.bookyourshows.service;
 import org.bookyourshows.dto.booking.*;
 import org.bookyourshows.dto.payment.PaymentDetails;
 import org.bookyourshows.dto.refund.RefundCreateRequest;
-import org.bookyourshows.dto.show.ShowCreateRequest;
 import org.bookyourshows.dto.show.ShowDetails;
 import org.bookyourshows.dto.show.ShowSeating;
 import org.bookyourshows.dto.theatre.TheatreDetails;
@@ -69,10 +68,10 @@ public class BookingService {
     public int createBooking(Integer userId, BookingCreateRequest request) throws SQLException, CustomException {
 
         if (request.getShowId() <= 0) {
-            throw new BookingCreationException("show_id is required");
+            throw new CreationException("show_id is required");
         }
         if (request.getShowSeatIds() == null || request.getShowSeatIds().isEmpty()) {
-            throw new BookingCreationException("At least one seat is required");
+            throw new CreationException("At least one seat is required");
         }
 
         Optional<ShowDetails> showDetails = showRepository.getShowById(request.getShowId());
@@ -81,11 +80,11 @@ public class BookingService {
             throw new ResourceNotFoundException("No show found");
         }
         if (showDetails.get().getStatus().equals("COMPLETED")) {
-            throw new BookingCreationException("Show is already completed");
+            throw new CreationException("Show is already completed");
         }
 
         if (showDetails.get().getStatus().equals("CANCELLED")) {
-            throw new BookingCreationException("Show is cancelled");
+            throw new CreationException("Show is cancelled");
         }
 
         Map<Integer, ShowSeating> showSeating = showRepository.getShowSeatsByShowId(request.getShowId());
@@ -96,15 +95,15 @@ public class BookingService {
             if (showSeating.containsKey(showSeatId)) {
                 totalAmount += showSeating.get(showSeatId).getFinalPrice();
             } else {
-                throw new BookingCreationException("no show seat found");
+                throw new CreationException("no show seat found");
             }
         }
 
 
         if (request.getClientTotalAmount() == null) {
-            throw new BookingCreationException("total amount is required");
+            throw new CreationException("total amount is required");
         } else if (!totalAmount.equals(request.getClientTotalAmount())) {
-            throw new BookingCreationException("calculated total amount is not equal to the requested total amount");
+            throw new CreationException("calculated total amount is not equal to the requested total amount");
         }
 
         int bookingId = bookingRepository.createBookingWithSeats(userId, request, totalAmount);

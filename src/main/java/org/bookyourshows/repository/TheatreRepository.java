@@ -9,7 +9,7 @@ import org.bookyourshows.dto.theatre.TheatreSummary;
 import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
 import org.bookyourshows.exceptions.ActionFailedException;
 import org.bookyourshows.exceptions.CustomException;
-import org.bookyourshows.exceptions.TheatreCreationException;
+import org.bookyourshows.exceptions.CreationException;
 import org.bookyourshows.mapper.AddressMapper;
 import org.bookyourshows.mapper.TheatreMapper;
 
@@ -237,7 +237,7 @@ public class TheatreRepository {
                     if (keys.next()) {
                         theatreId = keys.getInt(1);
                     } else {
-                        throw new TheatreCreationException("Failed to create theatre");
+                        throw new CreationException("Failed to create theatre");
                     }
                 }
             }

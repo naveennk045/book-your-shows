@@ -140,10 +140,10 @@ public class ShowService {
         return showId;
     }
 
-    public List<ShowSeatingResponse> getShowSeats(Integer showId) throws SQLException, ShowCreationException {
+    public List<ShowSeatingResponse> getShowSeats(Integer showId) throws SQLException, CreationException {
 
         if (showRepository.getShowSeats(showId).isEmpty()) {
-            throw new ShowCreationException("Show seats not found");
+            throw new CreationException("Show seats not found");
         }
 
         Map<Integer, List<ShowSeating>> map = null;
@@ -197,7 +197,7 @@ public class ShowService {
                 request.getStartTime(),
                 request.getEndTime()
         )) {
-            throw new ShowCreationException("Timing conflict");
+            throw new CreationException("Timing conflict");
         }
 
 
@@ -241,13 +241,13 @@ public class ShowService {
     public boolean deleteShow(int showId) throws SQLException, CustomException {
 
         ShowDetails show = showRepository.getShowById(showId)
-                .orElseThrow(() -> new ShowCreationException("Show not found"));
+                .orElseThrow(() -> new CreationException("Show not found"));
 
 
         validateModificationAllowed(show);
         if (Objects.equals(show.getStatus(), "SCHEDULED") || Objects.equals(show.getStatus(), "RESCHEDULED")) {
             if (!bookingRepository.getAllBookingsByShowId(showId).isEmpty()) {
-                throw new ShowCreationException("Show have bookings.");
+                throw new CreationException("Show have bookings.");
             }
             ;
         }

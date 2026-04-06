@@ -1,22 +1,24 @@
 package org.bookyourshows.utils;
 
+import org.bookyourshows.exceptions.CreationException;
+
 public class ScreenUtils {
 
-    public static void validateScreenName(String name) {
+    public static void validateScreenName(String name) throws CreationException {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("theatreName is required");
+            throw new CreationException("theatreName is required");
         }
 
         if (name.length() > 150) {
-            throw new IllegalArgumentException("theatreName too long");
+            throw new CreationException("theatreName too long");
         }
 
         if (name.matches("\\d+")) {
-            throw new IllegalArgumentException("theatreName cannot be only numbers");
+            throw new CreationException("theatreName cannot be only numbers");
         }
 
         if (!name.matches("^[a-zA-Z0-9\\s&().-]+$")) {
-            throw new IllegalArgumentException("Invalid characters in theatreName");
+            throw new CreationException("Invalid characters in theatreName");
         }
     }
 }

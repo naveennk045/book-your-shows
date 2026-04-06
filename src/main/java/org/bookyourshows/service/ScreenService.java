@@ -8,7 +8,7 @@ import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.exceptions.ForbiddenException;
 import org.bookyourshows.exceptions.ResourceNotFoundException;
-import org.bookyourshows.exceptions.ScreenCreationException;
+import org.bookyourshows.exceptions.CreationException;
 import org.bookyourshows.repository.ScreenRepository;
 import org.bookyourshows.repository.ScreenTypeRepository;
 import org.bookyourshows.repository.TheatreRepository;
@@ -59,10 +59,10 @@ public class ScreenService {
         ScreenUtils.validateScreenName(screenCreateRequest.getScreenName());
 
         if (screenCreateRequest.getScreenTypeId() == null) {
-            throw new ScreenCreationException("Screen Type ID is required");
+            throw new CreationException("Screen Type ID is required");
         }
         if (screenTypeRepository.getScreenTypeById(screenCreateRequest.getScreenTypeId()).isEmpty()) {
-            throw new ScreenCreationException("Screen Type is not found");
+            throw new CreationException("Screen Type is not found");
         }
 
         return screenRepository.addScreen(screenCreateRequest);
@@ -73,20 +73,20 @@ public class ScreenService {
         hasAccessToScreenDetails(screenId, theatreId, userContext);
 
         if (!screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId).get().getTheatreId().equals(theatreId)) {
-            throw new ScreenCreationException("Screen not found");
+            throw new CreationException("Screen not found");
         }
 
         if (screenRepository.getScreenByTheatreIdScreenId(screenId, theatreId).isEmpty()) {
-            throw new ScreenCreationException("Screen is not found");
+            throw new CreationException("Screen is not found");
         }
         ScreenUtils.validateScreenName(screenUpdateRequest.getScreenName());
 
 
         if (screenUpdateRequest.getScreenTypeId() == null) {
-            throw new ScreenCreationException("Screen Type ID is required");
+            throw new CreationException("Screen Type ID is required");
         }
         if (screenTypeRepository.getScreenTypeById(screenUpdateRequest.getScreenTypeId()).isEmpty()) {
-            throw new ScreenCreationException("Screen Type is not found");
+            throw new CreationException("Screen Type is not found");
         }
 
         return screenRepository.updateScreen(screenUpdateRequest, screenId);
@@ -98,7 +98,7 @@ public class ScreenService {
 
         List<ShowDetails> showDetails = this.showRepository.getShowsByScreenId(screenId);
         if (!showDetails.isEmpty()) {
-            throw new ScreenCreationException("There are active shows found in this screen");
+            throw new CreationException("There are active shows found in this screen");
         }
 
         return screenRepository.deleteScreen(screenId);
