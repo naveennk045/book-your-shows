@@ -100,6 +100,12 @@ public class PaymentServlet extends HttpServlet {
 
         List<PaymentDetails> payments = paymentService.getPayments(year, month, bookingId, status);
 
+        if (payments.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), payments);
     }

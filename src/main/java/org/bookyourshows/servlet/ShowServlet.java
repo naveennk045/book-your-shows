@@ -124,6 +124,12 @@ public class ShowServlet extends HttpServlet {
 
         List<ShowSeatingResponse> seats = showService.getShowSeats(showId);
 
+        if (seats.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), seats);
     }
@@ -177,6 +183,12 @@ public class ShowServlet extends HttpServlet {
         if (movieId == -1) return;
 
         List<TheatreShowsResponse> shows = showService.getShows(theatreId, locationParam, date, movieId);
+
+        if (shows.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
 
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(),

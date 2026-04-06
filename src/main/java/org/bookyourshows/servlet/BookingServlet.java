@@ -14,6 +14,7 @@ import org.bookyourshows.service.BookingService;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,8 +33,7 @@ public class BookingServlet extends HttpServlet {
 
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -77,8 +77,7 @@ public class BookingServlet extends HttpServlet {
 
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -107,20 +106,25 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
-    private void handleListAllBookings(HttpServletResponse response, UserContext userContext)
-            throws IOException, SQLException, CustomException {
+    private void handleListAllBookings(HttpServletResponse response, UserContext userContext) throws IOException, SQLException, CustomException {
 
         if (!"ADMIN".equals(userContext.getUserRole())) {
             writeError(response, HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return;
         }
+        List<BookingSummary> bookingSummaries = bookingService.getAllBookings();
+
+        if (bookingSummaries.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
 
         response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), bookingService.getAllBookings());
+        objectMapper.writeValue(response.getWriter(), bookingSummaries);
     }
 
-    private void handleGetBooking(String[] parts, HttpServletResponse response, UserContext userContext)
-            throws IOException, SQLException, CustomException {
+    private void handleGetBooking(String[] parts, HttpServletResponse response, UserContext userContext) throws IOException, SQLException, CustomException {
 
         int bookingId;
         try {
@@ -140,8 +144,7 @@ public class BookingServlet extends HttpServlet {
         // /bookings/{id}/status
         if (parts.length == 4 && "status".equals(parts[3])) {
             response.setStatus(HttpServletResponse.SC_OK);
-            objectMapper.writeValue(response.getWriter(),
-                    Map.of("status", details.get().getBooking().getBookingStatus()));
+            objectMapper.writeValue(response.getWriter(), Map.of("status", details.get().getBooking().getBookingStatus()));
             return;
         }
 
@@ -149,8 +152,7 @@ public class BookingServlet extends HttpServlet {
         objectMapper.writeValue(response.getWriter(), details.get());
     }
 
-    private void handleGetBookingsByUser(String userIdStr, HttpServletResponse response, UserContext userContext)
-            throws IOException, SQLException, CustomException {
+    private void handleGetBookingsByUser(String userIdStr, HttpServletResponse response, UserContext userContext) throws IOException, SQLException, CustomException {
 
 
         int userId;
@@ -161,12 +163,19 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
+        List<BookingSummary> bookingSummaries = bookingService.getBookingsByUserId(userId, userContext);
+
+        if (bookingSummaries.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), bookingService.getBookingsByUserId(userId, userContext));
+        objectMapper.writeValue(response.getWriter(), bookingSummaries);
     }
 
-    private void handleGetBookingsByTheatre(String theatreIdStr, HttpServletResponse response, UserContext userContext)
-            throws IOException, SQLException, CustomException {
+    private void handleGetBookingsByTheatre(String theatreIdStr, HttpServletResponse response, UserContext userContext) throws IOException, SQLException, CustomException {
 
         int theatreId;
         try {
@@ -176,12 +185,19 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
+        List<BookingSummary> bookingSummaries = bookingService.getBookingsByTheatreId(theatreId, userContext);
+
+        if (bookingSummaries.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), bookingService.getBookingsByTheatreId(theatreId, userContext));
+        objectMapper.writeValue(response.getWriter(), bookingSummaries);
     }
 
-    private void handleCancelBooking(String bookingIdStr, HttpServletRequest request, HttpServletResponse response)
-            throws IOException, SQLException, CustomException {
+    private void handleCancelBooking(String bookingIdStr, HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, CustomException {
 
         UserContext userContext = getUserContext(request);
 
@@ -199,8 +215,7 @@ public class BookingServlet extends HttpServlet {
         objectMapper.writeValue(response.getWriter(), Map.of("refund_id", refundId));
     }
 
-    private void handleCreateBooking(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, SQLException, CustomException {
+    private void handleCreateBooking(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, CustomException {
 
         BookingCreateRequest createReq;
         try {
@@ -215,8 +230,7 @@ public class BookingServlet extends HttpServlet {
         int bookingId = bookingService.createBooking(userId, createReq);
 
         response.setStatus(HttpServletResponse.SC_CREATED);
-        objectMapper.writeValue(response.getWriter(),
-                Map.of("message", "Booking created successfully", "booking_id", bookingId));
+        objectMapper.writeValue(response.getWriter(), Map.of("message", "Booking created successfully", "booking_id", bookingId));
     }
 
 

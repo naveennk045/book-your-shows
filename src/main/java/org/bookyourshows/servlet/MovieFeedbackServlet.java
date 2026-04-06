@@ -151,6 +151,12 @@ public class MovieFeedbackServlet extends HttpServlet {
 
         List<MovieFeedbackResponse> list = movieFeedbackService.getFeedbacksForMovie(movieId, limit, offset);
 
+        if (list.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(),
                 list.isEmpty() ? Map.of("message", "No feedbacks") : list);

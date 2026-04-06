@@ -77,6 +77,12 @@ public class RefundServlet extends HttpServlet {
 
         List<RefundDetails> refunds = refundService.getRefunds(year, paymentId, status);
 
+        if (refunds.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), refunds);
     }

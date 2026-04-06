@@ -187,7 +187,7 @@ public class TheatreServlet extends HttpServlet {
         Optional<Address> address = theatreService.getTheatreAddress(theatreId);
 
         if (address.isEmpty()) {
-            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Address not found");
+            writeError(response, HttpServletResponse.SC_OK, "Address not found");
             return;
         }
 
@@ -232,6 +232,12 @@ public class TheatreServlet extends HttpServlet {
         }
 
         List<TheatreSummary> theatres = theatreService.getAllTheatre(limit, offset, theatreName, city, status, userContext);
+
+        if (theatres.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
 
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), theatres);

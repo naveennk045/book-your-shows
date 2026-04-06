@@ -39,8 +39,6 @@ public class UserServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         String[] parts = splitPath(request);
         UserContext userContext = getUserContext(request);
@@ -154,7 +152,7 @@ public class UserServlet extends HttpServlet {
         Optional<Address> address = userService.getUserAddress(userId, userContext);
 
         if (address.isEmpty()) {
-            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Address not found");
+            writeError(response, HttpServletResponse.SC_OK, "Address not found");
             return;
         }
 
@@ -162,7 +160,7 @@ public class UserServlet extends HttpServlet {
         objectMapper.writeValue(response.getWriter(), address.get());
     }
 
-    private void handleListUsers(HttpServletRequest request, HttpServletResponse response,
+    private void  handleListUsers(HttpServletRequest request, HttpServletResponse response,
                                  UserContext userContext)
             throws IOException, SQLException, CustomException {
 
@@ -191,6 +189,12 @@ public class UserServlet extends HttpServlet {
         int offset = parseIntOrDefault(request.getParameter("offset"), 0);
 
         List<UserSummary> users = userService.getAllUsers(limit, offset, null, role);
+
+        if (users.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "No records found"));
+            return;
+        }
 
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), users);

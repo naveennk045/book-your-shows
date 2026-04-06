@@ -126,7 +126,7 @@ public class SeatServlet extends HttpServlet {
         List<SeatRowResponse> seatLayout = seatService.getSeatsByScreenId(screenId, theatreId);
 
         if (seatLayout.isEmpty()) {
-            writeError(response, HttpServletResponse.SC_NOT_FOUND, "Seats not found");
+            writeError(response, HttpServletResponse.SC_OK, "Seats not found");
             return;
         }
 
