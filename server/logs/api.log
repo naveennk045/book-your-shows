@@ -1,0 +1,15 @@
+2026-04-06 11:01:13.204 [http-nio-8080-exec-127] INFO  o.b.core.DispatcherServlet [reqId=] [method=] [uri=] - Handled public request, method=GET uri=/api/movies/6 servlet=MovieServlet
+2026-04-06 11:14:29 [INFO] - Request received: GET /api/movies/6
+2026-04-06 11:14:29 [INFO] - Processing public request: GET /api/movies/6
+2026-04-06 11:14:29 [INFO] - Request received: GET /api/movies/6
+2026-04-06 11:14:29 [INFO] - Processing public request: GET /api/movies/6
+2026-04-06 11:15:07 [INFO] - Request received: GET /api/theatres/1
+2026-04-06 11:15:07 [WARN] - Invalid JWT: GET /api/theatres/1
+2026-04-06 11:15:17 [INFO] - Request received: GET /api/theatres/1
+2026-04-06 11:15:17 [WARN] - Authorization missing: GET /api/theatres/1
+2026-04-06 11:15:34 [INFO] - Request received: GET /api/theatres/1
+2026-04-06 11:15:34 [WARN] - Invalid JWT: GET /api/theatres/1
+2026-04-06 11:15:52 [INFO] - Request received: GET /api/theatres/1
+2026-04-06 11:15:52 [INFO] - Processing protected request: GET /api/theatres/1
+2026-04-06 11:15:59 [INFO] - Request received: GET /api/theatres/1
+2026-04-06 11:15:59 [INFO] - Processing protected request: GET /api/theatres/1
