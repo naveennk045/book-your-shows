@@ -1,6 +1,7 @@
 package org.bookyourshows.servlet;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,9 @@ import org.bookyourshows.dto.booking.*;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.BookingService;
+import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -22,6 +26,9 @@ public class BookingServlet extends HttpServlet {
 
     private final BookingService bookingService;
     private final ObjectMapper objectMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(BookingServlet.class);
+
 
     public BookingServlet() {
         this.bookingService = new BookingService();
@@ -69,9 +76,13 @@ public class BookingServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
         } catch (SQLException e) {
-            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            log.error("DB failure while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -100,9 +111,13 @@ public class BookingServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
         } catch (SQLException e) {
-            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            log.error("DB failure while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database err");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -220,7 +235,7 @@ public class BookingServlet extends HttpServlet {
         BookingCreateRequest createReq;
         try {
             createReq = objectMapper.readValue(request.getReader(), BookingCreateRequest.class);
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
             return;
         }

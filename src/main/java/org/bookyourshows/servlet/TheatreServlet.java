@@ -17,6 +17,8 @@ import org.bookyourshows.dto.theatre.TheatreUpdateRequest;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.TheatreService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.io.IOException;
@@ -29,6 +31,8 @@ public class TheatreServlet extends HttpServlet {
 
     private final TheatreService theatreService;
     private final ObjectMapper objectMapper;
+    private static final Logger log = LoggerFactory.getLogger(TheatreServlet.class);
+
 
     public TheatreServlet() {
         this.theatreService = new TheatreService();
@@ -63,9 +67,13 @@ public class TheatreServlet extends HttpServlet {
             handleListTheatres(request, response, userContext);
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -96,9 +104,11 @@ public class TheatreServlet extends HttpServlet {
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
-        } catch (RuntimeException e) {
-            writeError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -126,10 +136,15 @@ public class TheatreServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Theatre id is required");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
+
     }
 
 /*    @Override

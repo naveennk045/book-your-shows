@@ -15,6 +15,8 @@ import org.bookyourshows.dto.seat.SeatUpdateRequest;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.SeatService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,6 +27,7 @@ public class SeatServlet extends HttpServlet {
 
     private final SeatService seatService;
     private final ObjectMapper objectMapper;
+    private static final Logger log = LoggerFactory.getLogger(SeatServlet.class);
 
     public SeatServlet() {
         this.seatService = new SeatService();
@@ -39,8 +42,6 @@ public class SeatServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
 
         String[] parts = splitPath(request);
 
@@ -55,9 +56,13 @@ public class SeatServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -81,9 +86,13 @@ public class SeatServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_NOT_FOUND, "No route found");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -106,9 +115,13 @@ public class SeatServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "seat_id is required");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -146,7 +159,8 @@ public class SeatServlet extends HttpServlet {
 
         List<SeatCreateRequest> seats;
         try {
-            seats = objectMapper.readValue(request.getReader(), new TypeReference<List<SeatCreateRequest>>() {});
+            seats = objectMapper.readValue(request.getReader(), new TypeReference<List<SeatCreateRequest>>() {
+            });
         } catch (JsonProcessingException e) {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON body");
             return;

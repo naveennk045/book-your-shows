@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AdminService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -17,6 +19,8 @@ public class AdminServlet extends HttpServlet {
 
     private final ObjectMapper objectMapper;
     private final AdminService adminService;
+    private static final Logger log = LoggerFactory.getLogger(AdminServlet.class);
+
 
     public AdminServlet() {
         this.adminService = new AdminService();
@@ -24,15 +28,17 @@ public class AdminServlet extends HttpServlet {
         this.objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         this.objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
         this.objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     }
 
     public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         String[] parts = splitPath(request);
 
+        Integer theatreId = null;
         try {
             // /admin/theatre/{theatre_id}/aprrove
-            Integer theatreId = Integer.valueOf(parts[3]);
+            theatreId = Integer.valueOf(parts[3]);
 
             if (parts.length == 5 && parts[4].equals("approve")) {
                 boolean isApproved = this.adminService.updateTheatreStatus(theatreId, "APPROVED");
@@ -53,12 +59,14 @@ public class AdminServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid theater_id");
         } catch (SQLException e) {
-            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            log.error("DB failure while updating theatre status. theatreId={}", theatreId, e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
-
-
     }
 
     private String[] splitPath(HttpServletRequest request) {
@@ -70,5 +78,4 @@ public class AdminServlet extends HttpServlet {
         response.setStatus(status);
         objectMapper.writeValue(response.getWriter(), Map.of("error_message", message));
     }
-
 }

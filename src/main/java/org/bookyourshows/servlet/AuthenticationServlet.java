@@ -12,6 +12,8 @@ import org.bookyourshows.dto.user.UserDetails;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.AuthenticationService;
 import org.bookyourshows.utils.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,6 +23,8 @@ public class AuthenticationServlet extends HttpServlet {
 
     private final AuthenticationService authenticationService;
     private final ObjectMapper objectMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationServlet.class);
 
     public AuthenticationServlet() {
         this.authenticationService = new AuthenticationService();
@@ -107,9 +111,13 @@ public class AuthenticationServlet extends HttpServlet {
             }
 
         } catch (SQLException | RuntimeException e) {
+            log.error("Error while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 

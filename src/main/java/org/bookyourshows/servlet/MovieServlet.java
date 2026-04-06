@@ -12,6 +12,8 @@ import org.bookyourshows.dto.movie.*;
 import org.bookyourshows.dto.user.UserContext;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.MovieService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -23,6 +25,9 @@ public class MovieServlet extends HttpServlet {
 
     private final MovieService movieService;
     private final ObjectMapper objectMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(MovieServlet.class);
+
 
     public MovieServlet() {
         this.movieService = new MovieService();
@@ -49,9 +54,13 @@ public class MovieServlet extends HttpServlet {
             handleListMovies(request, response);
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -70,9 +79,13 @@ public class MovieServlet extends HttpServlet {
         try {
             handleCreateMovie(request, response);
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -102,9 +115,13 @@ public class MovieServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "Movie id is required");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        }catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 

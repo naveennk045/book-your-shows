@@ -14,6 +14,8 @@ import org.bookyourshows.dto.user.UserSummary;
 import org.bookyourshows.dto.user.UserUpdateRequest;
 import org.bookyourshows.exceptions.CustomException;
 import org.bookyourshows.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,6 +27,9 @@ public class UserServlet extends HttpServlet {
 
     private final UserService userService;
     private final ObjectMapper objectMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(UserServlet.class);
+
 
     public UserServlet() {
         this.userService = new UserService();
@@ -60,9 +65,13 @@ public class UserServlet extends HttpServlet {
             handleListUsers(request, response, userContext);
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -92,9 +101,13 @@ public class UserServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "user_id is required");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -118,9 +131,13 @@ public class UserServlet extends HttpServlet {
             writeError(response, HttpServletResponse.SC_BAD_REQUEST, "user_id is required");
 
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error");
         } catch (CustomException e) {
             writeError(response, e.getStatusCode(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Error occurred while processing the request, error : ", e);
+            writeError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
     }
 
@@ -160,7 +177,7 @@ public class UserServlet extends HttpServlet {
         objectMapper.writeValue(response.getWriter(), address.get());
     }
 
-    private void  handleListUsers(HttpServletRequest request, HttpServletResponse response,
+    private void handleListUsers(HttpServletRequest request, HttpServletResponse response,
                                  UserContext userContext)
             throws IOException, SQLException, CustomException {
 

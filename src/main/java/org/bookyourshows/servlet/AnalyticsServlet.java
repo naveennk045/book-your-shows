@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bookyourshows.service.TheatreService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -26,6 +28,9 @@ public class AnalyticsServlet extends HttpServlet {
     private final AnalyticsService analyticsService;
     private final ObjectMapper objectMapper;
     private final TheatreService theatreService;
+
+    private static final Logger log = LoggerFactory.getLogger(AnalyticsServlet.class);
+
 
     public AnalyticsServlet() {
         this.analyticsService = new AnalyticsService();
@@ -171,11 +176,13 @@ public class AnalyticsServlet extends HttpServlet {
             response.setStatus(e.getStatusCode());
             objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Database error"));
         } catch (Exception e) {
+            log.error("An unknown error occurred while processing the request", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Internal server error"));
         }
     }
 
@@ -243,13 +250,14 @@ public class AnalyticsServlet extends HttpServlet {
                 objectMapper.writeValue(response.getWriter(), body);
             }
 
-        } catch (NumberFormatException ex) {
+        } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(response.getWriter(),
                     Map.of("message", "Invalid numeric parameter"));
-        } catch (SQLException ex) {
+        } catch (SQLException e) {
+            log.error("DB failure while processing the request, error : ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(response.getWriter(), Map.of("message", ex.getMessage()));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", e.getMessage()));
         }
     }
 
