@@ -35843,3 +35843,166 @@ Stopping Seat Release Scheduler
 		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
 		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
 		at java.base/java.lang.Thread.run(Thread.java:1474)
+2026-04-06 15:50:39 [INFO] [TokenWhitelistFilter] - Request received: GET /api/theatres/1
+2026-04-06 15:50:39 [INFO] [DispatcherServlet] - Processing protected request: GET /api/theatres/1
+2026-04-06 15:50:42 [INFO] [TokenWhitelistFilter] - Request received: GET /api/theatres
+2026-04-06 15:50:42 [INFO] [DispatcherServlet] - Processing protected request: GET /api/theatres
+2026-04-06 15:50:43 [INFO] [TokenWhitelistFilter] - Request received: GET /api/theatres
+2026-04-06 15:50:43 [INFO] [DispatcherServlet] - Processing protected request: GET /api/theatres
+Shows marked completed: 1
+2026-04-07 11:19:00 [INFO] [TokenWhitelistFilter] - Request received: GET /api/theatres
+2026-04-07 11:19:00 [WARN] [TokenWhitelistFilter] - Invalid JWT: GET /api/theatres
+07-Apr-2026 11:23:00.391 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/api]
+2026-04-07 11:23:00 [INFO] [AppInitializer] - App stopping → shutting down scheduler
+Stopping Seat Release Scheduler
+07-Apr-2026 11:23:00.398 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesJdbc The web application [api] registered the JDBC driver [com.mysql.cj.jdbc.Driver] but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
+07-Apr-2026 11:23:00.398 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [api] appears to have started a thread named [mysql-cj-abandoned-connection-cleanup] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base/java.lang.Object.wait0(Native Method)
+ java.base/java.lang.Object.wait(Object.java:389)
+ java.base/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:123)
+ java.base/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:201)
+ com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:84)
+ java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+ java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+ java.base/java.lang.Thread.run(Thread.java:1474)
+07-Apr-2026 11:23:00.398 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [api] appears to have started a thread named [commons-pool-evictor] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)
+ java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)
+ java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1166)
+ java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:883)
+ java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1016)
+ java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)
+ java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+ java.base/java.lang.Thread.run(Thread.java:1474)
+07-Apr-2026 11:23:00.413 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/Users/naveen-nts0470/devhub/bookyourshow/server/webapps/api.war]
+07-Apr-2026 11:23:00.428 INFO [mysql-cj-abandoned-connection-cleanup] org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading Illegal access: this web application instance has been stopped already. Could not load []. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+	java.lang.IllegalStateException: Illegal access: this web application instance has been stopped already. Could not load []. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+		at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading(WebappClassLoaderBase.java:1396)
+		at org.apache.catalina.loader.WebappClassLoaderBase.getResource(WebappClassLoaderBase.java:984)
+		at com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.checkThreadContextClassLoader(AbandonedConnectionCleanupThread.java:116)
+		at com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:83)
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+		at java.base/java.lang.Thread.run(Thread.java:1474)
+07-Apr-2026 11:23:00.712 INFO [Catalina-utility-2] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+2026-04-07 11:23:00 [INFO] [AppInitializer] - App started → initializing scheduler and Redis cache for databases
+2026-04-07 11:23:00 [INFO] [AppInitializer] - Redis: index 'idx:movieDetails' ensured
+2026-04-07 11:23:00 [INFO] [AppInitializer] - MySQL: loaded 16 movieDetails
+2026-04-07 11:23:00 [INFO] [AppInitializer] - Redis: bulk loaded 16 movieDetails (upsert-only)
+2026-04-07 11:23:00 [INFO] [AppInitializer] - Redis: index 'idx:theatres' ensured
+2026-04-07 11:23:00 [INFO] [AppInitializer] - MySQL: loaded 6 theatres
+2026-04-07 11:23:00 [INFO] [AppInitializer] - Redis: bulk loaded 6 theatres (upsert-only)
+2026-04-07 11:23:00 [INFO] [AppInitializer] - Redis: index 'idx:shows' ensured
+2026-04-07 11:23:00 [INFO] [AppInitializer] - MySQL: loaded 18 shows
+2026-04-07 11:23:00 [INFO] [AppInitializer] - Redis: bulk loaded 18 shows (upsert-only)
+07-Apr-2026 11:23:00.979 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/Users/naveen-nts0470/devhub/bookyourshow/server/webapps/api.war] has finished in [565] ms
+2026-04-07 18:51:53 [INFO] [TokenWhitelistFilter] - Request received: GET /api/movies
+2026-04-07 18:51:53 [INFO] [DispatcherServlet] - Processing public request: GET /api/movies
+2026-04-07 18:51:54 [INFO] [TokenWhitelistFilter] - Request received: GET /api/movies
+2026-04-07 18:51:54 [INFO] [DispatcherServlet] - Processing public request: GET /api/movies
+08-Apr-2026 11:05:52.573 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.undeploy Undeploying context [/api]
+2026-04-08 11:05:52 [INFO] [AppInitializer] - App stopping → shutting down scheduler
+08-Apr-2026 11:05:52.581 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesJdbc The web application [api] registered the JDBC driver [com.mysql.cj.jdbc.Driver] but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
+08-Apr-2026 11:05:52.582 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [api] appears to have started a thread named [pool-28-thread-1] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)
+ java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)
+ java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1166)
+ java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:883)
+ java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1016)
+ java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)
+ java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+ java.base/java.lang.Thread.run(Thread.java:1474)
+08-Apr-2026 11:05:52.582 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [api] appears to have started a thread named [mysql-cj-abandoned-connection-cleanup] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base/java.lang.Object.wait0(Native Method)
+ java.base/java.lang.Object.wait(Object.java:389)
+ java.base/java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:123)
+ java.base/java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:201)
+ com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:84)
+ java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+ java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+ java.base/java.lang.Thread.run(Thread.java:1474)
+08-Apr-2026 11:05:52.582 WARNING [Catalina-utility-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [api] appears to have started a thread named [commons-pool-evictor] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.base/jdk.internal.misc.Unsafe.park(Native Method)
+ java.base/java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:271)
+ java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1803)
+ java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:1166)
+ java.base/java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ScheduledThreadPoolExecutor.java:883)
+ java.base/java.util.concurrent.ThreadPoolExecutor.getTask(ThreadPoolExecutor.java:1016)
+ java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1076)
+ java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+ java.base/java.lang.Thread.run(Thread.java:1474)
+08-Apr-2026 11:05:52.585 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deploying web application archive [/Users/naveen-nts0470/devhub/bookyourshow/server/webapps/api.war]
+08-Apr-2026 11:05:52.901 INFO [Catalina-utility-2] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+2026-04-08 11:05:52 [INFO] [AppInitializer] - App started → initializing scheduler and Redis cache for databases
+2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: index 'idx:movieDetails' ensured
+2026-04-08 11:05:53 [INFO] [AppInitializer] - MySQL: loaded 16 movieDetails
+2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: bulk loaded 16 movieDetails (upsert-only)
+2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: index 'idx:theatres' ensured
+2026-04-08 11:05:53 [INFO] [AppInitializer] - MySQL: loaded 6 theatres
+2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: bulk loaded 6 theatres (upsert-only)
+2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: index 'idx:shows' ensured
+2026-04-08 11:05:53 [INFO] [AppInitializer] - MySQL: loaded 18 shows
+2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: bulk loaded 18 shows (upsert-only)
+08-Apr-2026 11:05:53.183 INFO [Catalina-utility-2] org.apache.catalina.startup.HostConfig.deployWAR Deployment of web application archive [/Users/naveen-nts0470/devhub/bookyourshow/server/webapps/api.war] has finished in [599] ms
+08-Apr-2026 11:05:54.601 INFO [mysql-cj-abandoned-connection-cleanup] org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading Illegal access: this web application instance has been stopped already. Could not load []. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+	java.lang.IllegalStateException: Illegal access: this web application instance has been stopped already. Could not load []. The following stack trace is thrown for debugging purposes as well as to attempt to terminate the thread which caused the illegal access.
+		at org.apache.catalina.loader.WebappClassLoaderBase.checkStateForResourceLoading(WebappClassLoaderBase.java:1396)
+		at org.apache.catalina.loader.WebappClassLoaderBase.getResource(WebappClassLoaderBase.java:984)
+		at com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.checkThreadContextClassLoader(AbandonedConnectionCleanupThread.java:116)
+		at com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.run(AbandonedConnectionCleanupThread.java:83)
+		at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+		at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+		at java.base/java.lang.Thread.run(Thread.java:1474)
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db
+Error updating show status: No suitable driver found for jdbc:mysql://localhost:3306/book_your_shows_db

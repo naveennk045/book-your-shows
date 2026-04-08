@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="lib2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/gson-2.13.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/logback-core-1.5.32.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jedis-7.2.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/bcrypt-0.10.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jackson-annotations-2.21.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/mysql-connector-j-9.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jjwt-impl-0.11.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/commons-pool2-2.12.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/logback-classic-1.5.32.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jjwt-api-0.11.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/slf4j-api-2.0.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jackson-core-2.21.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/protobuf-java-4.31.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jackson-databind-2.21.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/redis-authx-core-0.1.1-beta2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/json-20250517.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/jjwt-jackson-0.11.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/error_prone_annotations-2.41.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/webapps/api/WEB-INF/lib/bytes-1.5.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

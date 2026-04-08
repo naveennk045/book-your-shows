@@ -36,7 +36,7 @@ public class AppInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        log.info("App started → initializing scheduler and Redis cache");
+        log.info("App started → initializing scheduler and Redis cache for databases");
         TaskScheduler.start();
         initializeMovieRedisCache();
         initializeTheatreRedisCache();

@@ -79,6 +79,7 @@ public class TheatreService {
 
         boolean updated = theatreRepository.updateTheatreAddress(theatreId, request);
         if (!updated) throw new ResourceNotFoundException("Theatre address not found");
+        theatreRepository.updateTheatreStatus(theatreId,"PENDING");
 
         theatreRepository.getTheatreById(theatreId).ifPresent(theatreCacheRepository::update);
     }
