@@ -1,10 +1,2 @@
-2026-04-08 11:05:52 [INFO] [AppInitializer] - App started → initializing scheduler and Redis cache for databases
-2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: index 'idx:movieDetails' ensured
-2026-04-08 11:05:53 [INFO] [AppInitializer] - MySQL: loaded 16 movieDetails
-2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: bulk loaded 16 movieDetails (upsert-only)
-2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: index 'idx:theatres' ensured
-2026-04-08 11:05:53 [INFO] [AppInitializer] - MySQL: loaded 6 theatres
-2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: bulk loaded 6 theatres (upsert-only)
-2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: index 'idx:shows' ensured
-2026-04-08 11:05:53 [INFO] [AppInitializer] - MySQL: loaded 18 shows
-2026-04-08 11:05:53 [INFO] [AppInitializer] - Redis: bulk loaded 18 shows (upsert-only)
+2026-04-09 12:31:31 [INFO] [TokenWhitelistFilter] - Request received: POST /api/auth/login
+2026-04-09 12:31:31 [INFO] [DispatcherServlet] - Processing public request: POST /api/auth/login

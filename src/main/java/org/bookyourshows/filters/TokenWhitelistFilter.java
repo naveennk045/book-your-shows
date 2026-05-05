@@ -36,7 +36,7 @@ public class TokenWhitelistFilter implements Filter {
         String method = request.getMethod();
         String uri = request.getRequestURI();
 
-        log.info("Request received: {} {}", method, uri);
+        log.info("Request received: {} {}", method,  uri);
 
         String authHeader = request.getHeader("Authorization");
 
